@@ -13,7 +13,7 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "string"
 import "vector"
@@ -225,7 +225,7 @@ void SquadsDialog.CreateSquad() {
 				}
 				++squad;
 		}
-		squad = std.min(squad, (signed int)Game.Inst().squadList.size()-1);
+		squad = Math.min(squad, (signed int)Game.Inst().squadList.size()-1);
 		squadList.Select(squad);
 		SelectSquad(squad);
 	}
@@ -249,7 +249,7 @@ void SquadsDialog.ModifySquad() {
 			}
 			++squad;
 	}
-	squad = std.min(squad, (signed int)Game.Inst().squadList.size()-1);
+	squad = Math.min(squad, (signed int)Game.Inst().squadList.size()-1);
 	squadList.Select(squad);
 	SelectSquad(squad);
 

@@ -13,438 +13,311 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "boost/enable_shared_from_this.js"
-import "libtcod.js"
-import "Coordinate.js"
-import "data/Serialization.js"
+
+import {
+	Coordinate
+} from "Coordinate.js"
 
 const RIVERDEPTH = 5000;
 
-class WaterNode  extends /*public*/ boost.enable_shared_from_this<WaterNode> {
-	GC_SERIALIZABLE_CLASS
-	
-	Coordinate pos;
-	int depth;
-	int graphic;
-	TCODColor color;
-	int inertCounter;
-	bool inert;
-	int timeFromRiverBed;
-	int filth;
-	bool coastal;
-//public:
-	WaterNode(const Coordinate& pos = undefined, int depth = 0, int time = 0);
-	~WaterNode();
+class WaterNode {
+	static CLASS_VERSION = 0;
+	pos = new Coordinate();
+	depth = 0;
+	graphic = '?';
+	color = [, , ];
+	inertCounter = 0;
+	inert = false;
+	timeFromRiverBed = 0;
+	filth = 0;
+	coastal = false;
 
-	Coordinate Position();
-	void Position(const Coordinate&);
-	int X();
-	int Y();
-	void X(int);
-	void Y(int);
-
-	bool Update();
-	void MakeInert();
-	void DeInert();
-	int Depth();
-	void Depth(int);
-	void UpdateGraphic();
-	void AddFilth(int);
-	int GetFilth();
-	int GetGraphic();
-	TCODColor GetColor();
-	bool IsCoastal();
-};
-
-BOOST_CLASS_VERSION(WaterNode, 0)
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "cmath.js"
-
-import "libtcod.js"
-import "boost/lexical_cast.js"
-import "boost/weak_ptr.js"
-
-import "Random.js"
-import "Logger.js"
-import "Water.js"
-import "Game.js"
-import "Map.js"
-import "GCamp.js"
-import "Coordinate.js"
-import "Stats.js"
-
-WaterNode.WaterNode(const Coordinate& pos, int vdepth, int time) :
-	pos(pos), depth(vdepth),
-	graphic('?'), color(TCODColor(0,128,255)),
-	inertCounter(0), inert(false),
-	timeFromRiverBed(time),
-	filth(0),
-	coastal(false)
-{
-	UpdateGraphic();
-}
-
-WaterNode.~WaterNode() {}
-
-Coordinate WaterNode.Position() {
-	return pos;
-}
-void WaterNode.Position(const Coordinate& p) {
-	pos = p;
-}
-
-int WaterNode.X() {
-	return pos.X();
-}
-void WaterNode.X(int x) {
-	pos.X(x);
-}
-int WaterNode.Y() {
-	return pos.Y();
-}
-void WaterNode.Y(int y) {
-	pos.Y(y);
-}
-
-//Returns true if this WaterNode should be destroyed
-bool WaterNode.Update() {
-	double divided;
-
-	if (inert) {
-		++inertCounter;
+	constructor(pos = Coordinate.undefinedCoordinate, vdepth = 0, time = 0) {
+		this.pos = pos;
+		this.depth = vdepth;
+		this.color = [0, 128, 255];
+		this.timeFromRiverBed = time;
+		this.UpdateGraphic();
 	}
 
-	if (!inert || inertCounter > (UPDATES_PER_SECOND*1)) {
+	Position(p) {
+		if (p !== undefined && p instanceof Coordinate)
+			this.pos = p;
+		return this.pos;
+	}
 
-		if (Map.Inst().GetType(pos) == TILERIVERBED) {
-			timeFromRiverBed = 1000;
-			if (depth < RIVERDEPTH) depth = RIVERDEPTH;
+	X(x) {
+		return this.pos.X(x);
+	}
+	Y(y) {
+		return this.pos.Y(y);
+	}
+
+
+	MakeInert() {
+		this.inert = true;
+	}
+	DeInert() {
+		this.inert = false;
+	}
+	Depth(newDepth) {
+		if (newDepth !== undefined && Number.isFinite(Number(newDepth))) {
+			//20 because water can't add more cost to pathing calculations
+			if (this.depth <= 20 && newDepth <= 20 && this.depth != newDepth)
+				Map.Inst().TileChanged(this.pos);
+			this.depth = newDepth;
+			this.UpdateGraphic();
+		}
+		return this.depth;
+	}
+	AddFilth(newFilth) {
+		this.filth += newFilth;
+	}
+	GetFilth() {
+		return this.filth;
+	}
+	GetGraphic() {
+		return this.graphic;
+	}
+	GetColor() {
+		return this.color;
+	}
+	IsCoastal() {
+		return this.coastal;
+	}
+	UpdateGraphic() {
+		if (this.depth == 0) {
+			this.graphic = ' ';
+		} else if (this.depth == 2) {
+			this.graphic = TCOD_CHAR_BLOCK3;
+		} else if (this.depth == 1) {
+			this.graphic = '.';
+		} else {
+			this.graphic = 219;
 		}
 
-		inertCounter = 0;
+		let col = Math.max(255 - Math.round(this.depth / 25), 140);
+		if (this.color[2] < Math.max(col - (this.filth * 20), 0)) ++this.color[2];
+		if (this.color[2] > Math.max(col - (this.filth * 20), 0)) --this.color[2];
 
-		if (depth > 1) {
+		if (this.color[1] < Math.max(col / 4, Math.min(this.filth * 10, 150))) ++this.color[1];
+		if (this.color[1] > Math.max(col / 4, Math.min(this.filth * 10, 150))) --this.color[1];
 
-			if (timeFromRiverBed == 0 && Random.Generate(100) == 0) depth -= 1; //Evaporation
-			if (timeFromRiverBed > 0 && depth < RIVERDEPTH) depth += 10; //Water rushing from the river
+		if (this.color[1] < Math.min(this.filth * 10, 190)) this.color[1] += 10;
+		if (this.color[1] > Math.min(this.filth * 10, 190)) this.color[1] -= 10;
 
-			std.vector<boost.weak_ptr<WaterNode> > waterList;
-			std.vector<Coordinate> coordList;
-			int depthSum = 0;
+		if (Random.Generate(39) == 0 && this.color[2] < 200) this.color[2] += 20;
+		if (Random.Generate(9999) == 0 && this.color[1] < 225) this.color[1] += Random.Generate(24);
+	}
 
-			//Check if any of the surrounding tiles are low, this only matters if this tile is not low
-			bool onlyLowTiles = false;
-			if (!Map.Inst().IsLow(pos)) {
-				for (int ix = pos.X()-1; ix <= pos.X()+1; ++ix) {
-					for (int iy = pos.Y()-1; iy <= pos.Y()+1; ++iy) {
-						Coordinate p(ix,iy);
-						if (Map.Inst().IsInside(p)) {
-							if (p != pos && Map.Inst().IsLow(p)) { 
-								onlyLowTiles = true;
-								break;
-							}
-						} else if (filth > 0) { //Filth dissipates at borderwaters
-							--filth;
-						}
-					}
-				}
+	//Returns true if this WaterNode should be destroyed
+	Update() {
+		let divided = 0;
+
+		if (this.inert) {
+			++this.inertCounter;
+		}
+
+		if (this.inert && this.inertCounter <= UPDATES_PER_SECOND) return;
+		// if (!inert || inertCounter > (UPDATES_PER_SECOND * 1)) {
+
+		if (Map.Inst().GetType(this.pos) == TileType.TILERIVERBED) {
+			this.timeFromRiverBed = 1000;
+			if (this.depth < RIVERDEPTH) this.depth = RIVERDEPTH;
+		}
+
+		this.inertCounter = 0;
+		if (this.depth <= 1) {
+			let soakage = 500;
+			let type = Map.Inst().GetType(this.pos);
+			if (type == TileType.TILEGRASS)
+				soakage = 10;
+			else if (type == TileType.TILEBOG)
+				soakage = 0;
+			if (Random.Generate(soakage) == 0) {
+				this.depth = 0;
+				return true; //Water has evaporated
 			}
+			return false;
+		}
 
-			coastal = false; //Have to always check if this water is coastal, terrain can change
-			for (int ix = pos.X()-1; ix <= pos.X()+1; ++ix) {
-				for (int iy = pos.Y()-1; iy <= pos.Y()+1; ++iy) {
-					Coordinate p(ix,iy);
+
+		if (this.timeFromRiverBed == 0 && Random.Generate(100) == 0) this.depth -= 1; //Evaporation
+		if (this.timeFromRiverBed > 0 && this.depth < RIVERDEPTH) this.depth += 10; //Water rushing from the river
+
+		let waterList = [];
+		let coordList = [];
+		let depthSum = 0;
+
+		//Check if any of the surrounding tiles are low, this only matters if this tile is not low
+		let onlyLowTiles = false;
+		if (!Map.Inst().IsLow(this.pos)) {
+			for (let ix = this.pos.X() - 1; ix <= this.pos.X() + 1; ++ix) {
+				for (let iy = this.pos.Y() - 1; iy <= this.pos.Y() + 1; ++iy) {
+					let p = new Coordinate(ix, iy);
 					if (Map.Inst().IsInside(p)) {
-						if (!coastal) {
-							TileType tile = Map.Inst().GetType(p);
-							if (tile != TILENONE && tile != TILEDITCH && tile != TILERIVERBED) coastal = true;
-							if (Map.Inst().GetNatureObject(p) >= 0) coastal = true;
+						if (p.isNotEqualTo(this.pos) && Map.Inst().IsLow(p)) {
+							onlyLowTiles = true;
+							break;
 						}
-						/*Choose the surrounding tiles that:
-						Are the same height or low
-						or in case of [onlyLowTiles] are low
-						depth > RIVERDEPTH*3 at which point it can overflow upwards*/
-						if (((!onlyLowTiles && Map.Inst().IsLow(pos) == Map.Inst().IsLow(p))
-							  || depth > RIVERDEPTH*3 || Map.Inst().IsLow(p))
-							&& !Map.Inst().BlocksWater(p)) {
-							//If we're choosing only low tiles, then this tile should be ignored completely
-							if (!onlyLowTiles || p != pos) {
-								waterList.push_back(Map.Inst().GetWater(p));
-								coordList.push_back(p);
-								if (waterList.back().lock()) depthSum += waterList.back().lock().depth;
-							}
+					} else if (this.filth > 0) { //Filth dissipates at borderwaters
+						--this.filth;
+					}
+				}
+			}
+		}
+
+		this.coastal = false; //Have to always check if this water is coastal, terrain can change
+		for (let ix = this.pos.X() - 1; ix <= this.pos.X() + 1; ++ix) {
+			for (let iy = this.pos.Y() - 1; iy <= this.pos.Y() + 1; ++iy) {
+				let p = new Coordinate(ix, iy);
+				if (Map.Inst().IsInside(p)) {
+					if (!this.coastal) {
+						let tile = Map.Inst().GetType(p);
+						if (tile != TileType.TILENONE && tile != TileType.TILEDITCH && tile != TileType.TILERIVERBED) this.coastal = true;
+						if (Map.Inst().GetNatureObject(p)) this.coastal = true;
+					}
+					/*Choose the surrounding tiles that:
+					Are the same height or low
+					or in case of [onlyLowTiles] are low
+					depth > RIVERDEPTH*3 at which point it can overflow upwards*/
+					if (((!onlyLowTiles && Map.Inst().IsLow(this.pos) == Map.Inst().IsLow(p)) ||
+							this.depth > RIVERDEPTH * 3 || Map.Inst().IsLow(p)) &&
+						!Map.Inst().BlocksWater(p)) {
+						//If we're choosing only low tiles, then this tile should be ignored completely
+						if (!onlyLowTiles || p != this.pos) {
+							waterList.push(Map.Inst().GetWater(p));
+							coordList.push(p);
+							if (waterList[waterList.length - 1].lock())
+								depthSum += waterList[waterList.length - 1].lock().depth;
 						}
 					}
 				}
 			}
+		}
 
-			if (timeFromRiverBed > 0) --timeFromRiverBed;
-			divided = ((double)depthSum/waterList.size());
+		if (this.timeFromRiverBed > 0) --this.timeFromRiverBed;
+		divided = depthSum / waterList.length;
 
-			boost.shared_ptr<Item> item;
-			if (!Map.Inst().ItemList(pos).empty())
-				item = Game.Inst().GetItem(*Map.Inst().ItemList(pos).begin()).lock();
+		let item;
+		if (!Map.Inst().ItemList(this.pos).empty())
+			item = Game.Inst().GetItem(Map.Inst().ItemList(this.pos)[0]).lock();
 
-			//Filth and items flow off the map
-			Direction flow = Map.Inst().GetFlow(pos);
-			Coordinate flowTarget = Coordinate.DirectionToCoordinate(flow) + pos;
-			if (!(Map.Inst().IsInside(flowTarget))) {
-					if (filth > 0) {
-						Stats.Inst().FilthFlowsOffEdge(std.min(filth, 10));
-						filth -= std.min(filth, 10);
-					}
-					if (item) {
-						Game.Inst().RemoveItem(item);
-						item.reset();
-					}
+		//Filth and items flow off the map
+		let flow = Map.Inst().GetFlow(this.pos);
+		let flowTarget = Coordinate.DirectionToCoordinate(flow) + this.pos;
+		if (!(Map.Inst().IsInside(flowTarget))) {
+			if (this.filth > 0) {
+				Stats.Inst().FilthFlowsOffEdge(Math.min(this.filth, 10));
+				this.filth -= Math.min(this.filth, 10);
 			}
+			if (item) {
+				Game.Inst().RemoveItem(item);
+				item.reset();
+			}
+		}
 
-			//Loop through neighbouring waternodes
-			for (unsigned int i = 0; i < waterList.size(); ++i) {
-				if (boost.shared_ptr<WaterNode> water = waterList[i].lock()) {
-					water.depth = (int)divided;
-					water.timeFromRiverBed = timeFromRiverBed;
-					water.UpdateGraphic();
+		//Loop through neighbouring waternodes
+		for (let i = 0; i < waterList.length; ++i) {
+			let water;
+			if (water = waterList[i].lock()) {
+				water.depth = divided;
+				water.timeFromRiverBed = this.timeFromRiverBed;
+				water.UpdateGraphic();
 
-					//So much filth it'll go anywhere
-					if (filth > 10 && Random.Generate(3) == 0) { filth -= 5; water.filth += 5; }
-					//Filth and items go with the flow
-					//TODO factorize
-					int x = pos.X(), y = pos.Y();
-					switch (flow) {
-					case NORTH:
-						if (coordList[i].Y() < y) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+				//So much filth it'll go anywhere
+				if (this.filth > 10 && Random.Generate(3) == 0) {
+					this.filth -= 5;
+					water.filth += 5;
+				}
+				//Filth and items go with the flow
+				//TODO factorize
+				let x = this.pos.X(),
+					y = this.pos.Y(),
+					doTheFlow = false;
+				switch (flow) {
+					case Direction.NORTH:
+						if (coordList[i].Y() < y) doTheFlow = true;
+						break;
+					case Direction.NORTHEAST:
+						if (coordList[i].Y() < y && coordList[i].X() > x) doTheFlow = true;
 						break;
 
-					case NORTHEAST:
-						if (coordList[i].Y() < y && coordList[i].X() > x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.EAST:
+						if (coordList[i].X() > x) doTheFlow = true;
 						break;
 
-					case EAST:
-						if (coordList[i].X() > x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.SOUTHEAST:
+						if (coordList[i].Y() > y && coordList[i].X() > x) doTheFlow = true;
 						break;
 
-					case SOUTHEAST:
-						if (coordList[i].Y() > y && coordList[i].X() > x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.SOUTH:
+						if (coordList[i].Y() > y) doTheFlow = true;
 						break;
 
-					case SOUTH:
-						if (coordList[i].Y() > y) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.SOUTHWEST:
+						if (coordList[i].Y() > y && coordList[i].X() < x) doTheFlow = true;
 						break;
 
-					case SOUTHWEST:
-						if (coordList[i].Y() > y && coordList[i].X() < x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.WEST:
+						if (coordList[i].X() < x) doTheFlow = true;
 						break;
 
-					case WEST:
-						if (coordList[i].X() < x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
-						break;
-
-					case NORTHWEST:
-						if (coordList[i].Y() < y && coordList[i].X() < x) {
-							if (filth > 0) {
-								--filth;
-								++water.filth;
-							}
-							if (item && Random.Generate(item.GetBulk()) == 0) {
-								item.Position(water.Position());
-								item.reset();
-							}
-						}
+					case Direction.NORTHWEST:
+						if (coordList[i].Y() < y && coordList[i].X() < x) doTheFlow = true;
 						break;
 
 					default:
-						if (filth > 0) {
-							if (water.filth < filth && Random.GenerateBool()) {
-								--filth;
+						if (this.filth > 0) {
+							if (water.filth < this.filth && Random.GenerateBool()) {
+								--this.filth;
 								++water.filth;
 							}
 						}
 						break;
-					}
-				} else {
-					Game.Inst().CreateWater(coordList[i], (int)divided, timeFromRiverBed);
 				}
+				if (doTheFlow) {
+					if (this.filth > 0) {
+						--this.filth;
+						++water.filth;
+					}
+					if (item && Random.Generate(item.GetBulk()) == 0) {
+						item.Position(water.Position());
+						item.reset();
+					}
+				}
+			} else {
+				Game.Inst().CreateWater(coordList[i], divided, this.timeFromRiverBed);
 			}
-
-			if (onlyLowTiles) {
-				depth = 1; //All of the water has flown to a low tile
-			}
-
-		} else {
-			int soakage = 500;
-			TileType type = Map.Inst().GetType(pos);
-			if (type == TILEGRASS) soakage = 10;
-			else if (type == TILEBOG) soakage = 0;
-			if (Random.Generate(soakage) == 0) {
-				depth = 0;
-				return true; //Water has evaporated
-			}
+		}
+		if (onlyLowTiles) {
+			this.depth = 1; //All of the water has flown to a low tile
 		}
 		return false;
 	}
-}
 
-void WaterNode.MakeInert() {inert = true;}
-void WaterNode.DeInert() {inert = false;}
-int WaterNode.Depth() {return depth;}
-
-void WaterNode.Depth(int newDepth) {
-	//20 because water can't add more cost to pathing calculations
-	if (depth <= 20 && newDepth <= 20 && depth != newDepth) Map.Inst().TileChanged(pos);
-	depth = newDepth;
-	UpdateGraphic();
-}
-
-void WaterNode.UpdateGraphic() {
-	if (depth == 0) {
-		graphic = ' ';
-	} else if (depth == 2) {
-		graphic = TCOD_CHAR_BLOCK3;
-	} else if (depth == 1) {
-		graphic = '.';
-	} else {
-		graphic = 219;
+	save(ar, version) {
+		ar.save(this, 'X', this.pos.X());
+		ar.save(this, 'Y', this.pos.Y());
+		ar.save(this, 'depth');
+		ar.save(this, 'graphic');
+		ar.save(this, 'r', this.color[0]);
+		ar.save(this, 'g', this.color[1]);
+		ar.save(this, 'b', this.color[2]);
+		ar.save(this, 'inertCounter');
+		ar.save(this, 'inert');
+		ar.save(this, 'timeFromRiverBed');
+		ar.save(this, 'filth');
 	}
-
-	int col = std.max(255-(int)(depth/25),140);
-	if (color.b < std.max(col-(filth*20), 0)) ++color.b;
-	if (color.b > std.max(col-(filth*20), 0)) --color.b;
-
-	if (color.g < std.max(col/4, std.min(filth*10,150))) ++color.g;
-	if (color.g > std.max(col/4, std.min(filth*10,150))) --color.g;
-
-	if (color.r < std.min(filth*10,190)) color.r += 10;
-	if (color.r > std.min(filth*10,190)) color.r -= 10;
-
-	if (Random.Generate(39) == 0 && color.b < 200) color.b += 20;
-	if (Random.Generate(9999) == 0 && color.g < 225) color.g += Random.Generate(24);
-}
-
-void WaterNode.AddFilth(int newFilth) { filth += newFilth; }
-int WaterNode.GetFilth() { return filth; }
-
-int WaterNode.GetGraphic()
-{
-	return graphic;
-}
-
-TCODColor WaterNode.GetColor()
-{
-	return color;
-}
-
-bool WaterNode.IsCoastal() { return coastal; }
-
-void WaterNode.save(OutputArchive& ar, const unsigned int version) const {
-	const int x = pos.X();
-	const int y = pos.Y();
-	ar & x;
-	ar & y;
-	ar & depth;
-	ar & graphic;
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & inertCounter;
-	ar & inert;
-	ar & timeFromRiverBed;
-	ar & filth;
-}
-
-void WaterNode.load(InputArchive& ar, const unsigned int version) {
-	int x, y;
-	ar & x;
-	ar & y;
-	pos = Coordinate(x,y);
-	ar & depth;
-	ar & graphic;
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & inertCounter;
-	ar & inert;
-	ar & timeFromRiverBed;
-	ar & filth;
+	load(ar, version) {
+		this.pos = new Coordinate(ar.x, ar.y);
+		this.depth = ar.depth;
+		this.graphic = ar.graphic;
+		this.color = [ar.r, ar.g, ar.b];
+		this.inertCounter = ar.inertCounter;
+		this.inert = ar.inert;
+		this.timeFromRiverBed = ar.timeFromRiverBed;
+		this.filth = ar.filth;
+	}
 }

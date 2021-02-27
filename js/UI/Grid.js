@@ -13,30 +13,113 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
+import {
+	Drawable
+}
+from './Drawable.js';
 
-import "UIComponents.js"
+export class Grid extends Drawable { //, public Scrollable {
+	cols = 0;
+	contents = [];
 
-class Grid extends /*public*/ Drawable, public Scrollable {
-//private:
-	int cols;
-	std.vector<Drawable *> contents;
-//public:
-	Grid(std.vector<Drawable *> ncontents, int ncols, int x, int y, int nwidth, int nheight):
-		Drawable(x, y, nwidth, nheight), cols(ncols), contents(ncontents) {}
-	void AddComponent(Drawable *component);
-	void RemoveAll();
-	void Draw(int, int, TCODConsole *);
-	void Draw(int x, int y, int scroll, int width, int height, TCODConsole *);
-	int TotalHeight();
-	MenuResult Update(int, int, bool, TCOD_key_t);
-	void GetTooltip(int, int, Tooltip *);
-};
+	constructor(ncontents, ncols, x, y, nwidth, nheight) {
+		super(x, y, nwidth, nheight);
+		this.cols = ncols;
+		this.contents = ncontents;
+	}
+
+	AddComponent(component) {
+		this.contents.push(component);
+	}
+
+	RemoveAll() {
+		this.contents = [];
+	}
+
+	Draw(x, y, ...args) {
+		let the_console = args.pop();
+		let scroll = 0,
+			_width = 0,
+			_height = 0;
+		if (args.length)
+			scroll = args.shift();
+		if (args.length)
+			_width = args.shift();
+		if (args.length)
+			_height = args.shift();
+
+		let col = 0;
+		let top = y;
+		let bottom = y + scroll + _height;
+		let colWidth = _width / cols;
+		let rowHeight = 0;
+		for (let component of this.contents.filter(component => component.Visible())) {
+			if (y - scroll >= top && y + component.Height() <= bottom) {
+				component.Draw(x + colWidth * col, y - scroll, the_console);
+			}
+			rowHeight = Math.max(rowHeight, component.Height());
+			col++;
+			if (col >= cols) {
+				col = 0;
+				y += rowHeight;
+				rowHeight = 0;
+			}
+		}
+	}
+
+	TotalHeight() {
+		let col = 0;
+		let rowHeight = 0;
+		let y = 0;
+		for (let component of this.contents.filter(component => component.Visible())) {
+			rowHeight = Math.max(rowHeight, component.Height());
+			col++;
+			if (col >= cols) {
+				col = 0;
+				y += rowHeight;
+				rowHeight = 0;
+			}
+		}
+		return y + rowHeight;
+	}
+
+	Update(x, y, clicked, key) {
+		let col = 0;
+		let colWidth = width / cols;
+		let rowHeight = 0;
+		for (let component of this.contents.filter(component => component.Visible())) {
+			let result = component.Update(x - this._x - col * (colWidth - 1), y - this._y, clicked, key);
+			if (!(result & MenuResult.NOMENUHIT)) {
+				return result;
+			}
+			rowHeight = Math.max(rowHeight, component.Height());
+			col++;
+			if (col >= cols) {
+				col = 0;
+				y -= rowHeight;
+				rowHeight = 0;
+			}
+		}
+		return MenuResult.NOMENUHIT;
+	}
+
+	GetTooltip(x, y, tooltip) {
+		super.GetTooltip(x, y, tooltip);
+		let col = 0;
+		let colWidth = width / cols;
+		let rowHeight = 0;
+		for (let component of this.contents.filter(component => component.Visible())) {
+			component.GetTooltip(x - this._x - col * colWidth, y - this._y, tooltip);
+			rowHeight = Math.max(rowHeight, component.Height());
+			col++;
+			if (col >= cols) {
+				col = 0;
+				y -= rowHeight;
+				rowHeight = 0;
+			}
+		}
+
+	}
+}

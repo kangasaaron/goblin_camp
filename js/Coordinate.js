@@ -13,25 +13,12 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-// import "boost/array.js"
-// import "cstdlib" // int abs(int)"
 
-//import "data/Serialization.js" //TODO
-import { defineEnum } from "./other/enums.js";
-
-export const Direction = defineEnum("Direction",
-    "NORTH",
-    "NORTHEAST",
-    "EAST",
-    "SOUTHEAST",
-    "SOUTH",
-    "SOUTHWEST",
-    "WEST",
-    "NORTHWEST",
-    "NODIRECTION",
-);
+import {
+    Direction
+}
+from "./Direction.js";
 
 function validCoordinate(coordinate, functionName, parameterName) {
     if (!coordinate)
@@ -49,17 +36,9 @@ function validCoordinate(coordinate, functionName, parameterName) {
 }
 
 export class Coordinate extends Array {
-    // GC_SERIALIZABLE_CLASS
-
-    // friend int Distance(const Coordinate&, const Coordinate&);
-    // friend std.size_t hash_value(const Coordinate&);
-
-    // int x, y;
-    // x = 0;
-    // y = 0;
-    //public extends 
+    static CLASS_VERSION = 0;
     constructor(x = 0, y = 0) {
-        super();
+        super(2);
         if (!Number.isFinite(x))
             throw new TypeError('Coordinate constructor parameter x must be a finite number');
         if (!Number.isFinite(y))
@@ -95,20 +74,18 @@ export class Coordinate extends Array {
         return new Coordinate(Math.max(p.x, q.x), Math.max(p.y, q.y));
     }
 
-    static DirectionToCoordinate(dir) { //static Coordinate DirectionToCoordinate(Direction dir) {
-        let coordsToDirs = //static boost.array<Coordinate,9> coordsToDirs = 
-            [ // gcc complains unless there are two level of braces
-                // see http://stackoverflow.com/questions/2687701/question-on-boost-array-initializer
-                new Coordinate(0, -1), // North
-                new Coordinate(1, -1), // North-east
-                new Coordinate(1, 0), // East
-                new Coordinate(1, 1), // South-east
-                new Coordinate(0, 1), // South
-                new Coordinate(-1, 1), // South-west
-                new Coordinate(-1, 0), // West
-                new Coordinate(-1, -1), // North-west
-                new Coordinate(0, 0) // No direction
-            ];
+    static DirectionToCoordinate(dir) {
+        let coordsToDirs = [
+            new Coordinate(0, -1), // North
+            new Coordinate(1, -1), // North-east
+            new Coordinate(1, 0), // East
+            new Coordinate(1, 1), // South-east
+            new Coordinate(0, 1), // South
+            new Coordinate(-1, 1), // South-west
+            new Coordinate(-1, 0), // West
+            new Coordinate(-1, -1), // North-west
+            new Coordinate(0, 0) // No direction
+        ];
         return coordsToDirs[dir];
     }
 
@@ -135,9 +112,6 @@ export class Coordinate extends Array {
 
        This latter form will avoid all kinds of copy-paste bugs.
     */
-    // X() const {
-    // 	return x;
-    // }
 
     X(v) {
         if (v !== undefined)
@@ -145,13 +119,6 @@ export class Coordinate extends Array {
         return this.x;
     }
 
-    // Y() const {
-    // 	return y;
-    // }
-
-    // Y(const int& v) {
-    // 	return y = v;
-    // }
     Y(v) {
         if (v !== undefined)
             this.y = v;
@@ -169,118 +136,69 @@ export class Coordinate extends Array {
     // 	else return y;
     // }
 
-    //useful for legacy TCOD interaction
-    // inline int *Xptr() {
-    // 	return &x;
-    // }
     Xptr() {
-            return this.x;
-        }
-        // inline int *Yptr() {
-        // 	return &y;
-        // }
+        return this.x;
+    }
     Yptr() {
         return this.y;
     }
 
     isLessThan(other) {
-            validCoordinate(other, "isLessThan", "other");
-            if (this.x !== other.x)
-                return this.x < other.x;
-            else
-                return this.y < other.y;
-        }
-        // inline bool operator<(const Coordinate& other) const {
-        // 	if (x != other.x) return x < other.x;
-        // 	else return y < other.y;
-        // }
-
-    // inline bool operator>(const Coordinate& other) const {
-    // 	return !(operator<(other));
-    // }
+        validCoordinate(other, "isLessThan", "other");
+        if (this.x !== other.x)
+            return this.x < other.x;
+        else
+            return this.y < other.y;
+    }
     isGreaterThan(other) {
         validCoordinate(other, "isGreaterThan", "other");
         return !(this.equals(other) && this.isLessThan(other));
     }
 
-    // inline bool operator==(const Coordinate& other) const {
-    // 	return (x == other.x && y == other.y);
-    // }
     equals(other) {
         validCoordinate(other, "equals", "other");
         return this.x === other.x && this.y === other.y;
     }
 
-    // inline bool operator!=(const Coordinate& other) const {
-    // 	return !(operator==(other));
-    // }
     isNotEqualTo(other) {
         validCoordinate(other, "isNotEqualTo", "other");
         return !this.equals(other);
     }
 
-    // inline Coordinate operator+(const int& scalar) const {
-    // 	return Coordinate(x + scalar, y + scalar);
-    // }
     addScalar(scalar) {
         if (!Number.isFinite(scalar))
             throw new TypeError('Coordinate addScalar "scalar" parameter must be a finite number');
         return new Coordinate(this.x + scalar, this.y + scalar);
     }
 
-    // inline Coordinate operator-(const int& scalar) const {
-    // 	return Coordinate(x - scalar, y - scalar);
-    // }
     minusScalar(scalar) {
         if (!Number.isFinite(scalar))
             throw new TypeError('Coordinate minusScalar "scalar" parameter must be a finite number');
         return new Coordinate(this.x - scalar, this.y - scalar);
     }
 
-    // inline Coordinate operator+(const Coordinate& other) const {
-    // 	return Coordinate(x + other.x, y + other.y);
-    // }
     addCoordinate(other) {
         validCoordinate(other, "addCoordinate", "other");
         return new Coordinate(this.x + other.x, this.y + other.y);
     }
 
-    // inline Coordinate operator-(const Coordinate& other) const {
-    // 	return Coordinate(x - other.x, y - other.y);
-    // }
     minusCoordinate(other) {
         validCoordinate(other, "minusCoordinate", "other");
         return new Coordinate(this.x - other.x, this.y - other.y);
     }
 
-    // inline Coordinate operator*(const int& scalar) const {
-    // 	return Coordinate(x * scalar, y * scalar);
-    // }
     timesScalar(scalar) {
         if (!Number.isFinite(scalar))
             throw new TypeError('Coordinate timesScalar "scalar" parameter must be a finite number');
         return new Coordinate(this.x * scalar, this.y * scalar);
     }
 
-    // inline Coordinate operator/(const int& scalar) const {
-    // 	return Coordinate(x / scalar, y / scalar);
-    // }
     dividedByScalar(scalar) {
         if (!Number.isFinite(scalar))
             throw new TypeError('Coordinate dividedByScalar "scalar" parameter must be a finite number');
         return new Coordinate(this.x / scalar, this.y / scalar);
     }
 
-    // inline Coordinate& operator+=(const Coordinate& other) {
-    // 	x += other.x;
-    // 	y += other.y;
-    // 	return *this;
-    // }
-    // inline Coordinate& operator+=(const int& scalar) {
-    // 	x += scalar;
-    // 	y += scalar;
-    // 	return *this;
-    // }
     addCoordinateToThis(other) {
         validCoordinate(other, "addCoordinateToThis", "other");
         this.x += other.x;
@@ -314,10 +232,6 @@ export class Coordinate extends Array {
        Both representations are convenient in different situations.
      */
 
-    // inline bool insideRectangle(const Coordinate& low, const Coordinate& high) const {
-    // 	return (   x >= low.X() && x <= high.X()
-    // 	        && y >= low.Y() && y <= high.Y());
-    // }
     insideRectangle(low, high) {
         validCoordinate(low, "insideRectangle", "low");
         validCoordinate(high, "insideRectangle", "high");
@@ -327,38 +241,27 @@ export class Coordinate extends Array {
     }
 
     //are we inside the rectangle starting at origin and with extent (width,height) excluded?
-    // inline bool insideExtent(const Coordinate& origin, const Coordinate& extent) const {
-    // 	return insideRectangle(origin, origin+extent-1);
-    // }
+
     insideExtent(origin, extent) {
         validCoordinate(origin, "insideExtent", "origin");
         validCoordinate(extent, "insideExtent", "extent");
         return this.insideRectangle(origin, origin.addCoordinate(extent.minusScalar(1)));
     }
 
-    // inline bool onRectangleEdges(const Coordinate& low, const Coordinate& high) const {
-    // 	return (x == low.X() || x == high.X() || y == low.Y() || y == high.Y());
-    // }
+
     onRectangleEdges(low, high) {
-            validCoordinate(low, "onRectangleEdges", "low");
-            validCoordinate(high, "onRectangleEdges", "high");
-            return (this.x == low.x || this.x == high.x || this.y == low.y || this.y == high.y);
-        }
-        // inline bool onExtentEdges(const Coordinate& origin, const Coordinate& extent) const {
-        // 	return onRectangleEdges(origin, origin + extent - 1);
-        // }
+        validCoordinate(low, "onRectangleEdges", "low");
+        validCoordinate(high, "onRectangleEdges", "high");
+        return (this.x == low.x || this.x == high.x || this.y == low.y || this.y == high.y);
+    }
+
     onExtentEdges(origin, extent) {
         validCoordinate(origin, "onExtentEdges", "origin");
         validCoordinate(extent, "onExtentEdges", "extent");
         return this.onRectangleEdges(origin, origin.addCoordinate(extent.minusScalar(1)));
     }
 
-    // inline Coordinate shrinkRectangle(const Coordinate& low, const Coordinate& high) const {
-    // 	Coordinate res(x,y);
-    // 	for (int d = 0; d < 2; ++d)
-    // 		res[d] = std.max(low[d], std.min(high[d], res[d]));
-    // 	return res;
-    // }
+
     shrinkRectangle(low, high) {
         validCoordinate(low, "shrinkRectangle", "low");
         validCoordinate(high, "shrinkRectangle", "high");
@@ -369,109 +272,50 @@ export class Coordinate extends Array {
         return res;
     }
 
-    // inline Coordinate shrinkExtent(const Coordinate& origin, const Coordinate& extent) const {
-    // 	return shrinkRectangle(origin, origin + extent - 1);
-    // };
     shrinkExtent(origin, extent) {
         validCoordinate(origin, "shrinkExtent", "origin");
         validCoordinate(extent, "shrinkExtent", "extent");
         return this.shrinkRectangle(origin, origin.addCoordinate(extent.minusScalar(1)));
     }
-};
 
-export function Distance(...args) {
-    if (args[0] instanceof Coordinate && args[1] instanceof Coordinate)
-        return DistanceBetweenCoordinates(args[0], args[1]);
-    else if (Number.isFinite(args[0]) && Number.isFinite(args[1]) && Number.isFinite(args[2]) && Number.isFinite(args[3]))
-        return DistanceBetweenCoordinatePoints(args[0], args[1], args[2], args[3]);
-}
-
-// inline int Distance(const Coordinate& p, const Coordinate& q) {
-// 	int distance = 0;
-// 	//dim-genericity may here seem a bit overkill, but will be nice if
-// 	//we were to change to Euclidian distance for example
-// 	for (int d = 0; d < 2; ++d)
-// 		distance += abs(q[d] - p[d]);
-// 	return distance;
-// }
-function DistanceBetweenCoordinates(p, q) {
-    let distance = 0;
-    for (let d = 0; d < 2; ++d) {
-        distance += Math.abs(q[d] - p[d]);
+    serialize(ar, version) {
+        return {
+            "x": this.x,
+            "y": this.y
+        };
     }
-    return distance;
+
+    static deserialize(ar, version) {
+        return new Coordinate(ar.x, ar.y);
+    }
+    static Distance(...args) {
+        if (args[0] instanceof Coordinate && args[1] instanceof Coordinate)
+            return DistanceBetweenCoordinates(args[0], args[1]);
+        else if (Number.isFinite(args[0]) && Number.isFinite(args[1]) && Number.isFinite(args[2]) && Number.isFinite(args[3]))
+            return DistanceBetweenCoordinatePoints(args[0], args[1], args[2], args[3]);
+    }
+
+    static DistanceBetweenCoordinates(p, q) {
+        let distance = 0;
+        for (let d = 0; d < 2; ++d) {
+            distance += Math.abs(q[d] - p[d]);
+        }
+        return distance;
+    }
+
+
+    static DistanceBetweenCoordinatePoints(x0, y0, x1, y1) {
+        return DistanceBetweenCoordinates(new Coordinate(x0, y0), new Coordinate(x1, y1));
+    }
+
+    static zero = new Coordinate(0, 0);
+
+    static undefinedCoordinate = new Coordinate(-1, -1);
 }
 
-// inline int Distance(const int& x0, const int& y0, const int& x1, const int& y1) {
-// 	//note: this reimplementation is not terribly efficient, but will go away soon anyway
-// 	return Distance(Coordinate(x0, y0), Coordinate(x1, y1));
-// }
-
-function DistanceBetweenCoordinatePoints(x0, y0, x1, y1) {
-    return DistanceBetweenCoordinates(new Coordinate(x0, y0), new Coordinate(x1, y1));
-}
-
-export const zero = new Coordinate(0, 0);
-// static const Coordinate zero(0, 0);
-// static const Coordinate undefined(-1, -1);
-export const undefinedCoordinate = new Coordinate(-1, -1);
-
-// BOOST_CLASS_VERSION(Coordinate, 0)
-Coordinate.CLASS_VERSION = 0;
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-// import "stdafx.js"
-
-// import "boost/functional/hash.js"
-
-// import "Coordinate.js"
-
-// std.size_t hash_value(const Coordinate& coord) {
-// 	std.size_t seed = 0;
-// 	boost.hash_combine(seed, coord.x);
-// 	boost.hash_combine(seed, coord.y);
-// 	return seed;
-// }
 function hash_value(coord) {
     let seed = 0;
     hash_combine(seed, coord.x);
     hash_combine(seed, coord.y);
     return seed;
-}
-
-
-// void Coordinate.save(OutputArchive& ar, const unsigned int version) const {
-// 	ar & x;
-// 	ar & y;
-// }
-Coordinate.prototype.save = function save(ar, version) {
-    ar(this.x);
-    ar(this.y);
-}
-
-// void Coordinate.load(InputArchive& ar, const unsigned int version) {
-// 	if (version == 0) {
-// 		ar & x;
-// 		ar & y;
-// 	}
-// }
-
-Coordinate.prototype.load = function load(ar, version) {
-    if (version === 0) {
-        this.x = ar(x);
-        this.y = ar(y);
-    }
 }

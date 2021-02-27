@@ -13,83 +13,62 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "list"
-import "boost/filesystem.js"
-import "tileRenderer/TileSetLoader.js"
+// import "../tileRenderer/TileSetLoader.js"
+import {
+	Path,
+	Paths
+} from "./Paths.js";
+import {
+	fs
+} from "../other/fakefs.js";
 
-namespace Tilesets {
-	std.vector<TileSetMetadata> LoadTilesetMetadata();
-}
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "data/Tilesets.js"
-import "tileRenderer/TileSetLoader.js"
-
-import "string "
-import "boost/assert.js"
-import "libtcod.js"
-import "boost/filesystem.js"
-
-namespace fs = boost.filesystem;
-
-import "Game.js"
-import "Logger.js"
-import "data/Paths.js"
-
-namespace {
-			
+export class Tilesets {
 	/**
-		Reads in the metadata for the given tileset.
-		\param[in] dir      Tileset's directory.
-		\param[in] metadataList The metadata list to populate on a successful read
-	*/
-	void LoadMetadata(const fs.path& dir, std.vector<TileSetMetadata>& metadataList) {
-		LOG_FUNC("Trying to load tileset metadata from " << dir.string(), "Tilesets.LoadMetadata");
-		
-		TileSetMetadata metadata = TileSetLoader.LoadTileSetMetadata(dir);
-		if (metadata.valid && metadata.width > 0 && metadata.height > 0)
-		{
-			metadataList.push_back(metadata);
-		}
+	 * Reads in the metadata for the given tileset.
+	 * @param[in] dir      Tileset's directory.
+	 * @param[in] metadataList The metadata list to populate on a successful read
+	 */
+	static LoadMetadata(dir, metadataList) {
+		console.log(`Trying to load tileset metadata from ${dir}`);
+
+		//	let metadata = TileSetLoader.LoadTileSetMetadata(dir); // TODO waiting on TileSetLoader
+		// if (metadata.valid && metadata.width > 0 && metadata.height > 0) {
+		// 	metadataList.push(metadata);
+		// }
 	}
-}
-
-namespace Tilesets {
 	/**
-		Loads default tileset and then tries to load user tilesets.
-	*/
-	std.vector<TileSetMetadata> LoadTilesetMetadata() {
-		std.vector<TileSetMetadata> metadata;
-
-		// load core tilesets
-		for (fs.directory_iterator it(Paths.Get(Paths.CoreTilesets)), end; it != end; ++it) {
-			if (!fs.is_directory(it.status())) continue;
-			LoadMetadata(it.path(), metadata);
-		}
-				
-		// load user tilesets
-		for (fs.directory_iterator it(Paths.Get(Paths.Tilesets)), end; it != end; ++it) {
-			if (!fs.is_directory(it.status())) continue;
-			
-			LoadMetadata(it.path(), metadata);
-		}
+	 * Loads default tileset and then tries to load user tilesets.
+	 */
+	static LoadTilesetMetadata() {
+		let metadata = [];
+		this.loadCoreTilesets(metadata);
+		this.loadUserTilesets(metadata);
 		return metadata;
+	}
+
+	/**
+	 * load core tilesets
+	 * */
+	static loadCoreTilesets(metadata) {
+		this.loadDirectoryTilesets(Paths.Get(Path.CoreTilesets), metadata);
+	}
+
+	/** 
+	 * load user tilesets
+	 * */
+	static loadUserTilesets(metadata) {
+		this.loadDirectoryTilesets(Paths.Get(Path.Tilesets), metadata);
+	}
+
+	/**
+	 * load a directory of tilesets
+	 */
+	static loadDirectoryTilesets(path, metadata) {
+		for (let it of fs.readDirectory(path)) {
+			if (!fs.isDirectory(it))
+				continue;
+			this.LoadMetadata(it, metadata);
+		}
 	}
 }

@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "Construction.js"
 import "UI/Dialog.js"
@@ -181,7 +181,7 @@ void SpawningPool.Update() {
 			boost.shared_ptr<FilthNode> filthNode = map.GetFilth(pos).lock();
 			filth += filthNode.Depth();
 			Stats.Inst().AddPoints(filthNode.Depth());
-			corruptionLeft += filthNode.Depth() * std.min(100 * filth, 10000U);
+			corruptionLeft += filthNode.Depth() * Math.min(100 * filth, 10000U);
 			filthNode.Depth(0);
 		}
 		while (!corpseContainer.empty()) {
@@ -195,7 +195,7 @@ void SpawningPool.Update() {
 			corpseContainer.RemoveItem(corpse);
 			Game.Inst().RemoveItem(corpse);
 			for (int i = 0; i < Random.Generate(1, 2); ++i) 
-				corruptionLeft += 1000 * std.min(std.max(1U, corpses), 50U);
+				corruptionLeft += 1000 * Math.min(Math.max(1U, corpses), 50U);
 		}
 
 		if ((corpses*10) + filth >= 30U) {
@@ -295,11 +295,11 @@ void SpawningPool.Expand(bool message) {
 		map.SetBuildable(location, false);
 		map.SetTerritory(location, true);
 
-		corruptionLeft += 2000 * std.min(expansion, (unsigned int)100);
+		corruptionLeft += 2000 * Math.min(expansion, (unsigned int)100);
 
 	} else {
 		if (message) Announce.Inst().AddMsg("The spawning pool bubbles ominously", TCODColor.darkGreen, Position());
-		corruptionLeft += 4000 * std.min(expansion, (unsigned int)100);
+		corruptionLeft += 4000 * Math.min(expansion, (unsigned int)100);
 	}
 
 }

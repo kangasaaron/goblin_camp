@@ -13,29 +13,39 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
+import {
+	Panel
+} from './Panel.js';
 
-import "UIComponents.js"
-import "Game.js"
-
-class Dialog extends /*public*/ Panel {
-//protected:
-	std.string title;
-	Drawable *contents;
-//public:
-	Dialog(Drawable *ncontents, std.string ntitle, int nwidth, int nheight);
-	~Dialog() { delete contents; }
-	void Draw(int, int, TCODConsole *);
-	MenuResult Update(int, int, bool, TCOD_key_t);
-	void GetTooltip(int, int, Tooltip *);
-	void SetTitle(std.string ntitle);
-	void SetHeight(int nheight);
-};
+export class Dialog extends Panel {
+	title = "";
+	contents = [];
+	constructor(ncontents, ntitle, nwidth, nheight) {
+		super(nwidth, nheight)
+		this.title = ntitle;
+		this.contents = ncontents;
+		this._x = (Game.Inst().ScreenWidth() - nwidth) / 2;
+		this._y = (Game.Inst().ScreenHeight() - nheight) / 2;
+	}
+	SetTitle(ntitle) {
+		this.title = ntitle;
+	}
+	SetHeight(nheight) {
+		this.height = nheight;
+		this._x = (Game.Inst().ScreenWidth() - this.width) / 2;
+		this._y = (Game.Inst().ScreenHeight() - this.height) / 2;
+	}
+	Draw(x, y, the_console) {
+		the_console.printFrame(this._x, this._y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? "" : this.title);
+		this.contents.Draw(this._x, this._y, the_console);
+	}
+	Update(x, y, clicked, key) {
+		return this.contents.Update(x - this._x, y - this._y, clicked, key);
+	}
+	GetTooltip(x, y, tooltip) {
+		super.GetTooltip(x, y, tooltip);
+		this.contents.GetTooltip(x - this._x, y - this._y, tooltip);
+	}
+}

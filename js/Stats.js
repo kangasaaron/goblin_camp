@@ -13,159 +13,111 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
-
-import "boost/unordered_map.js"
-
-import "data/Serialization.js"
-
-class Stats {
-	GC_SERIALIZABLE_CLASS
-	
-	friend class Game;
-
-	Stats();
-	static Stats* instance;
-
-	unsigned points;
-	unsigned itemsBurned;
-	unsigned filthCreated;
-	unsigned filthOutsideMap;
-	unsigned constructions;
-	unsigned production;
-//public extends 
-	static Stats* Inst();
-
-	void AddPoints(unsigned amount=1);
-	unsigned GetPoints();
-
-	void FilthCreated(unsigned amount=1);
-	unsigned GetFilthCreated();
-
-	void FilthFlowsOffEdge(unsigned amount=1);
-	unsigned GetFilthFlownOff();
-
-	boost.unordered_map<std.string, unsigned> deaths;
-	boost.unordered_map<std.string, unsigned> constructionsBuilt;
-	void ConstructionBuilt(std.string);
-	unsigned GetConstructionsBuilt();
-
-	boost.unordered_map<std.string, unsigned> itemsBuilt;
-	void ItemBuilt(std.string);
-	unsigned GetItemsBuilt();
-
-	void ItemBurned(unsigned amount=1);
-	unsigned GetItemsBurned();
-
-	static void Reset();
-};
-
-BOOST_CLASS_VERSION(Stats, 0)/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "Stats.js"
-
-Stats.Stats() : points(0), itemsBurned(0), filthCreated(0), filthOutsideMap(0),
-constructions(0), production(0) {}
-
-Stats* Stats.instance = 0;
-
-Stats* Stats.Inst() {
-	if (!instance) instance = new Stats();
-	return instance;
-}
-
-void Stats.AddPoints(unsigned amount) { points += amount; }
-unsigned Stats.GetPoints() { return points; }
-
-void Stats.FilthCreated(unsigned amount) { filthCreated += amount; }
-unsigned Stats.GetFilthCreated() { return filthCreated; }
-
-void Stats.FilthFlowsOffEdge(unsigned amount) { filthOutsideMap += amount; AddPoints(amount); }
-unsigned Stats.GetFilthFlownOff() { return filthOutsideMap; }
-
-void Stats.ItemBurned(unsigned amount) { itemsBurned += amount; }
-unsigned Stats.GetItemsBurned() { return itemsBurned; }
-
-void Stats.ConstructionBuilt(std.string name) { 
-	constructionsBuilt[name] += 1; 
-	++constructions; 
-	AddPoints(10U);
-}
-unsigned Stats.GetConstructionsBuilt() { return constructions; }
-
-void Stats.ItemBuilt(std.string name) { itemsBuilt[name] += 1; ++production; AddPoints(); }
-unsigned Stats.GetItemsBuilt() { return production; }
 
 
-void Stats.Reset() {
-	delete instance;
-	instance = new Stats();
-}
+class Statistics {
+	static CLASS_VERSION = 0;
+	points = 0;
+	itemsBurned = 0;
+	filthCreated = 0;
+	filthOutsideMap = 0;
+	constructions = 0;
+	production = 0;
+	deaths = new Map();
+	constructionsBuilt = new Map();
+	itemsBuilt = new Map();
 
-namespace {
-	template<typename A, typename B>
-	void SerializeUnorderedMap(const boost.unordered_map<A,B> &map, OutputArchive& ar) {
-		size_t size = map.size();
-		ar & size;
-		for (typename boost.unordered_map<A, B>.const_iterator iter = map.begin(); iter != map.end(); ++iter) {
-			ar & iter.first;
-			ar & iter.second;
-		}
+	AddPoints(amount = 1) {
+		this.points += amount;
+	}
+	GetPoints() {
+		return this.points;
 	}
 
-	template<typename A, typename B>
-	void UnserializeUnorderedMap(boost.unordered_map<A,B> &map, InputArchive& ar) {
-		size_t size;
-		ar & size;
-		for (size_t i = 0; i < size; ++i) {
-			A a;
-			ar & a;
-			B b;
-			ar & b;
-			map[a] = b;
-		}
+	FilthCreated(amount = 1) {
+		this.filthCreated += amount;
+	}
+	GetFilthCreated() {
+		return this.filthCreated;
+	}
+	FilthFlowsOffEdge(amount = 1) {
+		this.filthOutsideMap += amount;
+		this.AddPoints(amount);
+	}
+	GetFilthFlownOff() {
+		return this.filthOutsideMap;
+	}
+	ConstructionBuilt(name) {
+		this.constructionsBuilt.set(name, (this.constructionsBuilt.get(name) || 0) + 1);
+		++this.constructions;
+		this.AddPoints(10);
+	}
+	GetConstructionsBuilt() {
+		return this.constructions;
+	}
+	ItemBuilt(name) {
+		this.itemsBuilt.set(name, (this.itemsBuilt.get(name) || 0) + 1);
+		++this.production;
+		this.AddPoints();
+	}
+	GetItemsBuilt() {
+		return this.production;
+	}
+	ItemBurned(amount = 1) {
+		this.itemBurned += amount;
+	}
+	GetItemsBurned() {
+		return this.itemBurned;
+	}
+
+	static Reset() {
+		Stats = new Statistics();
+	}
+
+	save(ar, version) {
+		ar.save(this, "points");
+
+		SerializeUnorderedMap(this.deaths, ar);
+		SerializeUnorderedMap(this.constructionsBuilt, ar);
+		SerializeUnorderedMap(this.itemsBuilt, ar);
+
+		ar.save(this, "itemsBurned");
+		ar.save(this, "filthCreated");
+		ar.save(this, "filthOutsideMap");
+		ar.save(this, "constructions");
+		ar.save(this, "production");
+	}
+
+	load(ar, version) {
+		this.points = ar.points;
+
+		UnserializeUnorderedMap(this.deaths, ar);
+		UnserializeUnorderedMap(this.constructionsBuilt, ar);
+		UnserializeUnorderedMap(this.itemsBuilt, ar);
+
+		this.itemsBurned = ar.itemsBurned;
+		this.filthCreated = ar.filthCreated;
+		this.filthOutsideMap = ar.filthOutsideMap;
+		this.constructions = ar.constructions;
+		this.production = ar.production;
 	}
 }
 
-void Stats.save(OutputArchive& ar, const unsigned int version) const {
-	ar & points;
+export let Stats = new Statistics();
 
-	SerializeUnorderedMap(deaths, ar);
-	SerializeUnorderedMap(constructionsBuilt, ar);
-	SerializeUnorderedMap(itemsBuilt, ar);
-
-	ar & itemsBurned;
-	ar & filthCreated;
-	ar & filthOutsideMap;
-	ar & constructions;
-	ar & production;
+function SerializeUnorderedMap(map, ar) {
+	ar.save(map, "size");
+	let i = 0;
+	for (let iter of map.entries()) {
+		ar.save(map, `key_${i}`, iter[0])
+		ar.save(map, iter[0], iter[1]);
+	}
 }
 
-void Stats.load(InputArchive& ar, const unsigned int version) {
-	ar & points;
-
-	UnserializeUnorderedMap(deaths, ar);
-	UnserializeUnorderedMap(constructionsBuilt, ar);
-	UnserializeUnorderedMap(itemsBuilt, ar);
-
-	ar & itemsBurned;
-	ar & filthCreated;
-	ar & filthOutsideMap;
-	ar & constructions;
-	ar & production;
+function UnserializeUnorderedMap(map, ar) {
+	let size = ar.get();
+	for (let i = 0; i < size; ++i) {
+		let key = ar[`key_${i}`];
+		map.set(key, ar[key]);
+	}
 }

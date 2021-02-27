@@ -13,24 +13,23 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
+import {
+	UIContainer
+} from "./UIContainer.js";
 
-import "UIComponents.js"
-
-class Frame extends /*public*/ UIContainer {
-//private:
-	std.string title;
-//public:
-	Frame(std.string ntitle, std.vector<Drawable *> ncomponents, int x, int y, int nwidth, int nheight):
-		UIContainer(ncomponents, x, y, nwidth, nheight), title(ntitle) {}
-	void Draw(int, int, TCODConsole *);
-	void SetTitle(std.string ntitle) { title = ntitle; }
-};
+export class Frame extends UIContainer {
+	title = "";
+	constructor(ntitle, ncomponents, x, y, nwidth, nheight) {
+		super(ncomponents, x, y, nwidth, nheight);
+		this.title = ntitle;
+	}
+	SetTitle(ntitle) {
+		this.title = ntitle;
+	}
+	Draw(x, y, the_console) {
+		the_console.printFrame(x + this._x, y + this._y, this.width, this.height, true, TCOD_BKGND_SET, this.title);
+		super.Draw(x, y, the_console);
+	}
+}

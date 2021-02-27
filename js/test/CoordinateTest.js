@@ -1,73 +1,68 @@
-import { Coordinate, Direction, zero, undefinedCoordinate } from "../Coordinate.js";
-import { Enum } from "../other/Enums.js";
+import {
+    Coordinate
+} from "../Coordinate.js";
+import {
+    Enum
+} from "../other/Enums.js";
 
-QUnit.module("Direction test", function() {
-    QUnit.test("test enum", function(assert) {
+QUnit.module("Direction test", function () {
+    QUnit.test("test enum", function (assert) {
         assert.equal(Direction.NORTH, 0);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.NORTHEAST, 1);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.EAST, 2);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.SOUTHEAST, 3);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.SOUTH, 4);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.SOUTHWEST, 5);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.WEST, 6);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.NORTHWEST, 7);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
 
         assert.equal(Direction.NODIRECTION, 8);
         assert.ok(Direction.NORTH instanceof Number);
-        assert.ok(Direction.NORTH instanceof Enum);
         assert.ok(Direction.NORTH instanceof Direction);
     });
 });
 
-QUnit.module("Zero test", function() {
-    QUnit.test("zero", function(assert) {
+QUnit.module("Zero test", function () {
+    QUnit.test("zero", function (assert) {
         assert.ok(zero instanceof Coordinate);
         assert.equal(zero.x, 0);
         assert.equal(zero.y, 0);
     });
 });
 
-QUnit.module("Undefined Coordinate test", function() {
-    QUnit.test("undefinedCoordinate", function(assert) {
+QUnit.module("Undefined Coordinate test", function () {
+    QUnit.test("undefinedCoordinate", function (assert) {
         assert.ok(undefinedCoordinate instanceof Coordinate);
         assert.equal(undefinedCoordinate.x, -1);
         assert.equal(undefinedCoordinate.y, -1);
     });
 });
 
-QUnit.module("Coordinate test", function() {
-    QUnit.test("statics", function(assert) {
+QUnit.module("Coordinate test", function () {
+    QUnit.test("statics", function (assert) {
         assert.equal(Coordinate.CLASS_VERSION, 0);
         let c1 = new Coordinate(1, 1),
             c2 = new Coordinate(4, 4),
@@ -97,7 +92,7 @@ QUnit.module("Coordinate test", function() {
         assert.ok(result.x == 0 && result.y == 0, "NODIRECTION")
     });
 
-    QUnit.test("constructor", function(assert) {
+    QUnit.test("constructor", function (assert) {
         let a = new Coordinate();
         assert.ok(a instanceof Coordinate);
         assert.ok(a instanceof Array);
@@ -112,18 +107,18 @@ QUnit.module("Coordinate test", function() {
         assert.equal(b[0], 10);
         assert.equal(b[1], 20);
 
-        assert.throws(function() {
+        assert.throws(function () {
             let c = new Coordinate(Infinity, Object);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = new Coordinate(1, "jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = new Coordinate(null, Math);
         });
     });
 
-    QUnit.test("get and set x and y", function(assert) {
+    QUnit.test("get and set x and y", function (assert) {
         let a = new Coordinate();
         assert.equal(a.x, 0);
         assert.equal(a.y, 0);
@@ -150,29 +145,29 @@ QUnit.module("Coordinate test", function() {
         assert.equal(a.Yptr(), 13);
 
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.x = null;
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.x = -Infinity;
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.X(NaN);
         });
 
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.y = "jeff";
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.y = Math;
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.Y(Symbol("hey"));
         });
     });
 
-    QUnit.test("comparison functions", function(assert) {
+    QUnit.test("comparison functions", function (assert) {
         let a = new Coordinate(0, 0);
         let b = new Coordinate(0, 0);
 
@@ -191,37 +186,37 @@ QUnit.module("Coordinate test", function() {
         assert.ok(a.isLessThan(b));
         assert.ok(b.isGreaterThan(a), 'last greater than');
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.isLessThan("some string");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.isGreaterThan("some string");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.equals("some string");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.isNotEqualTo("some string");
         });
 
     });
 
-    QUnit.test("scalar math", function(assert) {
+    QUnit.test("scalar math", function (assert) {
         let a = new Coordinate(0, 0);
         let result = a.addScalar(1);
         assert.equal(result.x, 1);
         assert.equal(result.y, 1);
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalar("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalar(NaN);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalar(Symbol("hey"));
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalar(Math);
         });
 
@@ -229,16 +224,16 @@ QUnit.module("Coordinate test", function() {
         assert.equal(result.x, -3);
         assert.equal(result.y, -3);
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.minusScalar("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.minusScalar(NaN);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.minusScalar(Symbol("hey"));
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.minusScalar(Math);
         });
 
@@ -247,16 +242,16 @@ QUnit.module("Coordinate test", function() {
         assert.equal(result.x, 6);
         assert.equal(result.y, 9);
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.timesScalar("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.timesScalar(NaN);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.timesScalar(Symbol("hey"));
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.timesScalar(Math);
         });
 
@@ -265,16 +260,16 @@ QUnit.module("Coordinate test", function() {
         assert.equal(result.x, 5);
         assert.equal(result.y, 4);
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.dividedByScalar("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.dividedByScalar(NaN);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.dividedByScalar(Symbol("hey"));
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.dividedByScalar(Math);
         });
 
@@ -283,34 +278,34 @@ QUnit.module("Coordinate test", function() {
         assert.equal(a.x, 13);
         assert.equal(a.y, 11);
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalarToThis("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalarToThis(NaN);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalarToThis(Symbol("hey"));
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.addScalarToThis(Math);
         });
     });
 
-    QUnit.test("Coordinate math", function(assert) {
+    QUnit.test("Coordinate math", function (assert) {
         let a = new Coordinate(10, 20);
         let b = new Coordinate(2, 3);
         let result = a.addCoordinate(b);
         assert.equal(result.x, 12);
         assert.equal(result.y, 23);
 
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinate(Infinity);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinate("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinate(null);
         });
 
@@ -318,13 +313,13 @@ QUnit.module("Coordinate test", function() {
         assert.equal(result.x, 8);
         assert.equal(result.y, 17);
 
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.minusCoordinate(Infinity);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.minusCoordinate("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.minusCoordinate(null);
         });
 
@@ -333,34 +328,34 @@ QUnit.module("Coordinate test", function() {
         assert.equal(a.x, 12);
         assert.equal(a.y, 23);
 
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinateToThis(Infinity);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinateToThis("jeff");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             let c = a.addCoordinateToThis(null);
         });
     });
 
-    QUnit.test("rectangles and extents", function(assert) {
+    QUnit.test("rectangles and extents", function (assert) {
         let a = new Coordinate(5, 5);
         let high = new Coordinate(10, 10);
         let low = new Coordinate(0, 0);
 
         assert.ok(a.insideRectangle(low, high));
 
-        assert.throws(function() {
+        assert.throws(function () {
             a.insideRectangle();
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.insideRectangle(high);
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.insideRectangle(high, "low");
         });
-        assert.throws(function() {
+        assert.throws(function () {
             a.insideRectangle(7, Object);
         });
     });

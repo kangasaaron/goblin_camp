@@ -13,390 +13,305 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
+import {
+	MenuChoice
+} from "./MenuChoice.js";
+import {
+	MenuResult
+} from "./MenuResult.js";
+import {
+	Panel
+} from "./Panel.js";
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
-
-import "Game.js"
-import "UIComponents.js"
-import "Grid.js"
-import "Dialog.js"
-import "UIList.js"
-import "Frame.js"
-
-class MenuChoice {
-//public extends 
-	MenuChoice(std.string label = "", boost.function<void()> = boost.bind(Game.DoNothing), bool = true,
-		std.string tooltip = "");
-	std.string label;
-	boost.function<void()> callback;
-	bool enabled;
-	std.string tooltip;
-};
-
-class Menu extends /*public*/ Panel {
-//private:
-	static std.map<std.string, Menu *> constructionCategoryMenus;
-	static int menuTier;
-//protected:
-	std.vector<MenuChoice> choices;
-	int _selected;
-	std.string title;
-	void CalculateSize();
-//public:
-	Menu(std.vector<MenuChoice>, std.string="");
-	virtual ~Menu();
-	virtual void Draw(int, int, TCODConsole*);
-	virtual MenuResult Update(int, int, bool, TCOD_key_t);
-	void selected(int);
-	void AddChoice(MenuChoice);
-	void Callback(unsigned int);
-
-	static Menu* mainMenu;
-	static Menu* MainMenu();
-	static Menu* constructionMenu;
-	static Menu* ConstructionMenu();
-	static Menu* basicsMenu;
-	static Menu* BasicsMenu();
-	static Menu* WorkshopsMenu();
-	static Menu* ordersMenu;
-	static Menu* OrdersMenu();
-	static Menu* FurnitureMenu();
-	static Menu* ConstructionCategoryMenu(std.string);
-	static Menu* devMenu;
-	static Menu* DevMenu();
-	static Menu* territoryMenu;
-	static Menu* TerritoryMenu();
-
-	static ItemCategory WeaponChoiceDialog();
-	void GetTooltip(int, int, Tooltip *);
-};
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "string "
-
-import "libtcod.js"
-import "boost/lexical_cast.js"
-import "boost/algorithm/string.js"
-import "boost/format.js"
-
-import "UI/Menu.js"
-import "UI.js"
-import "UI/UIComponents.js"
-import "UI/JobDialog.js"
-import "UI/AnnounceDialog.js"
-import "UI/StockManagerDialog.js"
-import "UI/SquadsDialog.js"
-import "UI/NPCDialog.js"
-import "Camp.js"
-import "Map.js"
-import "Weather.js"
-
-MenuChoice.MenuChoice(std.string ntext, boost.function<void()> cb, bool nenabled, std.string ntooltip) {
-	label = ntext;
-	callback = cb;
-	enabled = nenabled;
-	tooltip = ntooltip;
-}
-
-Menu.Menu(std.vector<MenuChoice> newChoices, std.string ntitle): Panel(0, 0) {
+class Menu extends Panel {
+	static constructionCategoryMenus = new Map();
+	static menuTier = 0;
+	choices = [];
 	_selected = -1;
-	choices = newChoices;
-	title = ntitle;
-	CalculateSize();
-}
+	title = "";
 
-Menu.~Menu() {}
-
-void Menu.CalculateSize() {
-	height = choices.size()*2+1;
-	width = 0;
-	for (std.vector<MenuChoice>.iterator iter = choices.begin(); iter != choices.end(); ++iter) {
-		if ((signed int)iter.label.length() > width) width = (signed int)iter.label.length();
+	Menu.Menu(newChoices, ntitle = "") {
+		super(0, 0);
+		this.choices = newChoices;
+		this.title = ntitle;
+		this.CalculateSize();
 	}
-	width += 2;
-}
+	CalculateSize() {
+		this.height = this.choices.length * 2 + 1;
+		this.width = 0;
+		for (let iter of this.choices) {
+			if (iter.label.length > this.width)
+				this.width = iter.label.length;
+		}
+		this.width += 2;
+	}
+	selected(newSel) {
+		this._selected = newSel;
+	}
 
-void Menu.Draw(int x, int y, TCODConsole* the_console) {
-	the_console.setAlignment(TCOD_LEFT);
-	//Draw the box
-	if (x + width >= the_console.getWidth()) x = std.max(the_console.getWidth() - width - 1,0);
-	if (y + height >= the_console.getHeight()) y = std.max(the_console.getHeight() - height - 1,0);
-	_x = x; _y = y; //Save coordinates of menu top-left corner
-	the_console.printFrame(x, y, width, height, true, TCOD_BKGND_SET, title.empty() ? 0 : title.c_str());
-	the_console.setBackgroundFlag(TCOD_BKGND_SET);
-	//Draw the menu entries
-	for (int i = 0; i < (signed int)choices.size(); ++i) {
+	AddChoice(newChoice) {
+		this.choices.push(newChoice);
+		this.CalculateSize();
+	}
+
+	Callback(choice) {
+		if (this.choices.length > choice) {
+			this.choices[choice].callback();
+		}
+	}
+
+	GetTooltip(x, y, tooltip) {
+		if (x <= 0 || y <= 0) return;
+		if (x <= this._x || x >= this._x + this.width) return;
+		y -= this._y;
+		if (y <= 0 || y >= height) return;
+		--y;
+		if (y > 0)
+			y /= 2;
+		this._selected = y;
+		if (y >= this.choices.length || choices[y].tooltip === "") return;
+		tooltip.OffsetPosition((this._x + this.width) - x - 1, 0);
+		for (let i = 0; i < this.choices[y].tooltip.length; i += 25) {
+			tooltip.AddEntry(new TooltipEntry(this.choices[y].tooltip.substr(i, 25), TCODColor.white));
+		}
+	}
+
+	Update(x, y, clicked, key) {
+		if (key.c >= '0' && key.c <= '9') {
+			this.selected(parseInt(key.c, 10) - 1);
+			this.Callback(parseInt(key.c, 10) - 1);
+		}
+		if (x <= 0 || y <= 0) return MenuResult.NOMENUHIT;
+		if (x <= this._x || x >= this._x + this.width) return MenuResult.NOMENUHIT;
+		y -= _y;
+		if (y <= 0 || y >= this.height) return MenuResult.NOMENUHIT;
+		--y;
+		if (y > 0) y /= 2;
+		this._selected = y;
+		if (!this.clicked || !this.choices[y].enabled) return MenuResult.MENUHIT;
+
+		choices[y].callback();
+		return MenuResult.DISMISS | MenuResult.MENUHIT;
+	}
+	Draw(x, y, the_console) {
+		the_console.setAlignment(TCOD_LEFT);
+		//Draw the box
+		if (x + this.width >= the_console.getWidth()) x = Math.max(the_console.getWidth() - this.width - 1, 0);
+		if (y + this.height >= the_console.getHeight()) y = Math.max(the_console.getHeight() - this.height - 1, 0);
+		this._x = x;
+		this._y = y; //Save coordinates of menu top-left corner
+		the_console.printFrame(x, y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? 0 : this.title);
+		the_console.setBackgroundFlag(TCOD_BKGND_SET);
+		//Draw the menu entries
+		for (let i = 0; i < this.choices.length; ++i) {
+			the_console.setDefaultBackground(TCODColor.black);
+			if (UI.KeyHelpTextColor() > 0) {
+				the_console.setDefaultForeground(TCODColor(0, Math.min(255, UI.KeyHelpTextColor()), 0));
+				the_console.print(x, y + 1 + (i * 2), `${i + 1}`);
+			}
+			if (this.choices[i].enabled) the_console.setDefaultForeground(TCODColor.white);
+			else the_console.setDefaultForeground(TCODColor.grey);
+			if (this._selected == i) {
+				the_console.setDefaultBackground(TCODColor.white);
+				the_console.setDefaultForeground(TCODColor.darkerGrey);
+			}
+			the_console.print(x + 1, y + 1 + (i * 2), this.choices[i].label);
+		}
+		the_console.setDefaultForeground(TCODColor.white);
 		the_console.setDefaultBackground(TCODColor.black);
-		if (UI.Inst().KeyHelpTextColor() > 0) {
-			the_console.setDefaultForeground(TCODColor(0,std.min(255, UI.Inst().KeyHelpTextColor()),0));
-			the_console.print(x, y+1+(i*2), boost.lexical_cast<std.string>(i+1).c_str());
-		}
-		if (choices[i].enabled) the_console.setDefaultForeground(TCODColor.white);
-		else the_console.setDefaultForeground(TCODColor.grey);
-		if (_selected == i) {
-			the_console.setDefaultBackground(TCODColor.white);
-			the_console.setDefaultForeground(TCODColor.darkerGrey);
-		}
-		the_console.print(x+1, y+1+(i*2), choices[i].label.c_str());
 	}
-	the_console.setDefaultForeground(TCODColor.white);
-	the_console.setDefaultBackground(TCODColor.black);
-}
 
-MenuResult Menu.Update(int x, int y, bool clicked, const TCOD_key_t key) {
-	if (key.c >= '0' && key.c <= '9') {
-		selected(boost.lexical_cast<int>((char)key.c)-1);
-		Callback(boost.lexical_cast<int>((char)key.c)-1);
-	}
-	if (x > 0 && y > 0) {
-		if (x > _x && x < _x + width) {
-			y -= _y;
-			if (y > 0 && y < height) {
-				--y;
-				if (y > 0) y /= 2;
-				_selected = y;
-				if (clicked && choices[y].enabled) {
-					choices[y].callback();
-					return (MenuResult) (DISMISS | MENUHIT);
-				} 
-				return MENUHIT;
+	static mainMenu;
+	static MainMenu();
+	static constructionMenu;
+	static ConstructionMenu();
+	static basicsMenu;
+	static BasicsMenu();
+	static WorkshopsMenu();
+	static ordersMenu;
+	static OrdersMenu();
+	static FurnitureMenu();
+	static ConstructionCategoryMenu();
+	static devMenu;
+	static DevMenu();
+	static territoryMenu;
+	static TerritoryMenu();
+
+	// static ItemCategory WeaponChoiceDialog();
+	static MainMenu() {
+		if (this.mainMenu && this.menuTier == Camp.GetTier()) return this.mainMenu;
+		if (this.mainMenu) { //Tier has changed
+			delete this.mainMenu;
+			this.mainMenu = 0;
+			if (this.constructionMenu) {
+				delete this.constructionMenu;
+				this.constructionMenu = 0;
 			}
-		}
-	}
-	return NOMENUHIT;
-}
-
-void Menu.selected(int newSel) {
-	_selected = newSel;
-}
-
-void Menu.AddChoice(MenuChoice newChoice) { 
-	choices.push_back(newChoice); 
-	CalculateSize();
-}
-
-void Menu.Callback(unsigned int choice) {
-	if (choices.size() > choice) {
-		choices[choice].callback();
-	}
-}
-
-int Menu.menuTier = 0;
-Menu* Menu.mainMenu = 0;
-Menu* Menu.MainMenu() {
-	if (!mainMenu || menuTier != Camp.Inst().GetTier()) {
-		if (mainMenu) { //Tier has changed
-			delete mainMenu;
-			mainMenu = 0;
-			if (constructionMenu) { delete constructionMenu; constructionMenu = 0; }
-			if (!constructionCategoryMenus.empty()) {
-				for (std.map<std.string, Menu *>.iterator iterator = constructionCategoryMenus.begin();
-					iterator != constructionCategoryMenus.end(); ++iterator) {
-						if (iterator.second) delete iterator.second;
+			if (this.constructionCategoryMenus.size) {
+				for (let iterator of this.constructionCategoryMenus.entries()) {
+					if (iterator[1])
+						this.constructionCategoryMenus.delete(iterator[0]);
 				}
-				constructionCategoryMenus.clear();
+				this.constructionCategoryMenus = new Map();
 			}
-			menuTier = Camp.Inst().GetTier();
+			this.menuTier = Camp.GetTier();
 		}
-		mainMenu = new Menu(std.vector<MenuChoice>());
-		if (Game.Inst().DevMode()) mainMenu.AddChoice(MenuChoice("Dev", boost.bind(UI.ChangeMenu, Menu.DevMenu())));
-		mainMenu.AddChoice(MenuChoice("Build", boost.bind(UI.ChangeMenu, Menu.ConstructionMenu())));
-		mainMenu.AddChoice(MenuChoice("Dismantle", boost.bind(UI.ChooseDismantle)));		
-		mainMenu.AddChoice(MenuChoice("Orders", boost.bind(UI.ChangeMenu, Menu.OrdersMenu())));
-		mainMenu.AddChoice(MenuChoice("Stock Manager", boost.bind(UI.ChangeMenu, StockManagerDialog.StocksDialog())));
-		mainMenu.AddChoice(MenuChoice("Jobs", boost.bind(UI.ChangeMenu, JobDialog.JobListingDialog())));
-if /* if(def */ ( DEBUG){){
-		mainMenu.AddChoice(MenuChoice("NPC List", boost.bind(UI.ChangeMenu, NPCDialog.NPCListDialog())));
-}/*#endif*/
-		mainMenu.AddChoice(MenuChoice("Announcements", boost.bind(UI.ChangeMenu, AnnounceDialog.AnnouncementsDialog())));
-		mainMenu.AddChoice(MenuChoice("Squads", boost.bind(UI.ChangeMenu, SquadsDialog.SquadDialog())));
-		mainMenu.AddChoice(MenuChoice("Territory", boost.bind(UI.ChangeMenu, Menu.TerritoryMenu())));
-		mainMenu.AddChoice(MenuChoice("Stats", boost.bind(&Game.DisplayStats, Game.Inst())));
-		mainMenu.AddChoice(MenuChoice("Main Menu", boost.bind(Game.ToMainMenu, true)));
-		mainMenu.AddChoice(MenuChoice("Quit", boost.bind(Game.Exit, true)));
-	}
-	return mainMenu;
-}
-
-Menu* Menu.constructionMenu = 0;
-Menu* Menu.ConstructionMenu() {
-	if (!constructionMenu) {
-		constructionMenu = new Menu(std.vector<MenuChoice>());
-		for(std.set<std.string>.iterator it = Construction.Categories.begin(); it != Construction.Categories.end(); it++) {
-			constructionMenu.AddChoice(MenuChoice(*it, boost.bind(UI.ChangeMenu, Menu.ConstructionCategoryMenu(*it))));
+		this.mainMenu = new Menu([]);
+		if (Game.DevMode())
+			this.mainMenu.AddChoice(new MenuChoice("Dev", UI.ChangeMenu.bind(this, Menu.DevMenu())));
+		this.mainMenu.AddChoice(new MenuChoice("Build", UI.ChangeMenu.bind(this, Menu.ConstructionMenu())));
+		this.mainMenu.AddChoice(new MenuChoice("Dismantle", UI.ChooseDismantle.bind(this)));
+		this.mainMenu.AddChoice(new MenuChoice("Orders", UI.ChangeMenu.bind(this, Menu.OrdersMenu())));
+		this.mainMenu.AddChoice(new MenuChoice("Stock Manager", UI.ChangeMenu.bind(this, StockManagerDialog.StocksDialog())));
+		this.mainMenu.AddChoice(new MenuChoice("Jobs", UI.ChangeMenu.bind(this, JobDialog.JobListingDialog())));
+		if (DEBUG) {
+			this.mainMenu.AddChoice(new MenuChoice("NPC List", UI.ChangeMenu.bind(this, NPCDialog.NPCListDialog())));
 		}
+		this.mainMenu.AddChoice(new MenuChoice("Announcements", UI.ChangeMenu.bind(this, AnnounceDialog.AnnouncementsDialog())));
+		this.mainMenu.AddChoice(new MenuChoice("Squads", UI.ChangeMenu.bind(this, SquadsDialog.SquadDialog())));
+		this.mainMenu.AddChoice(new MenuChoice("Territory", UI.ChangeMenu.bind(this, Menu.TerritoryMenu())));
+		this.mainMenu.AddChoice(new MenuChoice("Stats", & Game.bind(this, DisplayStats, Game.Inst())));
+		this.mainMenu.AddChoice(new MenuChoice("Main Menu", Game.ToMainMenu.bind(this, true)));
+		this.mainMenu.AddChoice(new MenuChoice("Quit", Game.Exit.bind(this, true)));
+
+		return this.mainMenu;
 	}
-	return constructionMenu;
-}
 
-std.map<std.string, Menu *> Menu.constructionCategoryMenus = std.map<std.string, Menu *>();
+	static ConstructionMenu() {
+		if (this.constructionMenu) return this.constructionMenu;
+		this.constructionMenu = new Menu([]);
+		for (let it of Construction.Categories) {
+			this.constructionMenu.AddChoice(new MenuChoice(it, UI.ChangeMenu.bind(this, Menu.ConstructionCategoryMenu(it))));
+		}
 
-Menu* Menu.ConstructionCategoryMenu(std.string category) {
-	std.map<std.string, Menu *>.iterator found = constructionCategoryMenus.find(category);
-	Menu *menu;
-	if(found == constructionCategoryMenus.end()) {
-		menu = new Menu(std.vector<MenuChoice>());
-		for (int i = 0; i < (signed int)Construction.Presets.size(); ++i) {
-			ConstructionPreset preset = Construction.Presets[i];
+		return this.constructionMenu;
+	}
+
+	ConstructionCategoryMenu(category) {
+		let found = this.constructionCategoryMenus.has(category);
+		let menu;
+		if (found) {
+			menu = found.second;
+			return menu;
+		}
+		menu = new Menu([]);
+		for (let i = 0; i < Construction.Presets.length; ++i) {
+			let preset = Construction.Presets[i];
 			if (boost.iequals(preset.category, category) && preset.tier <= Camp.Inst().GetTier() + 1) {
-				if(preset.tags[STOCKPILE] || preset.tags[FARMPLOT]) {
+				if (preset.tags[STOCKPILE] || preset.tags[FARMPLOT]) {
 					menu.AddChoice(MenuChoice(preset.name, boost.bind(UI.ChooseStockpile, i), preset.tier <= Camp.Inst().GetTier(), preset.description));
 				} else {
 					UIState placementType = UIPLACEMENT;
-					if(preset.placementType > 0 && preset.placementType < UICOUNT) {
-						placementType = (UIState)preset.placementType;
+					if (preset.placementType > 0 && preset.placementType < UICOUNT) {
+						placementType = (UIState) preset.placementType;
 					}
 					menu.AddChoice(MenuChoice(preset.name, boost.bind(UI.ChooseConstruct, i, placementType), preset.tier <= Camp.Inst().GetTier(), preset.description));
 				}
 			}
 		}
-		constructionCategoryMenus[category] = menu;
-	} else {
-		menu = found.second;
+		this.constructionCategoryMenus.set(category, menu);
+
+		return menu;
 	}
-	return menu;
-}
 
-Menu* Menu.BasicsMenu() {
-	return ConstructionCategoryMenu("Basics");
-}
-
-Menu* Menu.WorkshopsMenu() {
-	return ConstructionCategoryMenu("Workshops");
-}
-
-Menu* Menu.FurnitureMenu() {
-	return ConstructionCategoryMenu("Furniture");
-}
-
-Menu* Menu.ordersMenu = 0;
-Menu* Menu.OrdersMenu() {
-	if (!ordersMenu) {
-		ordersMenu = new Menu(std.vector<MenuChoice>());
-
-		boost.function<bool(Coordinate, Coordinate)> checkDitch = boost.bind(Game.CheckTileType, TILEDITCH, _1, _2);
-		boost.function<void(Coordinate, Coordinate)> rectCall = boost.bind(Game.FillDitch, _1, _2);
-
-		ordersMenu.AddChoice(MenuChoice("Fell trees", boost.bind(UI.ChooseTreeFelling)));
-		ordersMenu.AddChoice(MenuChoice("Designate trees", boost.bind(UI.ChooseDesignateTree)));
-		ordersMenu.AddChoice(MenuChoice("Harvest wild plants", boost.bind(UI.ChoosePlantHarvest)));
-		ordersMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseDig)));
-		ordersMenu.AddChoice(MenuChoice("Fill ditches", boost.bind(UI.ChooseRectPlacement, rectCall, checkDitch, 178, "Fill ditches")));
-		ordersMenu.AddChoice(MenuChoice("Designate bog for iron", boost.bind(UI.ChooseDesignateBog)));
-		ordersMenu.AddChoice(MenuChoice("Gather items", boost.bind(UI.ChooseGatherItems)));
-
-		boost.function<bool(Coordinate, Coordinate)> checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1,1));
-		rectCall = boost.bind(&Camp.AddWaterZone, Camp.Inst(), _1, _2);
-		ordersMenu.AddChoice(MenuChoice("Pour water", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'W', "Pour water")));
-
-		boost.function<void(Coordinate)> call = boost.bind(&Game.StartFire, Game.Inst(), _1);
-		ordersMenu.AddChoice(MenuChoice("Start fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'F', "Start fire")));
-
-		ordersMenu.AddChoice(MenuChoice("Undesignate", boost.bind(UI.ChooseUndesignate)));
+	Menu * Menu.BasicsMenu() {
+		return ConstructionCategoryMenu("Basics");
 	}
-	return ordersMenu;
-}
 
-Menu* Menu.devMenu = 0;
-Menu* Menu.DevMenu() {
-	if (!devMenu) {
-		devMenu = new Menu(std.vector<MenuChoice>());
-
-		devMenu.AddChoice(MenuChoice("Create NPC", boost.bind(UI.ChooseCreateNPC)));
-		devMenu.AddChoice(MenuChoice("Create item", boost.bind(UI.ChooseCreateItem)));
-
-		boost.function<bool(Coordinate, Coordinate)> checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1,1));
-		boost.function<void(Coordinate)> call = boost.bind(&Game.CreateFilth, Game.Inst(), _1, 100);
-		devMenu.AddChoice(MenuChoice("Create filth", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Filth")));
-		
-		call = boost.bind(&Game.CreateWater, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Create water", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Water")));
-		
-		call = boost.bind(&Map.Corrupt, Map.Inst(), _1, 500000);
-		devMenu.AddChoice(MenuChoice("Corrupt", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'C', "Corrupt")));
-
-		devMenu.AddChoice(MenuChoice("Naturify world", boost.bind(UI.ChooseNaturify)));
-
-		boost.function<void(Coordinate, Coordinate)> rectCall = boost.bind(&Game.RemoveNatureObject, Game.Inst(), _1, _2);
-		devMenu.AddChoice(MenuChoice("Remove NatureObjects", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'R', "Remove NatureObjects")));
-		devMenu.AddChoice(MenuChoice("Trigger attack", boost.bind(&Game.TriggerAttack, Game.Inst())));
-		devMenu.AddChoice(MenuChoice("Trigger migration", boost.bind(&Game.TriggerMigration, Game.Inst())));
-		
-		call = boost.bind(&Game.Damage, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Explode", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'E', "Explode")));
-		
-		call = boost.bind(&Game.Hungerize, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Hungerize", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'H', "Hunger")));
-
-		call = boost.bind(&Game.Tire, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Tire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Tire")));
-
-		call = boost.bind(&Game.CreateFire, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '!', "Fire")));
-
-		call = boost.bind(&Game.CreateDitch, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseABPlacement, call, checkTree, '_', "Dig")));
-
-		call = boost.bind(&Game.Thirstify, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Thirstify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Thirst")));
-		call = boost.bind(&Game.Badsleepify, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Badsleepify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Bad sleep")));
-
-		call = boost.bind(&Game.Diseasify, Game.Inst(), _1);
-		devMenu.AddChoice(MenuChoice("Diseasify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'D', "Disease")));
+	Menu * Menu.WorkshopsMenu() {
+		return ConstructionCategoryMenu("Workshops");
 	}
-	return devMenu;
-}
 
-void Menu.GetTooltip(int x, int y, Tooltip *tooltip) {
-	if (x > 0 && y > 0) {
-		if (x > _x && x < _x + width) {
-			y -= _y;
-			if (y > 0 && y < height) {
-				--y;
-				if (y > 0) y /= 2;
-				_selected = y;
-				if (y < (signed int)choices.size() && choices[y].tooltip != "") {
-					tooltip.OffsetPosition((_x + width) - x - 1, 0);
-					for (unsigned int i = 0; i < choices[y].tooltip.length(); i += 25) {
-						tooltip.AddEntry(TooltipEntry(choices[y].tooltip.substr(i, 25), TCODColor.white));
-					}
-				}
-			}
+	Menu * Menu.FurnitureMenu() {
+		return ConstructionCategoryMenu("Furniture");
+	}
+
+	Menu * Menu.OrdersMenu() {
+		if (!ordersMenu) {
+			ordersMenu = new Menu(std.vector < MenuChoice > ());
+
+			boost.function < bool(Coordinate, Coordinate) > checkDitch = boost.bind(Game.CheckTileType, TILEDITCH, _1, _2);
+			boost.function < void(Coordinate, Coordinate) > rectCall = boost.bind(Game.FillDitch, _1, _2);
+
+			ordersMenu.AddChoice(MenuChoice("Fell trees", boost.bind(UI.ChooseTreeFelling)));
+			ordersMenu.AddChoice(MenuChoice("Designate trees", boost.bind(UI.ChooseDesignateTree)));
+			ordersMenu.AddChoice(MenuChoice("Harvest wild plants", boost.bind(UI.ChoosePlantHarvest)));
+			ordersMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseDig)));
+			ordersMenu.AddChoice(MenuChoice("Fill ditches", boost.bind(UI.ChooseRectPlacement, rectCall, checkDitch, 178, "Fill ditches")));
+			ordersMenu.AddChoice(MenuChoice("Designate bog for iron", boost.bind(UI.ChooseDesignateBog)));
+			ordersMenu.AddChoice(MenuChoice("Gather items", boost.bind(UI.ChooseGatherItems)));
+
+			boost.function < bool(Coordinate, Coordinate) > checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1, 1));
+			rectCall = boost.bind( & Camp.AddWaterZone, Camp.Inst(), _1, _2);
+			ordersMenu.AddChoice(MenuChoice("Pour water", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'W', "Pour water")));
+
+			boost.function < void(Coordinate) > call = boost.bind( & Game.StartFire, Game.Inst(), _1);
+			ordersMenu.AddChoice(MenuChoice("Start fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'F', "Start fire")));
+
+			ordersMenu.AddChoice(MenuChoice("Undesignate", boost.bind(UI.ChooseUndesignate)));
 		}
+		return ordersMenu;
 	}
-}
 
-Menu* Menu.territoryMenu = 0;
-Menu* Menu.TerritoryMenu() {
-	if (!territoryMenu) {
-		territoryMenu = new Menu(std.vector<MenuChoice>());
-		territoryMenu.AddChoice(MenuChoice("Toggle territory overlay", boost.bind(&Map.ToggleOverlay, Map.Inst(), TERRITORY_OVERLAY)));
-		territoryMenu.AddChoice(MenuChoice("Expand territory", boost.bind(UI.ChooseChangeTerritory, true)));
-		territoryMenu.AddChoice(MenuChoice("Shrink territory", boost.bind(UI.ChooseChangeTerritory, false)));
-		territoryMenu.AddChoice(MenuChoice("Toggle automatic territory", boost.bind(&Camp.ToggleAutoTerritory, Camp.Inst())));
+	Menu * Menu.DevMenu() {
+		if (!devMenu) {
+			devMenu = new Menu(std.vector < MenuChoice > ());
+
+			devMenu.AddChoice(MenuChoice("Create NPC", boost.bind(UI.ChooseCreateNPC)));
+			devMenu.AddChoice(MenuChoice("Create item", boost.bind(UI.ChooseCreateItem)));
+
+			boost.function < bool(Coordinate, Coordinate) > checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1, 1));
+			boost.function < void(Coordinate) > call = boost.bind( & Game.CreateFilth, Game.Inst(), _1, 100);
+			devMenu.AddChoice(MenuChoice("Create filth", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Filth")));
+
+			call = boost.bind( & Game.CreateWater, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Create water", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Water")));
+
+			call = boost.bind( & Map.Corrupt, Map.Inst(), _1, 500000);
+			devMenu.AddChoice(MenuChoice("Corrupt", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'C', "Corrupt")));
+
+			devMenu.AddChoice(MenuChoice("Naturify world", boost.bind(UI.ChooseNaturify)));
+
+			boost.function < void(Coordinate, Coordinate) > rectCall = boost.bind( & Game.RemoveNatureObject, Game.Inst(), _1, _2);
+			devMenu.AddChoice(MenuChoice("Remove NatureObjects", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'R', "Remove NatureObjects")));
+			devMenu.AddChoice(MenuChoice("Trigger attack", boost.bind( & Game.TriggerAttack, Game.Inst())));
+			devMenu.AddChoice(MenuChoice("Trigger migration", boost.bind( & Game.TriggerMigration, Game.Inst())));
+
+			call = boost.bind( & Game.Damage, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Explode", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'E', "Explode")));
+
+			call = boost.bind( & Game.Hungerize, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Hungerize", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'H', "Hunger")));
+
+			call = boost.bind( & Game.Tire, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Tire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Tire")));
+
+			call = boost.bind( & Game.CreateFire, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '!', "Fire")));
+
+			call = boost.bind( & Game.CreateDitch, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseABPlacement, call, checkTree, '_', "Dig")));
+
+			call = boost.bind( & Game.Thirstify, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Thirstify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Thirst")));
+			call = boost.bind( & Game.Badsleepify, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Badsleepify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Bad sleep")));
+
+			call = boost.bind( & Game.Diseasify, Game.Inst(), _1);
+			devMenu.AddChoice(MenuChoice("Diseasify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'D', "Disease")));
+		}
+		return devMenu;
 	}
-	return territoryMenu;
-}
+
+
+	Menu * Menu.TerritoryMenu() {
+		if (!territoryMenu) {
+			territoryMenu = new Menu(std.vector < MenuChoice > ());
+			territoryMenu.AddChoice(MenuChoice("Toggle territory overlay", boost.bind( & Map.ToggleOverlay, Map.Inst(), TERRITORY_OVERLAY)));
+			territoryMenu.AddChoice(MenuChoice("Expand territory", boost.bind(UI.ChooseChangeTerritory, true)));
+			territoryMenu.AddChoice(MenuChoice("Shrink territory", boost.bind(UI.ChooseChangeTerritory, false)));
+			territoryMenu.AddChoice(MenuChoice("Toggle automatic territory", boost.bind( & Camp.ToggleAutoTerritory, Camp.Inst())));
+		}
+		return territoryMenu;
+	}

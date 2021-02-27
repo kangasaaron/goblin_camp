@@ -13,7 +13,7 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 void ShowDevConsole();
 /* Copyright 2010-2011 Ilkka Halila
@@ -266,9 +266,9 @@ void ShowDevConsole() {
 		    if (mouse.lbutton) {
 			if (mouse.cx == x + w - 2) {
 				if (mouse.cy == y + 1) {
-					scroll = std.max(0, scroll - 1);
+					scroll = Math.max(0, scroll - 1);
 				} else if (mouse.cy == y + h - 4) {
-					scroll = std.min((int)maxScroll - h + 3, scroll + 1);
+					scroll = Math.min((int)maxScroll - h + 3, scroll + 1);
 				}
 			}
 			clicked = false;

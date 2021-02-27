@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "string"
 import "vector"
@@ -780,7 +780,7 @@ void Item.UpdateVelocity() {
 						return;
 					}
 					if (map.NPCList(t).size() > 0) { //Hit a creature
-						if (Random.Generate(std.max(1, flightPath.back().height) - 1) < (signed int)(2 + map.NPCList(t).size())) {
+						if (Random.Generate(Math.max(1, flightPath.back().height) - 1) < (signed int)(2 + map.NPCList(t).size())) {
 							Attack attack = GetAttack();
 							boost.shared_ptr<NPC> npc = Game.Inst().GetNPC(*map.NPCList(t).begin());
 							npc.Damage(&attack);

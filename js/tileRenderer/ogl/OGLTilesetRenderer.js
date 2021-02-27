@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "tileRenderer/TileSetRenderer.js"
 import "tileRenderer/TileSetTexture.js"
@@ -443,13 +443,13 @@ bool OGLTilesetRenderer.AssembleTextures() {
 		return false;
 
 	// Get initial horizontal tiles (based on tex size)
-	tilesTextureW = std.min(texSize / tileSet.TileWidth(), boost.numeric_cast<GLint>(rawTiles.size()));
-	GLint widthPixels = std.min(texSize, MathEx.NextPowerOfTwo(tileSet.TileWidth() * tilesTextureW));
+	tilesTextureW = Math.min(texSize / tileSet.TileWidth(), boost.numeric_cast<GLint>(rawTiles.size()));
+	GLint widthPixels = Math.min(texSize, MathEx.NextPowerOfTwo(tileSet.TileWidth() * tilesTextureW));
 	// Final horizontal tiles
 	tilesTextureW = widthPixels / tileSet.TileWidth();
 
 	// Vertical size calculated based on size needed based on width.
-	GLint heightPixels = std.min(texSize, MathEx.NextPowerOfTwo(CeilToInt.convert((float)rawTiles.size() / tilesTextureW) * tileSet.TileHeight()));
+	GLint heightPixels = Math.min(texSize, MathEx.NextPowerOfTwo(CeilToInt.convert((float)rawTiles.size() / tilesTextureW) * tileSet.TileHeight()));
 	tilesTextureH = heightPixels / tileSet.TileHeight();
 
 	if (tilesTextureH * tilesTextureW < rawTiles.size())

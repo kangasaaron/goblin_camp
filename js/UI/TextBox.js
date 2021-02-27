@@ -13,28 +13,66 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
+import {
+	Drawable
+}
+from './Drawable.js';
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
+export class TextBox extends Drawable {
+	value = "";
+	getter = null;
+	setter = null;
 
-import "UIComponents.js"
+	constructor(x, y, nwidth, ...values) {
+		super(x, y, nwidth, 1);
+		if (values.length === 2) {
+			if (typeof values[0] === "function")
+				this.getter = values[0];
+			if (typeof values[1] === "function")
+				this.setter = values[1];
+		} else if (typeof values[0] !== "undefined")
+			this.value = values[0];
+	}
 
-class TextBox extends /*public*/ Drawable {
-//private:
-	std.string *value;
-	boost.function<std.string()> getter;
-	boost.function<void(std.string)> setter;
-//public:
-	TextBox(int x, int y, int nwidth, std.string *nvalue):
-		Drawable(x, y, nwidth, 1), value(nvalue) {}
-	TextBox(int x, int y, int nwidth, boost.function<std.string()> ngetter, boost.function<void(std.string)> nsetter):
-		Drawable(x, y, nwidth, 1), value(0), getter(ngetter), setter(nsetter) {}
-	void Draw(int, int, TCODConsole *);
-	MenuResult Update(int, int, bool, TCOD_key_t);
+	Draw(x, y, the_console) {
+		the_console.setAlignment(TCOD_CENTER);
+		the_console.setDefaultBackground(TCODColor.darkGrey);
+		the_console.rect(x + this._x, y + this._y, this.width, 1, true, TCOD_BKGND_SET);
+		the_console.setDefaultBackground(TCODColor.black);
+		if (this.value) {
+			the_console.print(x + this._x + this.width / 2, y + this._y, this.value);
+		} else {
+			the_console.print(x + this._x + this.width / 2, y + this._y, this.getter());
+		}
+	}
+
+	Update(x, y, clicked, key) {
+		let currValue = "";
+		if (this.value) {
+			currValue = this.value;
+		} else {
+			currValue = this.getter();
+		}
+		if (key.vk == TCODK_BACKSPACE && currValue.length > 0) {
+			if (this.value) {
+				value.splice(value.length - 1, 1);
+			} else {
+				currValue.splice(currValue.length - 1, 1);
+				this.setter(currValue);
+			}
+			return MenuResult.KEYRESPOND;
+		} else if (key.c >= ' ' && key.c <= '}' && key.c != '+' && key.c != '-') {
+			if (currValue.length < this.width) {
+				if (this.value) {
+					this.value += key.c;
+				} else {
+					currValue += key.c;
+					this.setter(currValue);
+				}
+			}
+			return MenuResult.KEYRESPOND;
+		}
+		return MenuResult.NOMENUHIT;
+	}
 };

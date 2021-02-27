@@ -89,12 +89,12 @@ namespace {
 /**
 	Shows 'assertion failed' dialog with a choice to exit, break to debugger or continue.
 	
-	\param[in] msg      Additional information.
-	\param[in] expr     Expression that failed.
-	\param[in] function Function that uses assert.
-	\param[in] file     File that contains the function.
-	\param[in] line     Line where assert was used.
-	\returns            True if 'Debug' button was pressed (or the dialog couldn't be created),
+	@param[in] msg      Additional information.
+	@param[in] expr     Expression that failed.
+	@param[in] function Function that uses assert.
+	@param[in] file     File that contains the function.
+	@param[in] line     Line where assert was used.
+	@returns            True if 'Debug' button was pressed (or the dialog couldn't be created),
 	                    false if 'Continue' button was pressed.
 */
 bool GCAssert(const char* msg, const char* expr, const char* function, const char* file, int line) {

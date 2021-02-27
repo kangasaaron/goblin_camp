@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "Job.js"
 import "data/Serialization.js"
@@ -374,8 +374,8 @@ void JobManager.AssignJobs() {
 			}
 			if(!menialJobsToAssign.empty() || !expertJobsToAssign.empty()) {
 				
-				unsigned int menialMatrixSize = std.max(menialJobsToAssign.size(), menialNPCsWaiting.size());
-				unsigned int expertMatrixSize = std.max(expertJobsToAssign.size(), expertNPCsWaiting.size());
+				unsigned int menialMatrixSize = Math.max(menialJobsToAssign.size(), menialNPCsWaiting.size());
+				unsigned int expertMatrixSize = Math.max(expertJobsToAssign.size(), expertNPCsWaiting.size());
 				boost.numeric.ublas.matrix<int> menialMatrix(menialMatrixSize, menialMatrixSize);
 				boost.numeric.ublas.matrix<int> expertMatrix(expertMatrixSize, expertMatrixSize);
 

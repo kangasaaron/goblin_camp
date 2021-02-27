@@ -13,7 +13,7 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "libtcod.js"
 import "vector "
@@ -99,7 +99,7 @@ void SideBar.Draw(TCODConsole* the_console) {
 		the_console.setDefaultForeground(TCODColor.white);
 		int edgeX = the_console.getWidth();
 		leftX = edgeX - width;
-		topY = std.max(0,(the_console.getHeight() - height) / 2);
+		topY = Math.max(0,(the_console.getHeight() - height) / 2);
 		the_console.rect(edgeX - (width-1), topY+1, width-2, height-2, true);
 		
 		if(contents) {
@@ -114,10 +114,10 @@ void SideBar.Draw(TCODConsole* the_console) {
 			int health;
 			if (npc) {
 				boost.shared_ptr<NPC> creature = boost.static_pointer_cast<NPC>(entity.lock());
-				health = (int)(((double)creature.GetHealth() / (double)std.max(1, creature.GetMaxHealth())) * 10);
+				health = (int)(((double)creature.GetHealth() / (double)Math.max(1, creature.GetMaxHealth())) * 10);
 			} else {
 				boost.shared_ptr<Construction> construct = boost.static_pointer_cast<Construction>(entity.lock());
-				health = (int)(((double)construct.Condition() / (double)std.max(1, construct.GetMaxCondition())) * 10);
+				health = (int)(((double)construct.Condition() / (double)Math.max(1, construct.GetMaxCondition())) * 10);
 			}
 			for (int i = 0; i < health; ++i) {
 				the_console.setChar(edgeX - (width-2), topY+12-i, 231);

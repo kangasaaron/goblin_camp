@@ -1,6 +1,8 @@
-import { Serializable } from "./Serializable.js";
+// import {
+//     Serializable
+// } from "./Serializable.js";
 
-export class Enum extends Serializable(Number) {
+export class Enum extends Number {
     name = "";
     value = 0;
     description = "";
@@ -27,7 +29,7 @@ export class Enum extends Serializable(Number) {
     }
 }
 
-export const defineEnumOpen = function defineEnumOpen(def, ...values) {
+export const defineEnumOpen = function defineEnumOpen(def, values) {
     let newEnum;
     if (def.klass) {
         newEnum = def.klass;
@@ -44,7 +46,7 @@ export const defineEnumOpen = function defineEnumOpen(def, ...values) {
     Object.defineProperty(newEnum.prototype, 'enumName', {
         "configurable": false,
         "enumerable": false,
-        "get": function() {
+        "get": function () {
             return Object.getPrototypeOf(this).constructor.name;
         }
     });

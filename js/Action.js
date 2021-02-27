@@ -1,0 +1,41 @@
+import {
+    defineEnum
+} from "./other/Enums.js";
+
+export const Action = defineEnum("Action", [
+    "NOACTION",
+    "USE",
+    "TAKE",
+    "DROP",
+    "PUTIN",
+    "BUILD",
+    "MOVE",
+    "MOVEADJACENT",
+    "MOVENEAR",
+    "WAIT",
+    "DRINK",
+    "EAT",
+    "FIND",
+    "HARVEST",
+    "FELL",
+    "HARVESTWILDPLANT",
+    "KILL",
+    "FLEEMAP",
+    "SLEEP",
+    "DISMANTLE",
+    "WIELD",
+    "WEAR",
+    "BOGIRON",
+    "STOCKPILEITEM",
+    "QUIVER",
+    "FILL",
+    "POUR",
+    "DIG",
+    "FORGET",
+    "UNWIELD",
+    "GETANGRY",
+    "CALMDOWN",
+    "STARTFIRE",
+    "REPAIR",
+    "FILLDITCH"
+]);

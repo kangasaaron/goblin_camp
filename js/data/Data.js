@@ -13,385 +13,331 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "cstdint"
-import "ctime"
+// import "data/Config.js"
+// import "data/Data.js"
+// import "data/Paths.js"
+// import "Logger.js"
+// import "UI/MessageBox.js"
+// import "Game.js"
+// import "scripting/Event.js"
+// import "scripting/Engine.js"
 
-namespace Data {
-	// saves
-	struct Save {
-		std.string filename, size, date;
-		time_t timestamp; // for sorting
-		
-		Save(const std.string&, std.uintmax_t, time_t);
-	};
-	
-	// http://www.sgi.com/tech/stl/LessThanComparable.html
-	inline bool operator<(const Save& a, const Save& b) {
-		return a.timestamp < b.timestamp;
+/** 
+ * saves
+ */
+export class Save {
+	filename = "";
+	size = 0;
+	date = "";
+	timestamp = 0; // for sorting
+
+	constructor(filename, size, timestamp) {
+		this.filename = filename;
+		this.timestamexp = timestamp;
+		this.size = Data.FormatFileSize(size);
+		this.date = Data.FormatTimestamp(timestamp);
 	}
-	inline bool operator>(const Save& a, const Save& b) {
-		return b < a;
+
+	isLessThan(that) {
+		return this.timestamp < that.timestamp;
 	}
-	inline bool operator<=(const Save& a, const Save& b) {
-		return !(b < a);
+	isGreaterThan(that) {
+		return this.timestamp > that.timestamp;
 	}
-	inline bool operator>=(const Save& a, const Save& b) {
-		return !(a < b);
+	isLessThanOrEqualTo(that) {
+		return this.timestamp <= that.timestamp;
 	}
-	
-	void GetSavedGames(std.vector<Save>&);
-	unsigned CountSavedGames();
-	bool LoadGame(const std.string&);
-	bool SaveGame(const std.string&, bool=true);
-	
-	// font, config
-	void LoadConfig();
-	void LoadFont();
-	
-	// misc
-	void SaveScreenshot();
+	isGreaterThanOrEqualTo(that) {
+		return this.timestamp >= that.timestamp;
+	}
 }
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
 
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "fstream "
-import "vector"
-import "string"
-import "cstdlib"
-import "cstring"
-import "algorithm"
-import "boost/format.js"
-import "libtcod.js"
-// http://www.ridgesolutions.ie/index.php/2013/05/30/boost-link-error-undefined-reference-to-boostfilesystemdetailcopy_file/
-const BOOST_NO_CXX11_SCOPED_ENUMS = 1;
-import "boost/filesystem.js"
-import "boost/lexical_cast.js"
-import "boost/bind.js"
-import "boost/algorithm/string.js"
-import "boost/python/detail/wrap_python.js"
-import "boost/python.js"
-
-namespace py = boost.python;
-namespace fs = boost.filesystem;
-
-import "data/Config.js"
-import "data/Data.js"
-import "data/Paths.js"
-import "Logger.js"
-import "UI/MessageBox.js"
-import "Game.js"
-import "scripting/Event.js"
-import "scripting/Engine.js"
-
-namespace {
+export class Data {
 	/**
-		Converts an UNIX timestamp to ISO8601 date string (YYYY-MM-DD, HH:MM:SS).
+		Converts an UNIX timestamp to ISO8601 date string (YYYY-MM-DDTHH:MM:SS.ssssZ).
 		
-		\param[in]  timestamp A source UNIX timestamp.
-		\param[out] dest      A string buffer to receive formatted date.
+		@param[in]  timestamp A source UNIX timestamp.
+		@returns  dest      A string buffer to receive formatted date.
 	*/
-	void FormatTimestamp(const time_t& timestamp, std.string& dest) {
-		char buffer[21] = { "0000-00-00, 00:00:00" }; 
-		
-		size_t size = 0;
-		struct tm *date;
-		
-		date = localtime(&timestamp);
-		size = strftime(buffer, 21, "%Y-%m-%d, %H:%M:%S", date);
-		buffer[size] = '\0';
-		
-		dest = buffer;
+	static FormatTimestamp(timestamp) {
+		return timestamp.toISOString();
 	}
-	
+
 	/**
 		Converts a file size in bytes into more human-readable larger units
 		(NB: uses kB/MB/GB as 1024-based units).
 		
-		\param[in]  filesize File size (in bytes).
-		\param[out] dest     A string buffer to receive formatted file size.
+		@param[in]  filesize File size (in bytes).
+		@returns       A formatted file size.
 	*/
-	void FormatFileSize(const std.uintmax_t& filesize, std.string& dest) {
-		static const char* sizes[] = { "%10.0f b", "%10.2f kB", "%10.2f MB", "%10.2f GB" };
-		static unsigned maxSize = sizeof(sizes) / sizeof(sizes[0]);
-		
-		long double size = static_cast<long double>(filesize);
-		
-		unsigned idx = 0;
-		while (size > 1024.L && idx < maxSize) {
-			size /= 1024.L;
-			++idx;
+	static FormatFileSize(filesize) {
+		let result = "",
+			unit = "B";
+		if (filesize > 1000000000) { // 1 gb
+			filesize /= 1000000000;
+			unit = "GB";
+		} else if (filesize > 1000000) { // 1 mb
+			filesize /= 1000000;
+			unit = "MB";
+		} else if (filesize > 1000) { // 1 kb
+			filesize /= 1000;
+			unit = "KB";
 		}
-		
-		dest = (boost.format(sizes[idx]) % size).str();
+		result = filesize.toFixed(2);
+		while (result.endsWith("0")) {
+			result = result.slice(0, result.length - 1);
+		}
+		while (result.endsWith(".")) {
+			result = result.slice(0, result.length - 1);
+		}
+
+
+		return result + " " + unit;
 	}
-	
+
 	/**
 		Removes invalid (<tt>\\/:*?"\<\>|</tt>) characters from the
 		filename (removes characters that are rejected by Windows,
 		but allowed by *nixes for consistency).
 		
-		\param[in] filename Filename as supplied by the user.
-		\returns            Sanitized filename.
+		@param[in] filename Filename as supplied by the user.
+		@returns            Sanitized filename.
 	*/
-	std.string SanitizeFilename(const std.string& filename) {
-		std.string sanitized;
-		std.string invalid = "\\/:*?\"<>|";
-		
-		return filename;
-/* TODO: Check why the Mac side of things apparently needed a non-sanitizing filename-sanitizer
-		std.remove_copy_if(
-			filename.begin(), filename.end(),
-			std.back_inserter(sanitized),
+	static SanitizeFilename(filename) {
+		let sanitized = '';
+		let invalid = new RegExp("\\/:*?\"<>|");
 
-			[&invalid](char x) . bool {
-				return invalid.find(x) != std.string.npos;
-			}
-		);
-		
-		return sanitized;
-*/
+		return filename;
+		/* TODO: Check why the Mac side of things apparently needed a non-sanitizing filename-sanitizer
+				std.remove_copy_if(
+					filename.begin(), filename.end(),
+					std.back_inserter(sanitized),
+
+					[&invalid](char x) . bool {
+						return invalid.find(x) != std.string.npos;
+					}
+				);
+				
+				return sanitized;
+		*/
 	}
-	
+
 	/**
 		Saves current game to a given file. Emits onGameSaved scripting event.
 		
-		\param[in]  file   Full path to the save.
-		\param[out] result Boolean indicating success or failure.
+		@param[in]  file   Full path to the save.
+		@param[out] result Boolean indicating success or failure.
 	*/
-	void DoSave(std.string file, bool& result) {
-		LOG_FUNC("Saving game to " << file, "DoSave");
-		
+	static DoSave(file, result) {
+		console.log("Saving game to " + file);
+
 		if ((result = Game.Inst().SaveGame(file))) {
 			Script.Event.GameSaved(file);
 		}
 	}
-	
+
 	/**
 		Checks whether given file exists in the user's personal directory, and if not,
 		tries to copy it from the global data directory.
 		
-		\see Paths
-		\param[in] target File to check for (full path).
+		@see Paths
+		@param[in] target File to check for (full path).
 	*/
-	void CopyDefault(const fs.path& target) {
+	static CopyDefault(target) {
 		if (fs.exists(target)) return;
-		
-		fs.path file   = target.filename();
-		fs.path source = Paths.Get(Paths.GlobalData) / file;
-		
-		LOG_FUNC("User's " << file.string() << " does not exist -- trying to copy " << source.string(), "CopyDefault");
-		
+
+		let file = target.filename();
+		let source = Paths.Get(Paths.GlobalData) + "/" + file;
+
+		console.log("User's " + file + " does not exist -- trying to copy " + source);
+
 		if (!fs.exists(source)) {
-			LOG_FUNC("Global data file doesn't exist!", "CopyDefault");
-			exit(1);
+			console.error("Global data file doesn't exist!");
+			throw new ReferenceError("Global data file doesn't exist");
 		}
-		
+
 		try {
 			fs.copy_file(source, target);
-		} catch (const fs.filesystem_error& e) {
-			LOG_FUNC("Error while copying: " << e.what(), "CopyDefault");
-			exit(2);
+		} catch (e) {
+			console.error("Error while copying: " + e.message);
+			throw e;
 		}
 	}
-	
+
 	/**
 		Checks whether given file exists in the user's personal directory, and if not,
 		tries to create a new one.
 		
-		\see Paths
-		\param[in] target File to check for (full path).
-		\param[in] source Default content to use for the new file.
+		@see Paths
+		@param[in] target File to check for (full path).
+		@param[in] source Default content to use for the new file.
 	*/
-	void CreateDefault(const fs.path& target, const std.string& source) {
+	static CreateDefault(target, source) {
 		if (fs.exists(target)) return;
-		
-		LOG_FUNC("Creating default " << target.filename().string(), "CreateDefault");
-		
+
+		console.log("Creating default " + target);
+
 		try {
-			std.ofstream file(target.string().c_str());
-			file << source;
+			let file = fs.newFile(target);
+			file.data = source;
 			file.close();
-		} catch (const std.exception& e) {
-			LOG_FUNC("Error while writing to file: " << e.what(), "CreateDefault");
+		} catch (e) {
+			console.error("Error while writing to file: " + e.message());
 		}
 	}
-	
+
 	/**
-		Ensures that \ref Config.Save won't throw at exit.
+		Ensures that @ref Config.Save won't throw at exit.
 	*/
-	void SaveConfig() {
+	static SaveConfig() {
 		try {
 			Config.Save();
-		} catch (...) {
+		} catch (e) {
 			// pass
 		}
 	}
-}
 
-namespace Data {
-	Save.Save(const std.string& filename, std.uintmax_t size, time_t timestamp) : filename(filename), timestamp(timestamp) {
-		FormatFileSize(size, this.size);
-		FormatTimestamp(timestamp, this.date);
-	}
-	
 	/**
 		Retrieves a list of saved games.
 		
-		\param[out] list Storage for the list.
+		@param[out] list Storage for the list.
 	*/
-	void GetSavedGames(std.vector<Save>& list) {
-		for (fs.directory_iterator it(Paths.Get(Paths.Saves)), end; it != end; ++it) {
-			fs.path save = it.path();
-			if (!boost.iequals(save.extension().string(), ".sav")) continue;
-			
+	static GetSavedGames(list) {
+		for (let it of Paths.Get(Paths.Saves)) {
+			let save = it.path();
+			if (!save.endsWith(".sav")) continue;
+
 			save.replace_extension();
-			
-			list.push_back(Save(
-				save.filename().string(),
-				fs.file_size(it.path()),
-				fs.last_write_time(it.path())
+
+			list.push(new Save(
+				save.filename,
+				fs.file_size(it),
+				fs.last_write_time(it)
 			));
 		}
 	}
-	
+
 	/**
 		Retrieves a count of saved games.
 		
-		\returns Number of saved games found.
+		@returns Number of saved games found.
 	*/
-	unsigned CountSavedGames() {
-		std.vector<Save> saves;
-		GetSavedGames(saves);
-		return saves.size();
+	static CountSavedGames() {
+		let saves = [];
+		this.GetSavedGames(saves);
+		return saves.length;
 	}
-	
+
 	/**
 		Loads the game from given file.
 		
-		\param[in] save Save filename.
-		\returns        Boolean indicating success or failure.
+		@param[in] save Save filename.
+		@returns        Boolean indicating success or failure.
 	*/
-	bool LoadGame(const std.string& save) {
-		std.string file = (Paths.Get(Paths.Saves) / save).string() + ".sav";
-		LOG("Loading game from " << file);
-		
+	static LoadGame(save) {
+		let file = (Paths.Get(Paths.Saves) + "/" + save) + ".sav";
+		console.log("Loading game from " + file);
+
 		if (!Game.Inst().LoadGame(file)) return false;
 		Script.Event.GameLoaded(file);
-		
+
 		return true;
 	}
-	
+
 	/**
 		Saves the game to given file. If it exists, prompts the user whether to override.
 		
-		\see DoSave
-		\bug If sanitized filename is empty, will use @c _ instead. Should tell the user.
+		@see DoSave
+		@bug If sanitized filename is empty, will use @c _ instead. Should tell the user.
 		
-		\param[in] save    Save filename.
-		\param[in] confirm Boolean indicating whether to confirm overwriting an existing save
-		\returns           Boolean indicating success or failure.
+		@param[in] save    Save filename.
+		@param[in] confirm Boolean indicating whether to confirm overwriting an existing save
+		@returns           Boolean indicating success or failure.
 	*/
-	bool SaveGame(const std.string& save, bool confirm) {
-		std.string file = SanitizeFilename(save);
-		
-		if (file.size() == 0) {
+	static SaveGame(save, confirm) {
+		let file = this.SanitizeFilename(save);
+
+		if (file.length == 0) {
 			file = "_";
 		}
-		
-		file = (Paths.Get(Paths.Saves) / file).string() + ".sav";
-		
-		bool result = false;
-		
+
+		file = (Paths.Get(Paths.Saves) + '/' + file) + ".sav";
+
+		let result = false;
+
 		if (!fs.exists(file) || !confirm) {
-			DoSave(file, result);
+			this.DoSave(file, result);
 		} else {
 			MessageBox.ShowMessageBox(
-				"Save game exists, overwrite?", boost.bind(DoSave, file, boost.ref(result)), "Yes",
+				"Save game exists, overwrite?", this.DoSave.bind(this, file, result), "Yes",
 				null, "No");
 		}
-		
+
 		return result;
 	}
-	
+
 	/**
 		Executes the user's configuration file.
 	*/
-	void LoadConfig() {
-		LOG("Loading user config.");
-		const fs.path& config = Paths.Get(Paths.Config);
-		CreateDefault(config, "## Goblin Camp default empty configuration file");
-		
-		py.object globals = py.import("_gcampconfig").attr("__dict__");
-		py.object locals  = py.import("__gcuserconfig__").attr("__dict__");
+	static LoadConfig() {
+		console.log("Loading user config.");
+		let config = Paths.Get(Paths.Config);
+		this.CreateDefault(config, "## Goblin Camp default empty configuration file");
+
+		let globals = py.import("_gcampconfig").attr("__dict__");
+		let locals = py.import("__gcuserconfig__").attr("__dict__");
 		try {
-			py.exec_file(config.string().c_str(), globals, locals);
-		} catch (const py.error_already_set&) {
-			LOG("Cannot load user config.");
+			py.exec_file(config, globals, locals);
+		} catch (e) {
+			console.log("Cannot load user config.");
 			Script.LogException();
 			return;
 		}
-		
-		atexit(SaveConfig);
+		setInterval(this.SaveConfig.bind(this), 6000);
+
 	}
-	
+	static again = false;
 	/**
 		Loads the user's bitmap font.
 	*/
-	void LoadFont() {
-		static bool again = false;
-		
-		LOG("Loading the font " << (again ? "(again)" : ""));
-		const fs.path& font = Paths.Get(Paths.Font);
-		
-		CopyDefault(font);
-		TCODConsole.setCustomFont(font.string().c_str());
-		again = true;
+	static LoadFont() {
+		console.log("Loading the font " + (this.again ? "(again)" : ""));
+		let font = Paths.Get(Paths.Font);
+
+		this.CopyDefault(font);
+		TCODConsole.setCustomFont(font);
+		this.again = true;
 	}
-	
+
 	/**
 		Saves a screenshot of the game. Takes care of automatic numbering.
 	*/
-	void SaveScreenshot() {
+	static SaveScreenshot() {
 		// sadly, libtcod supports autonumbering only when saving to current dir
-		unsigned int largest = 0;
-		
-		for (fs.directory_iterator it(Paths.Get(Paths.Screenshots)), end; it != end; ++it) {
-			fs.path png = it.path();
-			if (!boost.iequals(png.extension().string(), ".png")) continue;
-			
+		let largest = 0;
+
+		for (let it of fs.readDirectory(Paths.Get(Paths.Screenshots))) {
+			let png = it;
+			if (!it.endsWith(".png")) continue;
+
 			png.replace_extension();
-			
-			std.string file = png.filename().string();
+
+			let file = png;
 			try {
 				// screens are saved as screenXXXXXX.png
-				largest = std.max(largest, boost.lexical_cast<unsigned int>(file.substr(6)));
-			} catch (const std.exception& e) {
+				largest = Math.max(largest, Number.parseInt(file.substr(0, 6)));
+			} catch (e) {
 				// not worth terminating the game for
-				(void)e; // variable not referenced warning
+				console.error(e); // variable not referenced warning
 			}
 		}
-		
-		std.string png = (
-			Paths.Get(Paths.Screenshots) / ((boost.format("screen%|06|.png") % (largest + 1)).str())
-		).string();
-		
-		LOG("Saving screenshot to " << png);
-		TCODSystem.saveScreenshot(png.c_str());
+
+		let png = (
+			Paths.Get(Paths.Screenshots) + `screen${largest+1}.png`
+		);
+
+		console.log("Saving screenshot to " + png);
+		TCODSystem.saveScreenshot(png);
 	}
 }

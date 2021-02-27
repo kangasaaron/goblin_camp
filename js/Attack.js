@@ -13,202 +13,145 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "vector"
-import "string"
-import "libtcod.js"
-
-import "StatusEffect.js"
-import "data/Serialization.js"
-
-const  DamageType = { // enum
-	DAMAGE_SLASH: Symbol('DamageType.DAMAGE_SLASH'),
-	DAMAGE_PIERCE: Symbol('DamageType.DAMAGE_PIERCE'),
-	DAMAGE_BLUNT: Symbol('DamageType.DAMAGE_BLUNT'),
-	DAMAGE_MAGIC: Symbol('DamageType.DAMAGE_MAGIC'),
-	DAMAGE_FIRE: Symbol('DamageType.DAMAGE_FIRE'),
-	DAMAGE_COLD: Symbol('DamageType.DAMAGE_COLD'),
-	DAMAGE_POISON: Symbol('DamageType.DAMAGE_POISON'),
-	DAMAGE_COUNT: Symbol('DamageType.DAMAGE_COUNT'), //Nothing can deal "wielded" or "ranged" damage
-	DAMAGE_WIELDED: Symbol('DamageType.DAMAGE_WIELDED'),
-	DAMAGE_RANGED: Symbol('DamageType.DAMAGE_RANGED')
-};
+import {
+	DamageType
+} from "./DamageType.js";
 
 class Attack {
-	GC_SERIALIZABLE_CLASS
-	
-	DamageType damageType;
-	TCOD_dice_t damageAmount;
-	int cooldown;
-	int cooldownMax;
-	std.vector<std.pair<StatusEffectType, int> > statusEffects;
-	int projectile;
-	bool magicProjectile;
-//public extends 
-	Attack();
+	static CLASS_VERSION = 0;
 
-	static DamageType StringToDamageType(std.string);
-	static std.string DamageTypeToString(DamageType);
+	damageType = DamageType.DAMAGE_BLUNT;
+	/*
+		damageAmount.addsub = 1;
+		damageAmount.multiplier = 1;
+		damageAmount.nb_rolls = 1;
+		damageAmount.nb_faces = 1;
+	*/
+	damageAmount = new Dice(1, 1, 1, 1);
+	cooldown = 0;
+	cooldownMax = UPDATES_PER_SECOND;
+	statusEffects = [];
+	projectile = 0;
+	magicProjectile = false;
 
-	DamageType Type();
-	void Type(DamageType);
-	TCOD_dice_t Amount();
-	void Amount(TCOD_dice_t);
-	void AddDamage(TCOD_dice_t);
-	int Cooldown();
-	void CooldownMax(int);
-	int CooldownMax();
-	void Update();
-	void ResetCooldown();
-	std.vector<std.pair<StatusEffectType, int> >* StatusEffects();
-	bool Ranged();
-	int Projectile();
-	void Projectile(int);
-	bool IsProjectileMagic();
-	void SetMagicProjectile();
-};
 
-BOOST_CLASS_VERSION(Attack, 0)
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
 
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/algorithm/string.js"
-import "boost/serialization/utility.js"
-import "boost/serialization/vector.js"
-
-import "Attack.js"
-import "GCamp.js"
-import "Game.js"
-
-Attack.Attack() : damageType(DAMAGE_BLUNT),
-	damageAmount(TCOD_dice_t()),
-	cooldown(0),
-	cooldownMax(UPDATES_PER_SECOND),
-	statusEffects(std.vector<std.pair<StatusEffectType, int> >()),
-	projectile(0),
-	magicProjectile(false)
-{
-	damageAmount.addsub = 1;
-	damageAmount.multiplier = 1;
-	damageAmount.nb_rolls = 1;
-	damageAmount.nb_faces = 1;
-}
-
-DamageType Attack.Type() {return damageType;}
-void Attack.Type(DamageType value) {damageType = value;}
-
-TCOD_dice_t Attack.Amount() {return damageAmount;}
-void Attack.Amount(TCOD_dice_t value) {damageAmount = value;}
-
-int Attack.Cooldown() {return cooldown;}
-
-void Attack.CooldownMax(int value) {cooldownMax = value;}
-int Attack.CooldownMax() {return cooldownMax;}
-
-void Attack.Update() {
-	if (cooldown > 0) --cooldown;
-}
-
-void Attack.ResetCooldown() {cooldown = cooldownMax;}
-
-std.vector<std.pair<StatusEffectType, int> >* Attack.StatusEffects() {return &statusEffects;}
-
-bool Attack.Ranged() {return damageType == DAMAGE_RANGED;}
-
-int Attack.Projectile() {return projectile;}
-void Attack.Projectile(int value) {projectile = value;}
-
-DamageType Attack.StringToDamageType(std.string type) {
-	if (boost.iequals(type, "slashing")) {
-		return DAMAGE_SLASH;
-	} else if (boost.iequals(type, "piercing")) {
-		return DAMAGE_PIERCE;
-	} else if (boost.iequals(type, "blunt")) {
-		return DAMAGE_BLUNT;
-	} else if (boost.iequals(type, "magic")) {
-		return DAMAGE_MAGIC;
-	} else if (boost.iequals(type, "fire")) {
-		return DAMAGE_FIRE;
-	} else if (boost.iequals(type, "cold")) {
-		return DAMAGE_COLD;
-	} else if (boost.iequals(type, "poison")) {
-		return DAMAGE_POISON;
-	} else if (boost.iequals(type, "wielded")) {
-		return DAMAGE_WIELDED;
-	} else if (boost.iequals(type, "ranged")) {
-		return DAMAGE_RANGED;
+	Type(value) {
+		if (value !== undefined && value instanceof DamageType) {
+			this.damageType = value;
+		}
+		return this.damageType;
 	}
-	return DAMAGE_SLASH;
-}
-
-std.string Attack.DamageTypeToString(DamageType type) {
-	//TODO (easy) use switch
-	if (type == DAMAGE_SLASH) {
-		return "slashing";
-	} else if (type == DAMAGE_PIERCE) {
-		return "piercing";
-	} else if (type == DAMAGE_BLUNT) {
-		return "blunt";
-	} else if (type == DAMAGE_MAGIC) {
-		return "magic";
-	} else if (type == DAMAGE_FIRE) {
-		return "fire";
-	} else if (type == DAMAGE_COLD) {
-		return "cold";
-	} else if (type == DAMAGE_POISON) {
-		return "poison";
-	} else if (type == DAMAGE_WIELDED) {
-		return "wielded";
-	} else if (type == DAMAGE_RANGED) {
-		return "ranged";
+	Amount(value) {
+		if (value !== undefined && value instanceof Dice) {
+			this.damageAmount = value;
+		}
+		return this.damageAmount;
 	}
-	return "";
-}
+	CooldownMax(value) {
+		if (value !== undefined && Number.isFinite(value)) {
+			this.cooldownMax = value;
+		}
+		return this.cooldownMax;
+	}
+	Cooldown() {
+		return this.cooldown;
+	}
+	Update() {
+		if (this.cooldown > 0) --this.cooldown;
+	}
+	ResetCooldown() {
+		this.cooldown = this.cooldownMax;
+	}
+	StatusEffects() {
+		return this.statusEffects;
+	}
+	Ranged() {
+		return this.damageType == DamageType.DAMAGE_RANGED;
+	}
 
-void Attack.AddDamage(TCOD_dice_t value) {
-	damageAmount.addsub += Game.DiceToInt(value);
-}
+	Projectile(value) {
+		if (value !== undefined && Number.isFinite(value)) {
+			projectile = value;
+		}
+		return projectile;
+	}
 
-void Attack.SetMagicProjectile() { magicProjectile = true; }
-bool Attack.IsProjectileMagic() { return magicProjectile; }
+	AddDamage(value) {
+		this.damageAmount.addsub += Game.DiceToInt(value);
+	}
 
-void Attack.save(OutputArchive& ar, const unsigned int version) const {
-	ar & damageType;
-	ar & damageAmount.addsub;
-	ar & damageAmount.multiplier;
-	ar & damageAmount.nb_rolls;
-	ar & damageAmount.nb_faces;
-	ar & cooldown;
-	ar & cooldownMax;
-	ar & statusEffects;
-	ar & projectile;
-	ar & magicProjectile;
-}
+	SetMagicProjectile() {
+		this.magicProjectile = true;
+	}
+	IsProjectileMagic() {
+		return this.magicProjectile;
+	}
 
-void Attack.load(InputArchive& ar, const unsigned int version) {
-	ar & damageType;
-	ar & damageAmount.addsub;
-	ar & damageAmount.multiplier;
-	ar & damageAmount.nb_rolls;
-	ar & damageAmount.nb_faces;
-	ar & cooldown;
-	ar & cooldownMax;
-	ar & statusEffects;
-	ar & projectile;
-	ar & magicProjectile;
+	static StringToDamageType(type) {
+		type = type.toLowerCase();
+		if (type == "slashing") {
+			return DamageType.DAMAGE_SLASH;
+		} else if (type == "piercing") {
+			return DamageType.DAMAGE_PIERCE;
+		} else if (type == "blunt") {
+			return DamageType.DAMAGE_BLUNT;
+		} else if (type == "magic") {
+			return DamageType.DAMAGE_MAGIC;
+		} else if (type == "fire") {
+			return DamageType.DAMAGE_FIRE;
+		} else if (type == "cold") {
+			return DamageType.DAMAGE_COLD;
+		} else if (type == "poison") {
+			return DamageType.DAMAGE_POISON;
+		} else if (type == "wielded") {
+			return DamageType.DAMAGE_WIELDED;
+		} else if (type == "ranged") {
+			return DamageType.DAMAGE_RANGED;
+		}
+		return DamageType.DAMAGE_SLASH;
+	}
+	static DamageTypeToString(type) {
+		//TODO (easy) use switch
+		if (type == DamageType.DAMAGE_SLASH) {
+			return "slashing";
+		} else if (type == DamageType.DAMAGE_PIERCE) {
+			return "piercing";
+		} else if (type == DamageType.DAMAGE_BLUNT) {
+			return "blunt";
+		} else if (type == DamageType.DAMAGE_MAGIC) {
+			return "magic";
+		} else if (type == DamageType.DAMAGE_FIRE) {
+			return "fire";
+		} else if (type == DamageType.DAMAGE_COLD) {
+			return "cold";
+		} else if (type == DamageType.DAMAGE_POISON) {
+			return "poison";
+		} else if (type == DamageType.DAMAGE_WIELDED) {
+			return "wielded";
+		} else if (type == DamageType.DAMAGE_RANGED) {
+			return "ranged";
+		}
+		return "";
+	}
+	save(ar, version) {
+		ar.save(this, "damageType");
+		ar.save(this, "damageAmount");
+		ar.save(this, "cooldown");
+		ar.save(this, "cooldownMax");
+		ar.save(this, "statusEffects");
+		ar.save(this, "projectile");
+		ar.save(this, "magicProjectile");
+	}
+
+	load(ar, version) {
+		this.damageType = ar.damageType;
+		this.damageAmount = new Dice().load(ar.damageAmount);
+		this.cooldown = ar.cooldown;
+		this.cooldownMax = ar.cooldownMax;
+		this.statusEffects = ar.statusEffects;
+		this.projectile = ar.projectile;
+		this.magicProjectile = ar.magicProjectile;
+	}
 }

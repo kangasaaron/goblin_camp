@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "vector"
 import "boost/numeric/ublas/matrix.js"
@@ -47,7 +47,7 @@ std.vector<int> FindBestMatching(boost.numeric.ublas.matrix<int> costs) {
 	std.vector<int> prev(n,-1);
 	for(int x = 0; x < n; x++) {
 		for(int y = 0; y < n; y++) {
-			lx[x] = std.max(lx[x], costs(x, y));
+			lx[x] = Math.max(lx[x], costs(x, y));
 		}
 		ly[x] = 0;
 		xy[x] = -1;
@@ -110,7 +110,7 @@ std.vector<int> FindBestMatching(boost.numeric.ublas.matrix<int> costs) {
 			int delta = std.numeric_limits<int>.max();
 			for(int y = 0; y < n; y++) {
 				if(!T[y]) {
-					delta = std.min(delta, slack[y]);
+					delta = Math.min(delta, slack[y]);
 				}
 			}
 			for(int x = 0; x < n; x++) {

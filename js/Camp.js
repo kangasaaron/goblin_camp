@@ -13,328 +13,320 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+import {
+	Coordinate
+} from "./Coordinate.js";
 
-import "string"
-import "set"
-import "list"
+class Encampment {
+	//Version 2 = 0.2 - diseaseChance
+	static CLASS_VERSION = 2;
 
-import "boost/weak_ptr.js"
+	centerX = 220.0;
+	centerY = 220.0;
+	buildingCount = 0;
+	locked = false;
+	lockedCenter = new Coordinate();
+	tier = 0;
+	name = "Clearing";
+	article = "a";
+	workshops = 0;
+	farmplots = 0;
+	upperCorner = new Coordinate();
+	lowerCorner = new Coordinate();
+	autoTerritory = true;
+	waterZones = [];
+	menialWaterJobs = [];
+	expertWaterJobs = [];
+	diseaseModifier = 0;
+	spawningPool = null;
 
-import "Coordinate.js"
-import "data/Serialization.js"
-
-class Job;
-class SpawningPool;
-
-class Camp {
-	GC_SERIALIZABLE_CLASS
-	
-	Camp();
-	static Camp* instance;
-	double centerX, centerY;
-	unsigned int buildingCount;
-	bool locked;
-	Coordinate lockedCenter;
-	int tier;
-	std.string name;
-	std.string article;
-	int workshops, farmplots;
-	Coordinate upperCorner, lowerCorner;
-	bool autoTerritory;
-	std.set<Coordinate> waterZones;
-	std.list<boost.weak_ptr<Job> > menialWaterJobs;
-	std.list<boost.weak_ptr<Job> > expertWaterJobs;
-	int diseaseModifier;
-//public extends 
-	static Camp* Inst();
-	Coordinate Center();
-	void UpdateCenter(Coordinate, bool);
-	void SetCenter(Coordinate);
-	void LockCenter(Coordinate);
-	void UnlockCenter();
-	int GetTier();
-	void UpdateTier();
-	std.string GetName();
-	void ConstructionBuilt(int type);
-	void DisableAutoTerritory();
-	void ToggleAutoTerritory();
-	bool IsAutoTerritoryEnabled();
-	static void Reset();
-	void Update();
-	void AddWaterZone(Coordinate from, Coordinate to);
-	void RemoveWaterZone(Coordinate from, Coordinate to);
-	void UpdateWaterJobs();
-	Coordinate GetUprTerritoryCorner() const;
-	Coordinate GetLowTerritoryCorner() const;
-	Coordinate GetRandomSpot() const;
-	boost.weak_ptr<SpawningPool> spawningPool;
-	int GetDiseaseModifier();
-};
-
-BOOST_CLASS_VERSION(Camp, 2)
-
-//Version 2 = 0.2 - diseaseChance
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/serialization/set.js"
-import "boost/serialization/list.js"
-import "boost/serialization/weak_ptr.js"
-
-import "Camp.js"
-import "Coordinate.js"
-import "Game.js"
-import "Announce.js"
-import "scripting/Event.js"
-import "Random.js"
-import "JobManager.js"
-import "Stats.js"
-import "Faction.js"
-import "SpawningPool.js"
-
-Camp* Camp.instance = 0;
-
-Camp.Camp() :
-centerX(220.0),
-	centerY(220.0),
-	buildingCount(0),
-	locked(false),
-	lockedCenter(0,0),
-	tier(0),
-	name("Clearing"),
-	article("a"),
-	workshops(0),
-	farmplots(0),
-	upperCorner(Coordinate(0,0)),
-	lowerCorner(Coordinate(0,0)),
-	autoTerritory(true),
-	diseaseModifier(0)
-{}
-
-Camp* Camp.Inst() {
-	if (!instance) instance = new Camp();
-	return instance;
-}
-
-Coordinate Camp.Center() {
-	return locked ? lockedCenter : Coordinate((int)centerX, (int)centerY);
-}
-
-void Camp.UpdateCenter(Coordinate newBuilding, bool add) {
-	if(add) {
-
-		if (buildingCount == 0) {
-			upperCorner = newBuilding;
-			lowerCorner = newBuilding;
-		} else {
-			if (newBuilding.X() < upperCorner.X()) upperCorner.X(newBuilding.X());
-			if (newBuilding.X() > lowerCorner.X()) lowerCorner.X(newBuilding.X());
-			if (newBuilding.Y() < upperCorner.Y()) upperCorner.Y(newBuilding.Y());
-			if (newBuilding.Y() > lowerCorner.Y()) lowerCorner.Y(newBuilding.Y());
-			if (autoTerritory) Map.Inst().SetTerritoryRectangle(upperCorner, lowerCorner, true);
-		}
-
-		centerX = (centerX * buildingCount + newBuilding.X()) / (buildingCount + 1);
-		centerY = (centerY * buildingCount + newBuilding.Y()) / (buildingCount + 1);
-		++buildingCount;
-	} else {
-		if(buildingCount > 1) {
-			centerX = (centerX * buildingCount - newBuilding.X()) / (buildingCount - 1);
-			centerY = (centerY * buildingCount - newBuilding.Y()) / (buildingCount - 1);
-		} else {
-			centerX = 220.0;
-			centerY = 220.0;
-		}
-		--buildingCount;
+	Center() {
+		return this.locked ? this.lockedCenter : Coordinate(this.centerX, this.centerY);
 	}
-}
-
-void Camp.SetCenter(Coordinate newCenter) {
-	centerX = newCenter.X();
-	centerY = newCenter.Y();
-}
-
-void Camp.LockCenter(Coordinate newCenter) {
-	lockedCenter = newCenter;
-	locked = true;
-}
-
-void Camp.UnlockCenter() { locked = false; }
-
-int Camp.GetTier() { return tier; }
-
-void Camp.UpdateTier() {
-
-	int population = Game.Inst().OrcCount() + Game.Inst().GoblinCount();
-
-	// Immortius: There was previously an issue with new tier calculation - because
-	// the check for each tier had a population range, if you exceeded that population
-	// range before you achieved the other requirements you would not be able to reach that tier.
-	// The solution is to check eligability from highest tier downwards and avoid population ranges.
-	int newTier = 0;
-	if (farmplots > 0)
-	{
-		if      (workshops > 10 && Stats.Inst().GetItemsBuilt() > 10000 && population >= 200)
-			newTier = 6;
-		else if (workshops > 10 && Stats.Inst().GetItemsBuilt() > 5000  && population >= 100)
-			newTier = 5;
-		else if (workshops > 10 && Stats.Inst().GetItemsBuilt() > 3000  && population >= 70)
-			newTier = 4;
-		else if (workshops > 10 && Stats.Inst().GetItemsBuilt() > 1000   && population >= 50)
-			newTier = 3;
-		else if (workshops > 5  && Stats.Inst().GetItemsBuilt() > 400   && population >= 30)
-			newTier = 2;
-		else if (workshops > 1  && Stats.Inst().GetItemsBuilt() > 20    && population >= 20)
-			newTier = 1;
+	SetCenter(newCenter) {
+		this.centerX = newCenter.X();
+		this.centerY = newCenter.Y();
+	}
+	LockCenter(newCenter) {
+		this.lockedCenter = newCenter;
+		this.locked = true;
+	}
+	UnlockCenter() {
+		this.locked = false;
+	}
+	GetTier() {
+		return this.tier;
+	}
+	GetName() {
+		return this.name;
+	}
+	IsAutoTerritoryEnabled() {
+		return this.autoTerritory;
+	}
+	GetUprTerritoryCorner() {
+		return this.upperCorner;
+	}
+	GetLowTerritoryCorner() {
+		return this.lowerCorner;
+	}
+	GetDiseaseModifier() {
+		return this.diseaseModifier;
 	}
 
-	if (newTier < tier) ++newTier; //Only drop the camp tier down if newtier <= tier-2
+	ConstructionBuilt(type) {
+		if (Construction.Presets[type].tags[ConstructionTag.WORKSHOP]) ++this.workshops;
+		if (Construction.Presets[type].tags[ConstructionTag.FARMPLOT]) ++this.farmplots;
+	}
 
-	if (newTier != tier) {
-		bool positive = newTier > tier;
-		tier = newTier;
-		std.string oldName = name;
-		if (tier == 0) {
-			article = "a";
-			name = "Clearing";
-		} else if (tier == 1) {
-			article = "a";
-			name = "Camp";
-		} else if (tier == 2) { 
-			article = "a";
-			name = "Settlement";
-		} else if (tier == 3) {
-			article = "an";
-			name = "Outpost";
-		} else if (tier == 4) {
-			article = "a";
-			name = "Fort";
-		} else if (tier == 5) {
-			article = "a";
-			name = "Stronghold";
-		} else if (tier == 6) {
-			article = "a";
-			name = "Citadel";
+	DisableAutoTerritory() {
+		this.autoTerritory = false;
+	}
+	ToggleAutoTerritory() {
+		this.autoTerritory = !this.autoTerritory;
+		Announce.Inst().AddMsg((boost.format("Automatic territory handling %s") % (this.autoTerritory ? "enabled" : "disabled")).str(), TCODColor.cyan);
+	}
+	static Reset() {
+		Camp = new Encampment();
+	}
+	Update() {
+		this.UpdateTier();
+		this.UpdateWaterJobs();
+
+		this.diseaseModifier = Math.round(Math.pow((Game.Inst().GoblinCount() + Game.Inst().OrcCount() - 20) / 10, 2.0));
+	}
+	save(ar, version) {
+		ar.register_type(Coordinate);
+		ar.save(this, "centerX");
+		ar.save(this, "centerY");
+		ar.save(this, "buildingCount");
+		ar.save(this, "locked");
+		ar.save(this, "lockedCenter");
+		ar.save(this, "tier");
+		ar.save(this, "name");
+		ar.save(this, "workshops");
+		ar.save(this, "farmplots");
+		ar.save(this, "upperCorner");
+		ar.save(this, "lowerCorner");
+		ar.save(this, "autoTerritory");
+		ar.save(this, "article");
+		ar.save(this, "waterZones");
+		ar.save(this, "menialWaterJobs");
+		ar.save(this, "expertWaterJobs");
+		ar.save(this, "spawningPool");
+		ar.save(this, "diseaseModifier");
+	}
+	load(ar, version) {
+		ar.register_type(Coordinate);
+		this.centerX = ar.centerX;
+		this.centerY = ar.centerY;
+		this.buildingCount = ar.buildingCount;
+		this.locked = ar.locked;
+		this.lockedCenter = ar.lockedCenter;
+		this.tier = ar.tier;
+		this.name = ar.name;
+		this.workshops = ar.workshops;
+		this.farmplots = ar.farmplots;
+		if (version == 0) {
+			let unused = ar.unused;
+		}
+		this.upperCorner = ar.upperCorner;
+		this.lowerCorner = ar.lowerCorner;
+		this.autoTerritory = ar.autoTerritory;
+		this.article = ar.article;
+		this.waterZones = ar.waterZones;
+		this.menialWaterJobs = ar.menialWaterJobs;
+		this.expertWaterJobs = ar.expertWaterJobs;
+		if (version >= 1) {
+			this.spawningPool = ar.spawningPool;
+		}
+		if (version >= 2) {
+			this.diseaseModifier = ar.diseaseModifier;
+		}
+	}
+	GetRandomSpot() {
+		for (let tries = 0; tries < 20; ++tries) {
+			let randomLocation = Random.ChooseInRectangle(upperCorner, lowerCorner);
+			if (Map.Inst().IsTerritory(randomLocation) &&
+				!Map.Inst().IsDangerous(randomLocation, PLAYERFACTION) &&
+				Map.Inst().IsWalkable(randomLocation) &&
+				!Map.Inst().GetWater(randomLocation).lock())
+				return randomLocation;
+		}
+		return Coordinate.undefinedCoordinate;
+	}
+	AddWaterZone(from, to) {
+		for (let x = from.X(); x <= to.X(); ++x) {
+			for (let y = from.Y(); y <= to.Y(); ++y) {
+				let p = new Coordinate(x, y);
+				if (Map.Inst().IsInside(p)) {
+					if (!Map.Inst().GroundMarked(p)) {
+						this.waterZones.push(p);
+						Map.Inst().Mark(p);
+					}
+				}
+			}
+		}
+	}
+
+	RemoveWaterZone(from, to) {
+		for (let x = from.X(); x <= to.X(); ++x) {
+			for (let y = from.Y(); y <= to.Y(); ++y) {
+				let p = new Coordinate(x, y);
+				if (Map.Inst().IsInside(p)) {
+					let index = this.waterZones.findIndex(zone => zone.equals(p))
+					if (index > -1) {
+						waterZones.splice(index, 1);
+						Map.Inst().Unmark(p);
+					}
+				}
+			}
+		}
+	}
+	UpdateCenterAddingBuilding(building) {
+		if (this.buildingCount == 0) {
+			this.upperCorner = building;
+			this.lowerCorner = building;
+		} else {
+			if (building.X() < this.upperCorner.X()) this.upperCorner.X(building.X());
+			if (building.X() > this.lowerCorner.X()) this.lowerCorner.X(building.X());
+			if (building.Y() < this.upperCorner.Y()) this.upperCorner.Y(building.Y());
+			if (building.Y() > this.lowerCorner.Y()) this.lowerCorner.Y(building.Y());
+			if (this.autoTerritory) Map.Inst().SetTerritoryRectangle(this.upperCorner, this.lowerCorner, true);
 		}
 
-		Announce.Inst().AddMsg("Your "+oldName+" is now " + article + " " + name + "!", 
+		this.centerX = (this.centerX * this.buildingCount + newBuilding.X()) / (this.buildingCount + 1);
+		this.centerY = (centerY * this.buildingCount + newBuilding.Y()) / (this.buildingCount + 1);
+		++this.buildingCount;
+	}
+	UpdateCenterRemovingBuilding(building) {
+		if (this.buildingCount > 1) {
+			this.centerX = (this.centerX * this.buildingCount - building.X()) / (this.buildingCount - 1);
+			this.centerY = (this.centerY * this.buildingCount - building.Y()) / (this.buildingCount - 1);
+		} else {
+			this.centerX = 220.0;
+			this.centerY = 220.0;
+		}
+		--this.buildingCount;
+	}
+	UpdateCenter(newBuilding, add) {
+		if (add) {
+			this.UpdateCenterAddingBuilding(newBuilding);
+		} else {
+			this.UpdateCenterRemovingBuilding(newBuilding);
+		}
+	}
+	UpdateTier() {
+		let population = Game.Inst().OrcCount() + Game.Inst().GoblinCount();
+
+		// Immortius: There was previously an issue with new tier calculation - because
+		// the check for each tier had a population range, if you exceeded that population
+		// range before you achieved the other requirements you would not be able to reach that tier.
+		// The solution is to check eligability from highest tier downwards and avoid population ranges.
+		let newTier = 0;
+		if (this.farmplots > 0) {
+			if (this.workshops > 10 && Stats.GetItemsBuilt() > 10000 && population >= 200)
+				newTier = 6;
+			else if (this.workshops > 10 && Stats.GetItemsBuilt() > 5000 && population >= 100)
+				newTier = 5;
+			else if (this.workshops > 10 && Stats.GetItemsBuilt() > 3000 && population >= 70)
+				newTier = 4;
+			else if (this.workshops > 10 && Stats.GetItemsBuilt() > 1000 && population >= 50)
+				newTier = 3;
+			else if (this.workshops > 5 && Stats.GetItemsBuilt() > 400 && population >= 30)
+				newTier = 2;
+			else if (this.workshops > 1 && Stats.GetItemsBuilt() > 20 && population >= 20)
+				newTier = 1;
+		}
+
+		if (newTier < this.tier) ++newTier; //Only drop the camp tier down if newtier <= tier-2
+
+		if (newTier != this.tier)
+			this.TierChange(newTier);
+	}
+	TierChange(newTier) {
+		let positive = newTier > this.tier;
+		this.tier = newTier;
+		let oldName = this.name;
+		switch (this.tier) {
+			case 0:
+				this.article = "a";
+				this.name = "Clearing";
+				break;
+			case 1:
+				this.article = "a";
+				this.name = "Camp";
+				break;
+			case 2:
+				this.article = "a";
+				this.name = "Settlement";
+				break;
+			case 3:
+				this.article = "an";
+				this.name = "Outpost";
+				break;
+			case 4:
+				this.article = "a";
+				this.name = "Fort";
+				break;
+			case 5:
+				this.article = "a";
+				this.name = "Stronghold";
+				break;
+			case 6:
+				this.article = "a";
+				this.name = "Citadel";
+				break;
+		}
+		Announce.Inst().AddMsg(`Your ${oldName} is now ${article} ${name}!`,
 			positive ? TCODColor.lightGreen : TCODColor.yellow);
-		Script.Event.TierChanged(tier, name);
+		Script.Event.TierChanged(this.tier, this.name);
 	}
-}
-
-std.string Camp.GetName() { return name; }
-
-void Camp.ConstructionBuilt(int type) {
-	if (Construction.Presets[type].tags[WORKSHOP]) ++workshops;
-	if (Construction.Presets[type].tags[FARMPLOT]) ++farmplots;
-}
-
-void Camp.DisableAutoTerritory() { autoTerritory = false; }
-void Camp.ToggleAutoTerritory() {
-	autoTerritory = !autoTerritory;
-	Announce.Inst().AddMsg((boost.format("Automatic territory handling %s") % (autoTerritory ? "enabled" : "disabled")).str(), TCODColor.cyan);
-}
-
-bool Camp.IsAutoTerritoryEnabled() { return autoTerritory; }
-
-void Camp.Reset() {
-	delete instance;
-	instance = 0;
-}
-
-void Camp.Update() {
-	UpdateTier();
-	UpdateWaterJobs();
-
-	diseaseModifier = static_cast<int>(std.pow(static_cast<float>((Game.Inst().GoblinCount() + Game.Inst().OrcCount() - 20) / 10), 2.0f));
-}
-
-void Camp.AddWaterZone(Coordinate from, Coordinate to) {
-	for (int x = from.X(); x <= to.X(); ++x) {
-		for (int y = from.Y(); y <= to.Y(); ++y) {
-			Coordinate p(x,y);
-			if (Map.Inst().IsInside(p)) {
-				if (!Map.Inst().GroundMarked(p)) {
-					waterZones.insert(Coordinate(p));
-					Map.Inst().Mark(p);
-				}
-			}
+	UpdateWaterJobs() {
+		//Remove finished jobs
+		for (let i = 0; i < this.menialWaterJobs.length; i++) {
+			let jobi = this.menialWaterJobs[i];
+			if (!jobi.lock())
+				jobi = this.menialWaterJobs.splice(i, 1);
+			else
+				++jobi;
 		}
-	}
-}
-
-void Camp.RemoveWaterZone(Coordinate from, Coordinate to) {
-	for (int x = from.X(); x <= to.X(); ++x) {
-		for (int y = from.Y(); y <= to.Y(); ++y) {
-			Coordinate p(x,y);
-			if (Map.Inst().IsInside(p)) {
-				if (waterZones.find(Coordinate(p)) != waterZones.end()) {
-					waterZones.erase(Coordinate(p));
-					Map.Inst().Unmark(p);
-				}
-			}
+		for (let i = 0; i < this.expertWaterJobs.length; i++) {
+			let jobi = this.expertWaterJobs[i];
+			if (!jobi.lock())
+				jobi = this.expertWaterJobs.splice(i, 1);
+			else
+				++jobi;
 		}
-	}
-}
 
-void Camp.UpdateWaterJobs() {
+		if (this.waterZones <= 0) return;
 
-	//Remove finished jobs
-	for (std.list<boost.weak_ptr<Job> >.iterator jobi = menialWaterJobs.begin(); jobi != menialWaterJobs.end();) {
-		if (!jobi.lock()) jobi = menialWaterJobs.erase(jobi);
-		else ++jobi;
-	}
-	for (std.list<boost.weak_ptr<Job> >.iterator jobi = expertWaterJobs.begin(); jobi != expertWaterJobs.end();) {
-		if (!jobi.lock()) jobi = expertWaterJobs.erase(jobi);
-		else ++jobi;
-	}
-
-	if (waterZones.size() > 0) {
 		//The amount and priority of water pouring jobs depends on if there's fire anywhere
-		if (Game.Inst().fireList.size() > 0) {
-			for (int i = 1; static_cast<int>(menialWaterJobs.size()) < Game.Inst().GoblinCount() && i <= 10; ++i) {
-				boost.shared_ptr<Job> waterJob(new Job("Pour water", VERYHIGH, 0, true));
-				Coordinate location = *boost.next(waterZones.begin(), Random.Generate(waterZones.size()-1));
+		if (Game.Inst().fireList.length > 0) {
+			for (let i = 1; this.menialWaterJobs.length < Game.Inst().GoblinCount() && i <= 10; ++i) {
+				let waterJob = new Job("Pour water", JobPriority.VERYHIGH, 0, true);
+				let location = this.waterZones[Random.Generate(waterZones.length - 1)];
 				Job.CreatePourWaterJob(waterJob, location);
 				if (waterJob) {
-					menialWaterJobs.push_back(waterJob);
+					this.menialWaterJobs.push(waterJob);
 					JobManager.Inst().AddJob(waterJob);
 				}
 			}
-
-			for (int i = 1; static_cast<int>(expertWaterJobs.size()) < Game.Inst().OrcCount() && i <= 10; ++i) {
-				boost.shared_ptr<Job> waterJob(new Job("Pour water", VERYHIGH, 0, false));
-				Coordinate location = *boost.next(waterZones.begin(), Random.Generate(waterZones.size()-1));
+			for (let i = 1; this.expertWaterJobs.length < Game.Inst().OrcCount() && i <= 10; ++i) {
+				let waterJob = new Job("Pour water", JobPriority.VERYHIGH, 0, false);
+				let location = this.waterZones[Random.Generate(waterZones.length - 1)];
 				Job.CreatePourWaterJob(waterJob, location);
 				if (waterJob) {
-					expertWaterJobs.push_back(waterJob);
+					this.expertWaterJobs.push(waterJob);
 					JobManager.Inst().AddJob(waterJob);
 				}
 			}
-
 		} else {
-			if (menialWaterJobs.size() < 5) {
-				boost.shared_ptr<Job> waterJob(new Job("Pour water", LOW, 0, true));
-				Coordinate location = *boost.next(waterZones.begin(), Random.Generate(waterZones.size()-1));
+			if (this.menialWaterJobs.length < 5) {
+				let waterJob = new Job("Pour water", JobPriority.LOW, 0, true);
+				let location = this.waterZones[Random.Generate(waterZones.length - 1)];
 				Job.CreatePourWaterJob(waterJob, location);
 				if (waterJob) {
-					menialWaterJobs.push_back(waterJob);
+					this.menialWaterJobs.push(waterJob);
 					JobManager.Inst().AddJob(waterJob);
 				}
 			}
@@ -342,74 +334,4 @@ void Camp.UpdateWaterJobs() {
 	}
 }
 
-Coordinate Camp.GetUprTerritoryCorner() const { return upperCorner; }
-Coordinate Camp.GetLowTerritoryCorner() const { return lowerCorner; }
-
-Coordinate Camp.GetRandomSpot() const {
-	for (int tries = 0; tries < 20; ++tries) {
-		Coordinate randomLocation = Random.ChooseInRectangle(upperCorner, lowerCorner);		
-		if (Map.Inst().IsTerritory(randomLocation) &&
-			!Map.Inst().IsDangerous(randomLocation, PLAYERFACTION) &&
-			Map.Inst().IsWalkable(randomLocation) &&
-			!Map.Inst().GetWater(randomLocation).lock())
-			return randomLocation;
-	}
-
-	return undefined;
-}
-
-int Camp.GetDiseaseModifier() {
-	return diseaseModifier;
-}
-
-void Camp.save(OutputArchive& ar, const unsigned int version) const {
-	ar.register_type<Coordinate>();
-	ar & centerX;
-	ar & centerY;
-	ar & buildingCount;
-	ar & locked;
-	ar & lockedCenter;
-	ar & tier;
-	ar & name;
-	ar & workshops;
-	ar & farmplots;
-	ar & upperCorner;
-	ar & lowerCorner;
-	ar & autoTerritory;
-	ar & article;
-	ar & waterZones;
-	ar & menialWaterJobs;
-	ar & expertWaterJobs;
-	ar & spawningPool;
-	ar & diseaseModifier;
-}
-
-void Camp.load(InputArchive& ar, const unsigned int version) {
-	ar.register_type<Coordinate>();
-	ar & centerX;
-	ar & centerY;
-	ar & buildingCount;
-	ar & locked;
-	ar & lockedCenter;
-	ar & tier;
-	ar & name;
-	ar & workshops;
-	ar & farmplots;
-	if (version == 0) {
-		int unused;
-		ar & unused;
-	}
-	ar & upperCorner;
-	ar & lowerCorner;
-	ar & autoTerritory;
-	ar & article;
-	ar & waterZones;
-	ar & menialWaterJobs;
-	ar & expertWaterJobs;
-	if (version >= 1) {
-		ar & spawningPool;
-	}
-	if (version >= 2) {
-		ar & diseaseModifier;
-	}
-}
+export let Camp = new Encampment();

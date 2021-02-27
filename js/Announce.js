@@ -13,218 +13,151 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "queue"
-import "string"
-import "sstream"
-
-import "libtcod.js"
-
-import "Coordinate.js"
-import "UI/UIComponents.js"
 
 const ANNOUNCE_MAX_LENGTH = 71;
 const ANNOUNCE_HEIGHT = 10;
 
-class AnnounceMessage {
-//public extends 
-	AnnounceMessage(std.string, TCODColor = TCODColor.white, Coordinate = Coordinate(-1,-1));
-	std.stringstream result;
-	std.string msg;
-	int counter;
-	TCODColor color;
-	Coordinate target;
-	std.string ToString();
-};
+import {
+	AnnounceMessage
+} from "./AnnounceMessage.js";
 
-class Announce {
-//private extends 
-	Announce();
-	static Announce* instance;
-	std.deque<AnnounceMessage*> messageQueue;
-	std.deque<AnnounceMessage*> history;
-	int timer;
-	unsigned int length, height, top;
-	void AnnouncementClicked(AnnounceMessage*);
-//public:
-	static Announce* Inst();
-	static void Reset();
-	void AddMsg(std.string, TCODColor = TCODColor.white, const Coordinate& = undefined);
-	void Update();
-	MenuResult Update(int, int, bool);
-	void Draw(TCODConsole*);
-	void Draw(Coordinate, int from, int amount, TCODConsole*);
-	int AnnounceAmount();
-	void EmptyMessageQueue();
-	Coordinate CurrentCoordinate();
-	void AnnouncementClicked(int);
-};
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "Announce.js"
-import "GCamp.js"
-import "Coordinate.js"
-import "Game.js"
-
-AnnounceMessage.AnnounceMessage(std.string nmsg, TCODColor col, Coordinate pos) :
-msg(nmsg),
-	counter(1),
-	color(col),
-	target(pos) {}
-
-std.string AnnounceMessage.ToString() {
-	result.str("");
-	result<<msg;
-	if (counter > 1) {
-		result<<" x"<<counter;
-	}
-	if (target.X() > -1 && target.Y() > -1) {
-		result<<" "<<(char)TCOD_CHAR_ARROW_E;
-	}
-	return result.str();
-}
-
-Announce* Announce.instance = 0;
-
-Announce* Announce.Inst() {
-	if (!instance) instance = new Announce();
-	return instance;
-}
-
-Announce.Announce() :
-timer(0),
-	length(0),
-	height(0)
-{}
-
-void Announce.AddMsg(std.string msg, TCODColor color, const Coordinate& coordinate) {
-	msg = msg.substr(0,ANNOUNCE_MAX_LENGTH);
-	if (!messageQueue.empty() && messageQueue.back().msg == msg && messageQueue.back().target == coordinate) {
-		messageQueue.back().counter++;
-		if (messageQueue.size() == 1) timer = 0;
-	} else {
-		messageQueue.push_back(new AnnounceMessage(msg, color, coordinate));
-		if (messageQueue.size() <= ANNOUNCE_HEIGHT) {
-			if (msg.length() > length) length = msg.length();
-			height = messageQueue.size();
-		}
-	}
-}
-
-void Announce.Update() {
-	if (!messageQueue.empty()) {
-		++timer;
-		if (timer > 0.5*UPDATES_PER_SECOND) {
-			if (messageQueue.size() > (unsigned int)ANNOUNCE_HEIGHT) {
-				history.push_back(messageQueue.front());
-				if (history.size() > 1000) {
-					delete(history.front());
-					history.pop_front();
-				}
-				messageQueue.pop_front();
-				length = 0;
-				for (std.deque<AnnounceMessage*>.iterator msgi = messageQueue.begin(); msgi != messageQueue.end(); ++msgi) {
-					if ((*msgi).msg.length() > length) length = (*msgi).msg.length();
-				}
-			}
-			timer = 0;
-		}
-	} else timer = 0;
-}
-
-void Announce.AnnouncementClicked(AnnounceMessage *msg) {
-	if(msg.target.X() > -1 && msg.target.Y() > -1) {
-		Game.Inst().CenterOn(msg.target);
-	}
-}
-
-void Announce.AnnouncementClicked(int i) {
-	if(i >= 0 && i < (signed int)history.size()) {
-		AnnouncementClicked(history[i]);
-	}
-}
-
-MenuResult Announce.Update(int x, int y, bool clicked) {
-	if(x < (signed int)length + 6 && y >= (signed int)top) {
-		if(clicked && y > (signed int)top && (y - top - 1) >= 0 && (y - top - 1) < messageQueue.size()) {
-			AnnouncementClicked(messageQueue[y - top - 1]);
-		}
-		return MENUHIT;
-	}
-	return NOMENUHIT;
-}
-
-void Announce.Draw(TCODConsole* the_console) {
-	the_console.setAlignment(TCOD_LEFT);
-
-	top = the_console.getHeight() - 1 - height;
-	if (height > 0 && (signed int)height < the_console.getHeight() - 1) {
-		the_console.hline(0, top, length+6);
-		the_console.putChar(length+5, top, TCOD_CHAR_NE, TCOD_BKGND_SET);
-		the_console.vline(length+5, top + 1, height);
-		the_console.rect(0, top + 1, length+5, height, true);
-
-		for (int i = std.min((int)messageQueue.size() - 1, (int)height-1); i >= 0; --i) {
-			AnnounceMessage* msg = messageQueue[i];
-			the_console.setDefaultForeground(msg.color);
-			the_console.print(0, the_console.getHeight()-(height-i), msg.ToString().c_str());
-		}
-	}
-}
-
-void Announce.Draw(Coordinate pos, int from, int amount, TCODConsole* the_console) {
-	int count = 0;
-	for (std.deque<AnnounceMessage*>.reverse_iterator ani = messageQueue.rbegin(); ani != messageQueue.rend(); ++ani) {
-		if (count++ >= from) {
-			the_console.print(pos.X(), pos.Y()+count-from, (*ani).ToString().c_str());
-			if (count-from+1 == amount) return;
-		}
-	}
-	for (std.deque<AnnounceMessage*>.reverse_iterator ani = history.rbegin(); ani != history.rend(); ++ani) {
-		if (count++ >= from) {
-			the_console.print(pos.X(), pos.Y()+count-from, (*ani).ToString().c_str());
-			if (count-from+1 == amount) return;
-		}
-	}
-}
-
-void Announce.EmptyMessageQueue() {
-	while (!messageQueue.empty()) {
-		history.push_front(messageQueue.front());
-		if (history.size() > 1000) {
-			delete(history.back());
-			history.pop_back();
-		}
-		messageQueue.pop_front();
-	}
+export class Announcer {
+	messageQueue = [];
+	history = [];
+	timer = 0;
 	length = 0;
-}
+	height = 0;
+	top = 0;
 
-int Announce.AnnounceAmount() {
-	return history.size()+messageQueue.size();
-}
+	AnnounceAmount() {
+		return this.history.length + this.messageQueue.length;
+	}
 
-Coordinate Announce.CurrentCoordinate() {
-	return messageQueue.front().target;
-}
+	CurrentCoordinate() {
+		return this.messageQueue[0].target;
+	}
+	static Reset() {
+		export let Announce = new Announcer();
+	}
+	AnnouncementClicked(arg) {
+		if (arg && arg instanceof AnnounceMessage) {
+			if (arg.target.X() > -1 && arg.target.Y() > -1) {
+				Game.Inst().CenterOn(arg.target);
+			}
+		}
+		if (Number.isFinite(arg)) {
+			if (arg >= 0 && arg < this.history.length) {
+				this.AnnouncementClicked(this.history[i]);
+			}
+		}
+	}
+	EmptyMessageQueue() {
+		while (this.messageQueue.length) {
+			this.history.unshift(messageQueue[0]);
+			if (history.length > 1000) {
+				history.pop();
+			}
+			this.messageQueue.shift();
+		}
+		this.length = 0;
+	}
+	AddMsg(msg, color = TCODColor.white, coordinate = Coordinate.undefinedCoordinate) {
+		msg = msg.substr(0, ANNOUNCE_MAX_LENGTH);
+		if (this.messageQueue.length && this.messageQueue[this.messageQueue.length - 1].msg == msg && this.messageQueue[this.messageQueue.length - 1].target == coordinate) {
+			this.this.messageQueue[this.messageQueue.length - 1].counter++;
+			if (this.messageQueue.length == 1) this.timer = 0;
+		} else {
+			this.messageQueue.push(new AnnounceMessage(msg, color, coordinate));
+			if (this.messageQueue.length <= ANNOUNCE_HEIGHT) {
+				if (msg.length > this.length) this.length = msg.length;
+				this.height = this.messageQueue.length;
+			}
+		}
+	}
+	Update(...args) {
+		if (args.length == 0)
+			this.UpdateNoArgs();
+		else
+			this.UpdateWithArgs(...args);
+	}
 
-void Announce.Reset() {
-	delete instance;
-	instance = 0;
+	UpdateNoArgs() {
+		if (this.messageQueue.length == 0) {
+			this.timer = 0;
+			return;
+		}
+		++this.timer;
+		if (this.timer <= 0.5 * UPDATES_PER_SECOND)
+			return;
+		if (this.messageQueue.length <= ANNOUNCE_HEIGHT) {
+			this.timer = 0;
+			return;
+		}
+
+		this.history.push(this.messageQueue[0]);
+		if (this.history.length > 1000) {
+			this.history.shift();
+		}
+		this.messageQueue.shift();
+		this.length = 0;
+		for (let msgi of this.messageQueue) {
+			if (msgi.msg.length > this.length)
+				this.length = msgi.msg.length;
+		}
+
+		this.timer = 0;
+	}
+
+	UpdateWithArgs(x, y, clicked) {
+		if (x < this.length + 6 && y >= this.top) {
+			if (clicked && y > this.top && (y - this.top - 1) >= 0 && (y - this.top - 1) < this.messageQueue.length) {
+				this.AnnouncementClicked(this.messageQueue[y - this.top - 1]);
+			}
+			return MenuResult.MENUHIT;
+		}
+		return MenuResult.NOMENUHIT;
+	}
+	Draw(...args) {
+		if (args.length == 1)
+			this.DrawWithOneArg(...args);
+		else
+			this.DrawWithFourArgs(...args);
+	}
+	DrawWithOneArg(the_console) {
+		the_console.setAlignment(TCOD_LEFT);
+
+		this.top = the_console.getHeight() - 1 - this.height;
+		if (this.height <= 0) return;
+		if (this.height >= the_console.getHeight() - 1) return;
+
+		the_console.hline(0, this.top, this.length + 6);
+		the_console.putChar(this.length + 5, this.top, TCOD_CHAR_NE, TCOD_BKGND_SET);
+		the_console.vline(this.length + 5, this.top + 1, this.height);
+		the_console.rect(0, this.top + 1, this.length + 5, this.height, true);
+
+		for (let i = Math.min(this.messageQueue.length - 1, this.height - 1); i >= 0; --i) {
+			let msg = this.messageQueue[i];
+			the_console.setDefaultForeground(msg.color);
+			the_console.print(0, the_console.getHeight() - (this.height - i), msg.toString());
+		}
+	}
+	DrawWithFourArgs(pos, from, amount, the_console) {
+		let count = 0;
+		for (let i = this.messageQueue.length - 1; i >= 0; --i) {
+			let ani = this.messageQueue[i];
+			if (count++ >= from) {
+				the_console.print(pos.X(), pos.Y() + count - from, (ani).toString());
+				if (count - from + 1 == amount) return;
+			}
+		}
+		for (let i = this.history.length - 1; i >= 0; --i) {
+			let ani = this.history[i];
+			if (count++ >= from) {
+				the_console.print(pos.X(), pos.Y() + count - from, (ani).toString());
+				if (count - from + 1 == amount) return;
+			}
+		}
+	}
 }
+export let Announce = new Announcer();

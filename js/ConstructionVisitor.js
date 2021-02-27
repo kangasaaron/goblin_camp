@@ -13,25 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
-
-// import "boost/shared_ptr.js"
-
-// class Construction;
-// class Door;
-// class Stockpile;
-// class SpawningPool;
-// class FarmPlot;
-// class Trap;
-// import {addAbstractFunction} from "./other/abstractFunctions.js";
 
 export class ConstructionVisitor {
-    //public extends 
-    // virtual void Visit(FarmPlot * farmplot) = 0;
     Visit(thingToVisit) {};
-    // virtual void Visit(Stockpile * stockpile) = 0;
-    // virtual void Visit(SpawningPool * spawningPool) = 0;
-    // virtual void Visit(Door * door) = 0;
-    // virtual void Visit(Construction * construction) = 0;
-    // virtual void Visit(Trap * trap) = 0;
 }

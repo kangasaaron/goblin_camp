@@ -13,32 +13,64 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
-import "libtcod.js"
+import {
+	Drawable
+} from "./Drawable.js";
 
-import "UIComponents.js"
+import "libtcod.js";
 
-class Spinner extends /*public*/ Drawable {
-//private:
-	boost.function<int()> getter;
-	boost.function<void(int)> setter;
-	int *value;
-	int min, max;
-//public:
-	Spinner(
-		int x, int y, int nwidth, boost.function<int()> ngetter,
-		boost.function<void(int)> nsetter, int nmin = 0, int nmax = std.numeric_limits<int>.max()
-	):
-		Drawable(x, y, nwidth, 1), getter(ngetter), setter(nsetter), value(0), min(nmin), max(nmax) {}
-	Spinner(int x, int y, int nwidth, int *nvalue, int nmin = 0, int nmax = std.numeric_limits<int>.max()):
-		Drawable(x, y, nwidth, 1), getter(0), setter(0), value(nvalue), min(nmin), max(nmax) {}
-	void Draw(int, int, TCODConsole *);
-	MenuResult Update(int, int, bool, TCOD_key_t);
-};
+export class Spinner extends Drawable {
+	getter = null;
+	setter = null;
+	value = 0;
+	min = 0;
+	max = 0;
+	constructor(x, y, nwidth, ...values, nmin = 0, nmax = Number.MAX_SAFE_INTEGER) {
+		super(x, y, nwidth, 1);
+		if (values.length === 2) {
+			if (typeof values[0] === "function")
+				this.getter = values[0];
+			if (typeof values[1] === "function")
+				this.setter = values[1];
+		} else {
+			if (typeof values[0] !== "undefined")
+				this.value = value;
+		}
+		this.min = nmin;
+		this.max = nmax;
+	}
+
+	Draw(x, y, the_console) {
+		the_console.setAlignment(TCOD_CENTER);
+		let val = this.value ? this.value : this.getter();
+		the_console.print(x + this._x + this.width / 2, y + this._y, "- %d +", val);
+	}
+
+	Update(x, y, clicked, key) {
+		if ((x >= this._x && x < this._x + this.width && y == this._y) || (key.vk == TCODK_KPADD || key.vk == TCODK_KPSUB)) {
+			if (clicked || (key.vk == TCODK_KPADD || key.vk == TCODK_KPSUB)) {
+				let curr = this.value ? this.value : this.getter();
+				let adj = UI.Inst().ShiftPressed() ? 10 : 1;
+				let strWidth = 4 + String(curr).length;
+				if (x == this._x + this.width / 2 - strWidth / 2 || key.vk == TCODK_KPSUB) {
+					if (this.value) {
+						this.value = Math.max(this.min, curr - adj);
+					} else {
+						this.setter(Math.max(this.min, curr - adj));
+					}
+				} else if (x == this._x + this.width / 2 + (strWidth - 1) / 2 || key.vk == TCODK_KPADD) {
+					if (this.value) {
+						this.value = Math.max(this.min, curr + adj);
+					} else {
+						this.setter(Math.max(this.min, curr + adj));
+					}
+				}
+			}
+			return MenuResult.MENUHIT;
+		}
+		return MenuResult.NOMENUHIT;
+	}
+
+}

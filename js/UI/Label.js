@@ -13,34 +13,25 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
 
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
+import {
+	Drawable
+} from "./Drawable.js";
+
 import "libtcod.js"
 
-import "UIComponents.js"
-
-class Label extends /*public*/ Drawable {
-//private:
-	std.string text;
-	TCOD_alignment_t align;
-//public:
-	Label(std.string ntext, int x, int y, TCOD_alignment_t nalign = TCOD_CENTER) :
-	Drawable(x, y, 0, 1), text(ntext), align(nalign) {}
-	void Draw(int, int, TCODConsole *);
-};
-
-class LiveLabel extends /*public*/ Drawable {
-//private:
-	boost.function<std.string()> text;
-	TCOD_alignment_t align;
-//public:
-	LiveLabel(boost.function<std.string()> ntext, int x, int y, TCOD_alignment_t nalign = TCOD_CENTER) :
-	Drawable(x, y, 0, 1), text(ntext), align(nalign) {}
-	void Draw(int, int, TCODConsole *);
-};
+export class Label extends Drawable {
+	text = '';
+	align = null;
+	constructor(ntext, x, y, nalign = TCOD_CENTER) {
+		super(x, y, 0, 1);
+		this.text = ntext;
+		this.align = nalign;
+	}
+	Draw(x, y, the_console) {
+		the_console.setAlignment(this.align);
+		the_console.setDefaultForeground(TCODColor.white);
+		the_console.print(x + this._x, y + this._y, this.text);
+	}
+}

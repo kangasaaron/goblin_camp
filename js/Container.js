@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "set"
 
@@ -24,284 +24,208 @@ import "Item.js"
 import "data/Serialization.js"
 
 class ContainerListener {
-//public extends 
-	virtual void ItemAdded(boost.weak_ptr<Item>) = 0;
-	virtual void ItemRemoved(boost.weak_ptr<Item>) = 0;
-};
-
-class Container  extends /*public*/ Item {
-	GC_SERIALIZABLE_CLASS
-	
-	std.set<boost.weak_ptr<Item> > items;
-	int capacity;
-	int reservedSpace;
-	
-	std.vector<ContainerListener*> listeners;
-	std.vector<int> listenersAsUids;
-
-	int water, filth; //Special cases for real liquids
-//public:
-	Container(Coordinate = Coordinate(0,0), ItemType type=0, int cap=1000, int faction = 0,
-		std.vector<boost.weak_ptr<Item> > = std.vector<boost.weak_ptr<Item> >(),
-		std.vector<ContainerListener*> = std.vector<ContainerListener*>());
-	virtual ~Container();
-	virtual bool AddItem(boost.weak_ptr<Item>);
-	virtual void RemoveItem(boost.weak_ptr<Item>);
-	void ReserveSpace(bool, int bulk = 1);
-	boost.weak_ptr<Item> GetItem(boost.weak_ptr<Item>);
-	std.set<boost.weak_ptr<Item> >* GetItems();
-	boost.weak_ptr<Item> GetFirstItem();
-	bool empty();
-	int size();
-	int Capacity();
-	bool Full();
-	std.set<boost.weak_ptr<Item> >.iterator begin();
-	std.set<boost.weak_ptr<Item> >.iterator end();
-	void AddListener(ContainerListener* listener);
-	void RemoveListener(ContainerListener *listener);
-	void GetTooltip(int x, int y, Tooltip *tooltip);
-	void TranslateContainerListeners();
-	void AddWater(int);
-	void RemoveWater(int);
-	int ContainsWater();
-	void AddFilth(int);
-	void RemoveFilth(int);
-	int ContainsFilth();
-	void Draw(Coordinate, TCODConsole*);
-	int GetReservedSpace();
-	virtual void Position(const Coordinate&);
-	virtual Coordinate Position();
-	virtual void SetFaction(int);
-};
-
-BOOST_CLASS_VERSION(.Container, 0)
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/serialization/vector.js"
-import "boost/serialization/set.js"
-import "boost/serialization/weak_ptr.js"
-
-import "Entity.js"
-import "Container.js"
-import "Logger.js"
-import "Construction.js"
-import "Game.js"
-import "Stockpile.js"
-
-Container.Container(
-	Coordinate pos, ItemType type, int capValue, int faction, std.vector<boost.weak_ptr<Item> > components,
-	std.vector<ContainerListener*> nlisteners
-) :
-	Item(pos, type, faction, components),
-	capacity(capValue),
-	reservedSpace(0),
-	listeners(nlisteners),
-	water(0),
-	filth(0)
-{
+	ItemAdded() {}
+	ItemRemoved() {}
 }
 
-Container.~Container() {
-	while (!items.empty()) {
-		boost.weak_ptr<Item> item = GetFirstItem();
-		RemoveItem(item);
-		if (item.lock()) item.lock().PutInContainer();
+class Container extends Item {
+	static CLASS_VERSION = 0;
+
+	items = [];
+	capacity = 0;
+	reservedSpace = 0;
+	listeners = [];
+	listenersAsUids = [];
+
+	//Special cases for real liquids
+	water = 0;
+	filth = 0;
+
+	constructor(pos = Coordinate(0, 0), type = 0, capValue = 1000, faction = 0, components = [], nlisteners = []) {
+		super(pos, type, faction, components);
+		this.capacity = capValue;
+		this.listeners = nlisteners;
 	}
-}
 
-bool Container.AddItem(boost.weak_ptr<Item> witem) {
-	boost.shared_ptr<Item> item = witem.lock();
-	if (item && capacity >= std.max(item.GetBulk(), 1)) {
-		item.PutInContainer(boost.static_pointer_cast<Item>(shared_from_this()));
-		items.insert(item);
-		capacity -= std.max(item.GetBulk(), 1); //<- so that bulk=0 items take space
-		for(std.vector<ContainerListener*>.iterator it = listeners.begin(); it != listeners.end(); it++) {
-			(*it).ItemAdded(item);
+	/*
+	destructor() {
+		while (!items.empty()) {
+			boost.weak_ptr < Item > item = GetFirstItem();
+			RemoveItem(item);
+			if (item.lock()) item.lock().PutInContainer();
 		}
-		if (item.Type() == Item.StringToItemType("water")) ++water;
+	}
+	*/
+
+	AddItem(witem) {
+		let item = witem.lock();
+		if (!item) return false;
+		if (this.capacity < Math.max(item.GetBulk(), 1)) return false;
+
+		item.PutInContainer(this);
+		this.items.push(item);
+		this.capacity -= Math.max(item.GetBulk(), 1); //<- so that bulk=0 items take space
+		for (let it of this.listeners)
+			it.ItemAdded(item);
+
+		if (item.Type() == Item.StringToItemType("water")) ++this.water;
 		return true;
 	}
-	return false;
-}
-
-void Container.RemoveItem(boost.weak_ptr<Item> item) {
-	if (items.find(item) != items.end()) {
-		items.erase(item);
+	RemoveItem(item) {
+		if (!this.items.includes(item)) return;
+		this.items.erase(item);
 		if (item.lock()) {
-			capacity += std.max(item.lock().GetBulk(), 1);
-			if (item.lock().Type() == Item.StringToItemType("water")) --water;
+			this.capacity += Math.max(item.lock().GetBulk(), 1);
+			if (item.lock().Type() == Item.StringToItemType("water")) --this.water;
 		}
-		for(std.vector<ContainerListener*>.iterator it = listeners.begin(); it != listeners.end(); it++) {
-			(*it).ItemRemoved(item);
-		}
+		for (let it of this.listeners)
+			it.ItemRemoved(item);
 	}
-}
-
-boost.weak_ptr<Item> Container.GetItem(boost.weak_ptr<Item> item) {
-	return *items.find(item);
-}
-
-std.set<boost.weak_ptr<Item> >* Container.GetItems() { return &items; }
-
-bool Container.empty() { return items.empty(); }
-int Container.size() { return items.size(); }
-
-int Container.Capacity() { return capacity-reservedSpace; }
-
-boost.weak_ptr<Item> Container.GetFirstItem() { 
-	if (items.empty()) return boost.weak_ptr<Item>();
-	return *items.begin(); 
-}
-
-std.set<boost.weak_ptr<Item> >.iterator Container.begin() { return items.begin(); }
-std.set<boost.weak_ptr<Item> >.iterator Container.end() { return items.end(); }
-bool Container.Full() {
-	return (capacity-reservedSpace <= 0);
-}
-
-void Container.ReserveSpace(bool res, int bulk) {
-	if (res) reservedSpace += std.max(1, bulk);
-	else reservedSpace -= std.max(1,bulk);
-}
-
-void Container.AddListener(ContainerListener* listener) {
-	listeners.push_back(listener);
-	if (dynamic_cast<Stockpile*>(listener)) {
-		listenersAsUids.push_back(dynamic_cast<Stockpile*>(listener).Uid());
-	}
-}
-
-void Container.RemoveListener(ContainerListener *listener) {
-	unsigned int n = 0;
-	for(std.vector<ContainerListener*>.iterator it = listeners.begin(); it != listeners.end(); it++, ++n) {
-		if(*it == listener) {
-			listeners.erase(it);
-			if (n < listenersAsUids.size()) listenersAsUids.erase(boost.next(listenersAsUids.begin(), n));
-			return;
-		}
-	}
-}
-
-void Container.GetTooltip(int x, int y, Tooltip *tooltip) {
-	int capacityUsed = 0;
-	for (std.set<boost.weak_ptr<Item> >.iterator itemi = items.begin(); itemi != items.end(); ++itemi) {
-		if (itemi.lock()) capacityUsed += std.max(1, itemi.lock().GetBulk());
-	}
-	tooltip.AddEntry(TooltipEntry((boost.format("%s - %d items (%d/%d)") % name % size() % capacityUsed % (capacity + capacityUsed)).str(), TCODColor.white));
-}
-
-void Container.TranslateContainerListeners() {
-	listeners.clear();
-	for (unsigned int i = 0; i < listenersAsUids.size(); ++i) {
-		boost.weak_ptr<Construction> cons = Game.Inst().GetConstruction(listenersAsUids[i]);
-		if (cons.lock() && boost.dynamic_pointer_cast<Stockpile>(cons.lock())) {
-			listeners.push_back(boost.dynamic_pointer_cast<Stockpile>(cons.lock()).get());
-		}
-	}
-}
-
-void Container.AddWater(int amount) {
-	if (empty() && filth == 0) { 
-		for (int i = 0; i < amount; ++i) {
-			int waterUid = Game.Inst().CreateItem(Position(), Item.StringToItemType("Water"));
-			boost.shared_ptr<Item> waterItem = Game.Inst().GetItem(waterUid).lock();
-			
-			if (!AddItem(waterItem)) {
-				Game.Inst().RemoveItem(waterItem);
-				break;
-			}
-		}
-	}
-}
-
-void Container.RemoveWater(int amount) {
-	for (int i = 0; i < amount; ++i) {
-		for (std.set<boost.weak_ptr<Item> >.iterator itemi = items.begin(); itemi != items.end(); ++itemi) {
-			boost.shared_ptr<Item> waterItem = itemi.lock();
-			if (waterItem && waterItem.Type() == Item.StringToItemType("water")) {
-				Game.Inst().RemoveItem(waterItem);
-				break;
-			}
-		}
-	}
-}
-
-int Container.ContainsWater() { return water; }
-
-void Container.AddFilth(int amount) {
-	if (empty() && water == 0) filth += amount;
-}
-
-void Container.RemoveFilth(int amount) {
-	filth -= amount;
-	if (filth < 0) filth = 0;
-}
-
-int Container.ContainsFilth() { return filth; }
-
-void Container.Draw(Coordinate upleft, TCODConsole* the_console) {
-	int screenx = (pos - upleft).X();
-	int screeny = (pos - upleft).Y();
-	if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
-		if (!items.empty() && items.begin().lock())
-			the_console.putCharEx(screenx, screeny, items.begin().lock().GetGraphic(), items.begin().lock().Color(), color);
+	ReserveSpace(res, bulk = 1) {
+		if (res)
+			this.reservedSpace += Math.max(1, bulk);
 		else
-			the_console.putCharEx(screenx, screeny, graphic, color, Map.Inst().GetBackColor(pos));
+			this.reservedSpace -= Math.max(1, bulk);
 	}
-}
-
-int Container.GetReservedSpace() { return reservedSpace; }
-
-void Container.Position(const Coordinate& pos) {
-	Item.Position(pos);
-	for (std.set<boost.weak_ptr<Item> >.iterator itemi = items.begin(); itemi != items.end(); ++itemi) {
-		boost.shared_ptr<Item> item = itemi.lock();
-		if (item) item.Position(pos);
+	GetItem(item) {
+		return this.items.find(item);
 	}
-}
-
-Coordinate Container.Position() {return Item.Position();}
-
-void Container.SetFaction(int faction) {
-	for (std.set<boost.weak_ptr<Item> >.const_iterator itemi = items.begin(); itemi != items.end(); ++itemi) {
-		if (boost.shared_ptr<Item> item = itemi.lock()) {
-			item.SetFaction(faction);
+	GetItems() {
+		return this.items;
+	}
+	GetFirstItem() {
+		if (this.items.length === 0) return null;
+		return this.items[0];
+	}
+	empty() {
+		return this.items.length === 0;
+	}
+	size() {
+		return this.items.length;
+	}
+	Capacity() {
+		return this.capacity - this.reservedSpace;
+	}
+	Full() {
+		return (this.capacity - this.reservedSpace <= 0);
+	}
+	AddListener(listener) {
+		this.listeners.push(listener);
+		if (listener instanceof Stockpile) {
+			this.listenersAsUids.push(listener.Uid());
 		}
 	}
-	Item.SetFaction(faction);
-}
+	RemoveListener(listener) {
+		for (let n = 0; n < this.listeners.length; n++) {
+			if (this.listeners[n] == listener) {
+				this.listeners.splice(n, 1);
+				if (n < this.listenersAsUids.length)
+					this.listenersAsUids.splice(1, n);
+				return;
+			}
+		}
+	}
+	GetTooltip(x, y, tooltip) {
+		let capacityUsed = 0;
+		for (let itemi of this.items) {
+			if (itemi.lock()) this.capacityUsed += Math.max(1, itemi.lock().GetBulk());
+		}
+		tooltip.AddEntry(new TooltipEntry((boost.format("%s - %d items (%d/%d)") % this.name % this.size() % capacityUsed % (this.capacity + capacityUsed)).str(), TCODColor.white));
+	}
+	TranslateContainerListeners() {
+		this.listeners = [];
+		for (let i = 0; i < this.listenersAsUids.length; ++i) {
+			let cons = Game.Inst().GetConstruction(this.listenersAsUids[i]);
+			if (cons.lock() && cons.lock() instanceof Stockpile) {
+				this.listeners.push(cons.lock().get());
+			}
+		}
+	}
+	AddWater(amount) {
+		if (!this.empty()) return;
+		if (this.filth !== 0) return;
 
-void Container.save(OutputArchive& ar, const unsigned int version) const {
-	ar & boost.serialization.base_object<Item>(*this);
-	ar & items;
-	ar & capacity;
-	ar & reservedSpace;
-	ar & listenersAsUids;
-	ar & water;
-	ar & filth;
-}
+		for (let i = 0; i < amount; ++i) {
+			let waterUid = Game.Inst().CreateItem(this.Position(), Item.StringToItemType("Water"));
+			let waterItem = Game.Inst().GetItem(waterUid).lock();
+			if (!this.AddItem(waterItem)) {
+				Game.Inst().RemoveItem(waterItem);
+				break;
+			}
+		}
+	}
+	RemoveWater(amount) {
+		for (let i = 0; i < amount; ++i) {
+			for (let itemi of this.items) {
+				let waterItem = itemi.lock();
+				if (waterItem && waterItem.Type() == Item.StringToItemType("water")) {
+					Game.Inst().RemoveItem(waterItem);
+					break;
+				}
+			}
+		}
+	}
+	ContainsWater() {
+		return this.water;
+	}
+	AddFilth(amount) {
+		if (this.empty() && this.water == 0) this.filth += amount;
+	}
+	RemoveFilth(amount) {
+		this.filth -= amount;
+		if (this.filth < 0) this.filth = 0;
+	}
+	ContainsFilth() {
+		return this.filth;
+	}
+	GetReservedSpace() {
+		return this.reservedSpace;
+	}
 
-void Container.load(InputArchive& ar, const unsigned int version) {
-	ar & boost.serialization.base_object<Item>(*this);
-	ar & items;
-	ar & capacity;
-	ar & reservedSpace;
-	ar & listenersAsUids;
-	ar & water;
-	ar & filth;
+	Position(pos) {
+		super.Position(pos);
+		for (let itemi of this.items) {
+			let item = itemi.lock();
+			if (item) item.Position(pos);
+		}
+
+		return super.Position();
+	}
+	SetFaction(faction) {
+		for (let itemi of this.items) {
+			let item;
+			if (item = itemi.lock()) {
+				item.SetFaction(faction);
+			}
+		}
+		Item.SetFaction(faction);
+	}
+	Draw(upleft, the_console) {
+		let screenx = (this.pos - upleft).X();
+		let screeny = (this.pos - upleft).Y();
+		if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
+			if (!this.items.empty() && this.items[0].lock())
+				the_console.putCharEx(screenx, screeny, this.items[0].lock().GetGraphic(), this.items[0].lock().Color(), this.color);
+			else
+				the_console.putCharEx(screenx, screeny, this.graphic, this.color, Map.Inst().GetBackColor(this.pos));
+		}
+	}
+	save(ar, version) {
+		super.save(ar, version);
+		ar.save(this, "items");
+		ar.save(this, "capacity");
+		ar.save(this, "reservedSpace");
+		ar.save(this, "listenersAsUids");
+		ar.save(this, "water");
+		ar.save(this, "filth");
+	}
+	load(ar, version) {
+		super.load(ar, version);
+		this.items = ar.items;
+		this.capacity = ar.capacity;
+		this.reservedSpace = ar.reservedSpace;
+		this.listenersAsUids = ar.listenersAsUids;
+		this.water = ar.water;
+		this.filth = ar.filth;
+	}
 }

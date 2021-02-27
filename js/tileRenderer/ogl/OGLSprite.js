@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "tileRenderer/Sprite.js"
 import "tileRenderer/ogl/OGLTilesetRenderer.js"

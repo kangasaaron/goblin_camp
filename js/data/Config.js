@@ -13,230 +13,178 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "boost/lexical_cast.js"
-import "boost/unordered_map.js"
+import {
+	Paths,
+	Path
+} from "./Paths.js";
 
 // Data refactoring: game configuration.
 
-namespace Config {
-	typedef boost.unordered_map<std.string, std.string> CVarMap;
-	typedef boost.unordered_map<std.string, char> KeyMap;
-	
-	void Init();
-	void Save();
-	
-	// config variables
-	void SetStringCVar(const std.string&, const std.string&);
-	std.string GetStringCVar(const std.string&);
-	
-	template <typename T>
-	inline T GetCVar(const std.string& name) {
-		return boost.lexical_cast<T>(GetStringCVar(name));
-	}
-	
-	template <typename T>
-	inline void SetCVar(const std.string& name, const T& value) {
-		SetStringCVar(name, boost.lexical_cast<std.string>(value));
-	}
-	
-	const CVarMap& GetCVarMap();
-	
-	// key bindings
-	char GetKey(const std.string&);
-	void SetKey(const std.string&, const char);
-	KeyMap& GetKeyMap();
-}
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "cstdlib "
-import "fstream"
-import "string"
-import "boost/assign/list_inserter.js"
-import "boost/date_time/local_time/local_time.js"
-import "boost/foreach.js"
-
-import "data/Config.js"
-import "data/Paths.js"
-import "Logger.js"
-
-// namespace Globals {
-// 	*
-// 		\var cvars
-// 		A map of configuration variables.
-		
-// 		\var keys
-// 		A map of key bindings.
-	
-// 	Config.CVarMap cvars;
-// 	Config.KeyMap  keys;
-// }
 globalThis.Globals = globalThis.Globals || {};
-Globals.cvars = new Map();
-Globals.keys = new Map();
-
 
 /**
 	Interface to manage game's configuration.
 */
-namespace Config {
+class Configuration {
+	/**
+	@var cvars
+	A map of configuration variables.
+	*/
+	cvars = new Map();
+	/**
+	@var keys
+	A map of key bindings.
+	*/
+	keys = new Map();
+	GetCVar(name) {
+		return this.GetStringCVar(name);
+	}
+	SetCVar(name, value) {
+		this.SetStringCVar(name, String(value));
+	}
 	/**
 		Saves current configuration to user's configuration file.
 		
-		\see Paths
-		\throws std.exception Refer to std.ofstream documentation.
+		@see Paths
 	*/
-	void Save() {
-		std.ofstream config(Paths.Get(Paths.Config).string().c_str());
-		config << "##\n";
-		config << "## Config automatically saved on " << boost.posix_time.second_clock.local_time() << '\n';
-		config << "##\n";
-		
+	Save() {
+		let configObj = {
+			"saved on": Date.now()
+		};
+
+		configObj.cvars = {};
 		// dump cvars
-		BOOST_FOREACH(CVarMap.value_type pair, Globals.cvars) {
-			config << "setCVar('" << pair.first << "', '" << pair.second << "')\n";
+		for (let pair of this.cvars.entries()) {
+			configObj.cvars[pair[0]] = pair[1];
 		}
-		
+
+		configObj.keys = {};
 		// dump keys
-		BOOST_FOREACH(KeyMap.value_type pair, Globals.keys) {
-			config << "bindKey('" << pair.first << "', '" << pair.second << "')\n";
+		for (let pair of this.keys.entries()) {
+			configObj.keys[pair[0]] = pair[1];
 		}
-		
-		config.close();
+
+		localStorage.setItem(Paths.Get(Path.Config), JSON.stringify(configObj));
 	}
-	
+
 	/**
 		Creates configuration variables, and default key bindings.
 	*/
-	void Init() {
-		using boost.assign.insert;
-		
-		insert(Globals.cvars)
-			("resolutionX",  "800")
-			("resolutionY",  "600")
-			("fullscreen",   "0")
-			("renderer",     "0")
-			("useTileset",   "0")
-			("tileset",      "")
-			("tutorial",     "1")
-			("riverWidth",   "30")
-			("riverDepth",   "5")
-			("halfRendering","0")
-			("compressSaves","0")
-			("translucentUI","0")
-			("autosave","1")
-			("pauseOnDanger","0")
-		;
-		
-		insert(Globals.keys)
-			("Exit",          'q')
-			("Basics",        'b')
-			("Workshops",     'w')
-			("Orders",        'o')
-			("Furniture",     'f')
-			("StockManager",  's')
-			("Squads",        'm')
-			("Announcements", 'a')
-			("Center",        'c')
-			("Help",          'h')
-			("Pause",         ' ')
-			("Jobs",          'j')
-			("DevConsole",    '`')
-			("TerrainOverlay",'t')
-			("Permanent",     'p')
-		;
+	constructor() {
+		this.cvars = new Map([
+			["resolutionX", "800"],
+			["resolutionY", "600"],
+			["fullscreen", "0"],
+			["renderer", "0"],
+			["useTileset", "0"],
+			["tileset", ""],
+			["tutorial", "1"],
+			["riverWidth", "30"],
+			["riverDepth", "5"],
+			["halfRendering", "0"],
+			["compressSaves", "0"],
+			["translucentUI", "0"],
+			["autosave", "1"],
+			["pauseOnDanger", "0"]
+		]);
+
+		this.keys = new Map([
+			["Exit", 'q'],
+			["Basics", 'b'],
+			["Workshops", 'w'],
+			["Orders", 'o'],
+			["Furniture", 'f'],
+			["StockManager", 's'],
+			["Squads", 'm'],
+			["Announcements", 'a'],
+			["Center", 'c'],
+			["Help", 'h'],
+			["Pause", ' '],
+			["Jobs", 'j'],
+			["DevConsole", '`'],
+			["TerrainOverlay", 't'],
+			["Permanent", 'p']
+		]);
 	}
-	
+
 	/**
 		Changes value of a configuration variable.
 		
-		\param[in] name  Name of the variable.
-		\param[in] value New value for the variable.
+		@param[in] name  Name of the variable.
+		@param[in] value New value for the variable.
 	*/
-	void SetStringCVar(const std.string& name, const std.string& value) {
-		LOG("Setting " << name << " to " << value);
-		Globals.cvars[name] = value;
+	SetStringCVar(nm, value) {
+		console.log(`Setting ${nm} to ${value}`);
+		this.cvars.set(nm, value);
 	}
-	
+
 	/**
 		Retrieves value of a configuration variable. If the variable doesn't exist,
 		it will be created, set to empty string and then returned.
 		
-		\param[in] name Name of the variable.
-		\returns        Value of the variable.
+		@param[in] name Name of the variable.
+		@returns        Value of the variable.
 	*/
-	std.string GetStringCVar(const std.string& name) {
-		if (Globals.cvars.find(name) == Globals.cvars.end()) {
-			LOG("WARNING: CVar "<< name << " doesn't exist.");
-			return std.string("");
+	GetStringCVar(nm) {
+		if (!(this.cvars.has(nm))) {
+			console.warn(`WARNING: CVar ${nm} doesn't exist.`);
+			return "";
 		}
-		return Globals.cvars[name];
+		return this.cvars.get(nm);
 	}
-	
+
+
 	/**
 		Retrieves all defined configuration variables.
 		
-		\returns A constant reference to the configuration variables map.
+		@returns A constant reference to the configuration variables map.
 	*/
-	const CVarMap& GetCVarMap() {
-		return Globals.cvars;
+	GetCVarMap() {
+		return this.cvars;
 	}
-	
+
 	/**
 		Retrieves keycode bound to a named key. If the key doesn't exist,
 		null keycode (\c 0) will be returned and warning will be logged.
 		
-		\param[in] name Name of the key.
-		\returns        Currently bound keycode, or 0.
+		@param[in] name Name of the key.
+		@returns        Currently bound keycode, or 0.
 	*/
-	char GetKey(const std.string& name) {
-		if (Globals.keys.find(name) == Globals.keys.end()) {
-			LOG("WARNING: Key " << name << " doesn't exist -- this may indicate outdated code.");
+	GetKey(nm) {
+		if (!(this.keys.has(nm))) {
+			console.warn(`WARNING: Key ${nm} doesn't exist -- this may indicate outdated code.`);
 			return '\0';
 		}
-		
-		return Globals.keys[name];
+
+		return this.keys.get(nm);
 	}
-	
+
 	/**
 		Changes keycode bound to a named key. If the key doesn't exist,
 		a warning will be logged (but the binding will be saved).
 		
-		\param[in] name  Name of the key.
-		\param[in] value New keycode for the key.
+		@param[in] name  Name of the key.
+		@param[in] value New keycode for the key.
 	*/
-	void SetKey(const std.string& name, const char value) {
-		LOG("Setting " << name << " to '" << value << "'");
-		
-		if (Globals.keys.find(name) == Globals.keys.end()) {
-			LOG("WARNING: Key " << name << " was not specified in the defaults -- it could mean the name has changed between releases.");
+	SetKey(nm, value) {
+		console.log(`Setting ${nm} to '${value}'`);
+
+		if (!(this.keys.has(nm))) {
+			console.warn(`WARNING: Key ${nm} was not specified in the defaults -- it could mean the name has changed between releases.`);
 		}
-		
-		Globals.keys[name] = value;
+
+		this.keys.set(nm, value);
 	}
-	
+
 	/**
 		Retrieves all key bindings.
 		
-		\returns Non-constant reference to the key bindings map. Callers should be careful not to introduce new keys this way.
+		@returns Non-constant reference to the key bindings map. Callers should be careful not to introduce new keys this way.
 	*/
-	KeyMap& GetKeyMap() {
-		return Globals.keys;
+	GetKeyMap() {
+		return this.keys;
 	}
 }
+
+export const Config = new Configuration();

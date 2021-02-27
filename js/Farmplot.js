@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "Stockpile.js"
 import "data/Serialization.js"
@@ -245,7 +245,7 @@ bool FarmPlot.Full(ItemType type) {
 Coordinate FarmPlot.FreePosition() {
 	if (containers.size() > 0) {
 		//First attempt to find a random position
-		for (int i = 0; i < std.max(1, (signed int)containers.size()/4); ++i) {
+		for (int i = 0; i < Math.max(1, (signed int)containers.size()/4); ++i) {
 			std.map<Coordinate, boost.shared_ptr<Container> >.iterator conti = boost.next(containers.begin(), Random.ChooseIndex(containers));
 			if (conti != containers.end() && conti.second.empty() && !reserved[conti.first]) 
 				return conti.first;

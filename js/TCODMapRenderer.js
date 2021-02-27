@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "MapRenderer.js"
 
@@ -262,9 +262,9 @@ void TCODMapRenderer.SetCursorMode(int other) {
 }
 
 void TCODMapRenderer.DrawCursor(const Coordinate& start, const Coordinate& end, bool placeable) {
-	for (int x = std.max(0, start.X() - upleft.X()); x <= std.min(the_console.getWidth() - 1, end.X() - upleft.X()); ++x)
+	for (int x = Math.max(0, start.X() - upleft.X()); x <= Math.min(the_console.getWidth() - 1, end.X() - upleft.X()); ++x)
 	{
-		for (int y = std.max(0, start.Y() - upleft.Y()); y <= std.min(the_console.getHeight() - 1, end.Y() - upleft.Y()); ++y)
+		for (int y = Math.max(0, start.Y() - upleft.Y()); y <= Math.min(the_console.getHeight() - 1, end.Y() - upleft.Y()); ++y)
 		{
 			if (!placeable) the_console.putCharEx(x, y, cursorChar, TCODColor.red, TCODColor.black);
 			else the_console.putCharEx(x, y, cursorChar, TCODColor.green, TCODColor.black);

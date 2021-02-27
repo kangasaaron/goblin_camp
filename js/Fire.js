@@ -13,275 +13,273 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "boost/enable_shared_from_this.js"
-import "libtcod.js"
 
-import "data/Serialization.js"
-import "Coordinate.js"
+import {
+	Coordinate
+} from "Coordinate.js";
 
-class Job;
+import {
+	TileType
+} from "./TileType.js";
 
-class FireNode  extends /*public*/ boost.enable_shared_from_this<FireNode> {
-	GC_SERIALIZABLE_CLASS
-	
-	Coordinate pos;
-	int graphic;
-	TCODColor color;
-	int temperature;
-	boost.weak_ptr<Job> waterJob;
+export class FireNode {
+	static CLASS_VERSION = 1;
 
-//public:
-	FireNode(const Coordinate& = zero, int temperature = 0);
-	~FireNode();
+	pos = Coordinate.zero;
+	graphic = 0;
+	color = [, , ];
+	temperature = null;
+	waterJob = null;
 
-	void Update();
-	void Draw(Coordinate, TCODConsole*);
-	Coordinate Position();
-	void AddHeat(int);
-	int GetHeat();
-	void SetHeat(int);
-};
-
-BOOST_CLASS_VERSION(FireNode, 1)
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/serialization/weak_ptr.js"
-import "boost/algorithm/string.js"
-
-import "boost/serialization/vector.js"
-import "boost/serialization/weak_ptr.js"
-
-// import "Fire.js"
-import "Random.js";
-import "Map.js";
-import "Game.js";
-import "Water.js";
-import "SpawningPool.js";
-import "Stockpile.js";
-import "JobManager.js";
-import "Job.js";
-import "Stats.js";
-
-FireNode.FireNode(const Coordinate& pos, int vtemp) : pos(pos), temperature(vtemp) {
-	color.r = Random.Generate(225, 255);
-	color.g = Random.Generate(0, 250);
-	color.b = 0;
-	graphic = Random.Generate(176,178);
-}
-
-FireNode.~FireNode() {
-	if (waterJob.lock()) {
-		JobManager.Inst().RemoveJob(waterJob);
+	constructor(pos = Coordinate.zero, vtemp = 0) {
+		this.pos = pos;
+		this.temperature = vtemp;
+		this.color = [
+			Random.Generate(225, 255),
+			Random.Generate(0, 250),
+			0
+		];
+		this.graphic = Random.Generate(176, 178);
 	}
-}
 
-Coordinate FireNode.Position() { return pos; }
-
-void FireNode.AddHeat(int value) { temperature += value; }
-
-int FireNode.GetHeat() { return temperature; }
-
-void FireNode.SetHeat(int value) { temperature = value; }
-
-void FireNode.Draw(Coordinate upleft, TCODConsole* the_console) {
-	int screenX = (pos - upleft).X();
-	int screenY = (pos - upleft).Y();
-
-	if (screenX >= 0 && screenX < the_console.getWidth() &&
-		screenY >= 0 && screenY < the_console.getHeight()) {
-			the_console.putCharEx(screenX, screenY, graphic, color, TCODColor.black);
+	/*
+	destructor(){
+		if(this.waterJob.lock())
+			JobManager.Inst().RemoveJob(waterJob);
 	}
-}
+	*/
 
-void FireNode.Update() {
-	graphic = Random.Generate(176,178);
-	color.r = Random.Generate(225, 255);
-	color.g = Random.Generate(0, 250);
+	Position() {
+		return this.pos;
+	}
+	AddHeat(value) {
+		this.temperature += value;
+	}
 
-	if (temperature > 800) temperature = 800;
+	GetHeat() {
+		return this.temperature;
+	}
 
-	boost.shared_ptr<WaterNode> water = Map.Inst().GetWater(pos).lock();
-	if (water && water.Depth() > 0 && Map.Inst().IsUnbridgedWater(pos)) {
-		temperature = 0;
-		water.Depth(water.Depth()-1);
-		boost.shared_ptr<Spell> steam = Game.Inst().CreateSpell(pos, Spell.StringToSpellType("steam"));
+	SetHeat(value) {
+		this.temperature = value;
+	}
+	Draw(upleft, the_console) {
+		let screenX = (this.pos - upleft).X();
+		let screenY = (this.pos - upleft).Y();
 
-		Coordinate direction;
-		Direction wind = Map.Inst().GetWindDirection();
-		if (wind == NORTH || wind == NORTHEAST || wind == NORTHWEST) direction.Y(Random.Generate(1, 7));
-		if (wind == SOUTH || wind == SOUTHEAST || wind == SOUTHWEST) direction.Y(Random.Generate(-7, -1));
-		if (wind == EAST || wind == NORTHEAST || wind == SOUTHEAST) direction.X(Random.Generate(-7, -1));
-		if (wind == WEST || wind == SOUTHWEST || wind == NORTHWEST) direction.X(Random.Generate(1, 7));
+		if (screenX >= 0 && screenX < the_console.getWidth() &&
+			screenY >= 0 && screenY < the_console.getHeight()) {
+			the_console.putCharEx(screenX, screenY, this.graphic, this.color, TCODColor.black);
+		}
+	}
+	steam(water) {
+		this.temperature = 0;
+		water.Depth(water.Depth() - 1);
+		let steam = Game.Inst().CreateSpell(this.pos, Spell.StringToSpellType("steam"));
+
+		let direction = new Coordinate();
+		let wind = Map.Inst().GetWindDirection();
+		if (wind == Direction.NORTH || wind == Direction.NORTHEAST || wind == Direction.NORTHWEST)
+			direction.Y(Random.Generate(1, 7));
+		if (wind == Direction.SOUTH || wind == Direction.SOUTHEAST || wind == Direction.SOUTHWEST)
+			direction.Y(Random.Generate(-7, -1));
+		if (wind == Direction.EAST || wind == Direction.NORTHEAST || wind == Direction.SOUTHEAST)
+			direction.X(Random.Generate(-7, -1));
+		if (wind == Direction.WEST || wind == Direction.SOUTHWEST || wind == Direction.NORTHWEST)
+			direction.X(Random.Generate(1, 7));
 		direction += Random.ChooseInRadius(1);
-		steam.CalculateFlightPath(pos + direction, 5, 1);
-	} else if (temperature > 0) {
-		if (Random.Generate(10) == 0) { 
-			--temperature;
-			Map.Inst().Burn(pos);
+		steam.CalculateFlightPath(this.pos.addCoordinate(direction), 5, 1);
+	}
+	spark() {
+		let inverseSparkChance = 150 - Math.max(0, ((this.temperature - 50) / 8));
+
+		if (Random.Generate(inverseSparkChance) != 0) return;
+
+		let spark = Game.Inst().CreateSpell(this.pos, Spell.StringToSpellType("spark"));
+		let distance = Random.Generate(0, 15);
+		if (distance < 12) {
+			distance = 1;
+		} else if (distance < 14) {
+			distance = 2;
+		} else {
+			distance = 3;
 		}
 
-		if (Map.Inst().GetType(pos) != TILEGRASS) --temperature;
-		if (Map.Inst().Burnt(pos) >= 10) --temperature;
+		let direction = new Coordinate();
+		let wind = Map.Inst().GetWindDirection();
+		if (wind == Direction.NORTH || wind == Direction.NORTHEAST || wind == Direction.NORTHWEST) direction.Y(distance);
+		if (wind == Direction.SOUTH || wind == Direction.SOUTHEAST || wind == Direction.SOUTHWEST) direction.Y(-distance);
+		if (wind == Direction.EAST || wind == Direction.NORTHEAST || wind == Direction.SOUTHEAST) direction.X(-distance);
+		if (wind == Direction.WEST || wind == Direction.SOUTHWEST || wind == Direction.NORTHWEST) direction.X(distance);
+		if (Random.Generate(9) < 8) direction += Random.ChooseInRadius(1);
+		else direction += Random.ChooseInRadius(3);
 
-		int inverseSparkChance = 150 - std.max(0, ((temperature - 50) / 8));
-
-		if (Random.Generate(inverseSparkChance) == 0) {
-			boost.shared_ptr<Spell> spark = Game.Inst().CreateSpell(pos, Spell.StringToSpellType("spark"));
-			int distance = Random.Generate(0, 15);
-			if (distance < 12) {
-				distance = 1;
-			} else if (distance < 14) {
-				distance = 2;
-			} else {
-				distance = 3;
-			}
-
-			Coordinate direction;
-			Direction wind = Map.Inst().GetWindDirection();
-			if (wind == NORTH || wind == NORTHEAST || wind == NORTHWEST) direction.Y(distance);
-			if (wind == SOUTH || wind == SOUTHEAST || wind == SOUTHWEST) direction.Y(-distance);
-			if (wind == EAST || wind == NORTHEAST || wind == SOUTHEAST) direction.X(-distance);
-			if (wind == WEST || wind == SOUTHWEST || wind == NORTHWEST) direction.X(distance);
-			if (Random.Generate(9) < 8) direction += Random.ChooseInRadius(1);
-			else direction += Random.ChooseInRadius(3);
-
-			spark.CalculateFlightPath(pos + direction, 50, 1);
+		spark.CalculateFlightPath(this.pos.addCoordinate(direction), 50, 1);
+	}
+	smoke() {
+		if (Random.Generate(60) !== 0) return;
+		let smoke = Game.Inst().CreateSpell(this.pos, Spell.StringToSpellType("smoke"));
+		let direction = new Coordinate();
+		let wind = Map.Inst().GetWindDirection();
+		if (wind == Direction.NORTH || wind == Direction.NORTHEAST || wind == Direction.NORTHWEST) direction.Y(Random.Generate(25, 75));
+		if (wind == Direction.SOUTH || wind == Direction.SOUTHEAST || wind == Direction.SOUTHWEST) direction.Y(Random.Generate(-75, -25));
+		if (wind == Direction.EAST || wind == Direction.NORTHEAST || wind == Direction.SOUTHEAST) direction.X(Random.Generate(-75, -25));
+		if (wind == Direction.WEST || wind == Direction.SOUTHWEST || wind == Direction.NORTHWEST) direction.X(Random.Generate(25, 75));
+		direction += Random.ChooseInRadius(3);
+		smoke.CalculateFlightPath(this.pos.addCoordinate(direction), 5, 1);
+	}
+	burnNPCs() {
+		//Burn npcs on the ground
+		for (let npci of Map.Inst().NPCList(this.pos)) {
+			if (!Game.Inst().GetNPC(npci).HasEffect(StatusEffects.FLYING) && Random.Generate(10) == 0)
+				Game.Inst().GetNPC(npci).AddEffect(StatusEffects.BURNING);
 		}
-
-		if (Random.Generate(60) == 0) {
-			boost.shared_ptr<Spell> smoke = Game.Inst().CreateSpell(pos, Spell.StringToSpellType("smoke"));
-			Coordinate direction;
-			Direction wind = Map.Inst().GetWindDirection();
-			if (wind == NORTH || wind == NORTHEAST || wind == NORTHWEST) direction.Y(Random.Generate(25, 75));
-			if (wind == SOUTH || wind == SOUTHEAST || wind == SOUTHWEST) direction.Y(Random.Generate(-75, -25));
-			if (wind == EAST || wind == NORTHEAST || wind == SOUTHEAST) direction.X(Random.Generate(-75, -25));
-			if (wind == WEST || wind == SOUTHWEST || wind == NORTHWEST) direction.X(Random.Generate(25, 75));
-			direction += Random.ChooseInRadius(3);
-			smoke.CalculateFlightPath(pos + direction, 5, 1);
-		}
-
-		if (temperature > 1 && Random.Generate(9) < 4) {
-			//Burn npcs on the ground
-			for (std.set<int>.iterator npci = Map.Inst().NPCList(pos).begin(); npci != Map.Inst().NPCList(pos).end(); ++npci) {
-				if (!Game.Inst().GetNPC(*npci).HasEffect(FLYING) && Random.Generate(10) == 0) Game.Inst().GetNPC(*npci).AddEffect(BURNING);
-			}
-
-			//Burn items
-			for (std.set<int>.iterator itemi = Map.Inst().ItemList(pos).begin(); itemi != Map.Inst().ItemList(pos).end(); ++itemi) {
-				boost.shared_ptr<Item> item = Game.Inst().GetItem(*itemi).lock();
-				if (item && item.IsFlammable()) {
-					Game.Inst().CreateItem(item.Position(), Item.StringToItemType("ash"));
-					Game.Inst().RemoveItem(item);
-					temperature += 250;
-					Stats.Inst().ItemBurned();
-					break;
-				}
-			}
-
-			//Burn constructions
-			int cons = Map.Inst().GetConstruction(pos);
-			if (cons >= 0) {
-				boost.shared_ptr<Construction> construct = Game.Inst().GetConstruction(cons).lock();
-				if (construct) {
-					if (construct.IsFlammable()) {
-						if (Random.Generate(29) == 0) {
-							Attack fire;
-							TCOD_dice_t dice;
-							dice.addsub = 1;
-							dice.multiplier = 1;
-							dice.nb_rolls = 1;
-							dice.nb_faces = 1;
-							fire.Amount(dice);
-							fire.Type(DAMAGE_FIRE);
-							construct.Damage(&fire);
-						}
-						if (temperature < 15) temperature += 5;
-					} else if (construct.HasTag(STOCKPILE) || construct.HasTag(FARMPLOT)) {
-						/*Stockpiles are a special case. Not being an actual building, fire won't touch them.
-						Instead fire should be able to burn the items stored in the stockpile*/
-						boost.shared_ptr<Container> container = boost.static_pointer_cast<Stockpile>(construct).Storage(pos).lock();
-						if (container) {
-							boost.shared_ptr<Item> item = container.GetFirstItem().lock();
-							if (item && item.IsFlammable()) {
-								container.RemoveItem(item);
-								item.PutInContainer();
-								Game.Inst().CreateItem(item.Position(), Item.StringToItemType("ash"));
-								Game.Inst().RemoveItem(item);
-								temperature += 250;
-							}
-						}
-					} else if (construct.HasTag(SPAWNINGPOOL)) {
-						boost.static_pointer_cast<SpawningPool>(construct).Burn();
-						if (temperature < 15) temperature += 5;
-					}
-				}
-			}
-
-			//Burn plantlife
-			int natureObject = Map.Inst().GetNatureObject(pos);
-			if (natureObject >= 0 && 
-				!boost.iequals(Game.Inst().natureList[natureObject].Name(), "Scorched tree")) {
-					bool tree = Game.Inst().natureList[natureObject].Tree();
-					Game.Inst().RemoveNatureObject(Game.Inst().natureList[natureObject]);
-					if (tree && Random.Generate(4) == 0) {
-						Game.Inst().CreateNatureObject(pos, "Scorched tree");
-					}
-					temperature += tree ? 500 : 100;
-			}
-
-			//Create pour water job here if in player territory
-			if (Map.Inst().IsTerritory(pos) && !waterJob.lock()) {
-				boost.shared_ptr<Job> pourWaterJob(new Job("Douse flames", VERYHIGH));
-				Job.CreatePourWaterJob(pourWaterJob, pos);
-				if (pourWaterJob) {
-					pourWaterJob.MarkGround(pos);
-					waterJob = pourWaterJob;
-					JobManager.Inst().AddJob(pourWaterJob);
-				}
+	}
+	burnItems() {
+		//Burn items
+		for (let itemi of Map.Inst().ItemList(this.pos)) {
+			let item = Game.Inst().GetItem(itemi).lock();
+			if (item && item.IsFlammable()) {
+				Game.Inst().CreateItem(item.Position(), Item.StringToItemType("ash"));
+				Game.Inst().RemoveItem(item);
+				this.temperature += 250;
+				Stats.Inst().ItemBurned();
+				break;
 			}
 		}
 	}
-}
+	burnFlammableConstruction(construct) {
+		if (Random.Generate(29) == 0) {
+			let fire = new Attack();
+			let dice = new dice();
+			dice.addsub = 1;
+			dice.multiplier = 1;
+			dice.nb_rolls = 1;
+			dice.nb_faces = 1;
+			fire.Amount(dice);
+			fire.Type(DAMAGE_FIRE);
+			construct.Damage(fire);
+		}
+		if (this.temperature < 15)
+			this.temperature += 5;
+	}
+	burnStockpile(construct) {
+		/*Stockpiles are a special case. Not being an actual building, fire won't touch them.
+				Instead fire should be able to burn the items stored in the stockpile*/
+		let container = construct.Storage(this.pos).lock();
+		if (!container) return;
+		let item = container.GetFirstItem().lock();
+		if (item && item.IsFlammable()) {
+			container.RemoveItem(item);
+			item.PutInContainer();
+			Game.Inst().CreateItem(item.Position(), Item.StringToItemType("ash"));
+			Game.Inst().RemoveItem(item);
+			this.temperature += 250;
+		}
 
-void FireNode.save(OutputArchive& ar, const unsigned int version) const {
-	const int x = pos.X();
-	const int y = pos.Y();
-	ar & x;
-	ar & y;
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & temperature;
-	ar & waterJob;
-}
+	}
+	burnConstructions() {
+		//Burn constructions
+		let cons = Map.Inst().GetConstruction(this.pos);
+		if (!cons) return;
+		let construct = Game.Inst().GetConstruction(cons).lock();
+		if (!construct) return;
+		if (construct.IsFlammable()) {
+			this.burnFlammableConstruction(construct);
+		} else if (construct.HasTag(STOCKPILE) || construct.HasTag(FARMPLOT)) {
+			this.burnStockpile(construct);
+		} else if (construct.HasTag(SPAWNINGPOOL)) {
+			construct.Burn();
+			if (this.temperature < 15)
+				this.temperature += 5;
+		}
+	}
+	burnPlantLife() {
+		//Burn plantlife
+		let natureObject = Map.Inst().GetNatureObject(this.pos);
+		if (!natureObject) return;
+		if (Game.Inst().natureList[natureObject].Name() === "Scorched tree") return;
 
-void FireNode.load(InputArchive& ar, const unsigned int version) {
-	int x, y;
-	ar & x;
-	ar & y;
-	pos = Coordinate(x,y);
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & temperature;
-	if (version >= 1) {
-		ar & waterJob;
+		let tree = Game.Inst().natureList[natureObject].Tree();
+		Game.Inst().RemoveNatureObject(Game.Inst().natureList[natureObject]);
+		if (tree && Random.Generate(4) == 0) {
+			Game.Inst().CreateNatureObject(this.pos, "Scorched tree");
+		}
+		this.temperature += tree ? 500 : 100;
+	}
+	pourWater() {
+		//Create pour water job here if in player territory
+		if (!Map.Inst().IsTerritory(this.pos)) return;
+		if (this.waterJob.lock()) return;
+		let pourWaterJob = new Job("Douse flames", JobPriority.VERYHIGH);
+		Job.CreatePourWaterJob(pourWaterJob, this.pos);
+		if (pourWaterJob) {
+			pourWaterJob.MarkGround(this.pos);
+			this.waterJob = pourWaterJob;
+			JobManager.Inst().AddJob(pourWaterJob);
+		}
+	}
+	burn() {
+		if (Random.Generate(10) == 0) {
+			--this.temperature;
+			Map.Inst().Burn(this.pos);
+		}
+
+		if (Map.Inst().GetType(this.pos) != TileType.TILEGRASS) --this.temperature;
+		if (Map.Inst().Burnt(this.pos) >= 10) --this.temperature;
+
+		this.spark();
+
+		this.smoke();
+
+		if (this.temperature <= 1) return;
+		if (Random.Generate(9) >= 4) return;
+		// if (temperature > 1 && Random.Generate(9) < 4) {
+
+		this.burnNPCs();
+
+		this.burnItems();
+
+		this.burnConstructions();
+
+		this.burnPlantLife();
+
+		this.pourWater();
+	}
+	Update() {
+		this.graphic = Random.Generate(176, 178);
+		this.color[0] = Random.Generate(225, 255);
+		this.color[1] = Random.Generate(0, 250);
+
+		if (this.temperature > 800)
+			this.temperature = 800;
+
+		let water = Map.Inst().GetWater(this.pos).lock();
+
+		if (water && water.Depth() > 0 && Map.Inst().IsUnbridgedWater(this.pos)) {
+			this.steam(water);
+		} else if (this.temperature > 0) {
+			this.burn();
+		}
+	}
+
+	save(ar, version) {
+		ar.register_type(Coordinate);
+		ar.save(this, 'pos');
+		ar.save(this, 'r', this.color[0]);
+		ar.save(this, 'g', this.color[1]);
+		ar.save(this, 'b', this.color[2]);
+		ar.save(this, "temperature");
+		ar.save(this, "waterJob");
+	}
+
+	load(ar, version) {
+		this.pos = new Coordinate(ar.x, ar.y);
+		this.color = [ar.r, ar.g, ar.b];
+		this.temperature = ar.temperature;
+		if (version >= 1) {
+			this.waterJob = ar.load(waterJob);
+		}
 	}
 }

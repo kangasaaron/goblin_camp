@@ -13,7 +13,7 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "string"
 import "vector"
@@ -25,105 +25,83 @@ import "libtcod.js"
 
 import "UI/Tooltip.js"
 
-template <class T, class C = std.vector<T> >
-class UIList extends /*public*/ Drawable, public Scrollable {
-//private:
-	C* items;
-	bool selectable;
-	int selection;
-	boost.function<void(T, int, int, int, int, bool, TCODConsole *)> draw;
-	boost.function<void(T, Tooltip *)> getTooltip;
-	boost.function<void(int)> onclick;
-//public:
-	UIList<T, C>(
-		C *nitems, int x, int y, int nwidth, int nheight,
-		boost.function<void(T, int, int, int, int, bool, TCODConsole *)> ndraw,
-		boost.function<void(int)> nonclick = 0, bool nselectable = false,
-		boost.function<void(T, Tooltip *)> ntooltip = 0
-	):
-		Drawable(x, y, nwidth, nheight),
-		items(nitems),
-		selectable(nselectable),
-		selection(-1),
-		draw(ndraw),
-		getTooltip(ntooltip),
-		onclick(nonclick) {}
-	void Draw(int, int, TCODConsole *);
-	void Draw(int x, int y, int scroll, int width, int height, TCODConsole *);
-	int TotalHeight();
-	MenuResult Update(int, int, bool, TCOD_key_t);
-	void GetTooltip(int, int, Tooltip *);
-	int Selected();
-	void Select(int);
-};
-
-template <class T, class C>
-void UIList<T, C>.Draw(int x, int y, TCODConsole *the_console) {
-	the_console.setAlignment(TCOD_LEFT);
-	int count = 0;
-	for(typename C.iterator it = items.begin(); it != items.end() && count < height; it++) {
-		T item = *it;
-		draw(item, count, x + _x, y + _y + count, width, selection == count, the_console);
-		count++;
+export class UIList extends Drawable {
+	items = [];
+	selectable = false;
+	selection = -1;
+	draw = null;
+	getTooltip = null;
+	onclick = null;
+	constructor(nitems, x, y, nwidth, nheight, ndraw, nonclick, nselectable, ntooltip) {
+		super(x, y, nwidth, nheight);
+		this.items = nitems;
+		this.selectable = nselectable;
+		this.draw = ndraw;
+		this.getTooltip = ntooltip;
+		onclick = nonclick;
 	}
-}
 
-template <class T, class C>
-void UIList<T, C>.Draw(int x, int y, int scroll, int _width, int _height, TCODConsole *the_console) {
-	the_console.setAlignment(TCOD_LEFT);
-	int count = 0;
-	for(typename C.iterator it = items.begin(); it != items.end(); it++) {
-		T item = *it;
-		if (count >= scroll && count < scroll + _height) {
-			draw(item, count, x, y + (count - scroll), _width, selection == count, the_console);
+	Draw(x, y, ...args) {
+		let the_console = args.pop(),
+			scroll = 0,
+			_width = this.width,
+			_height = 1000,
+			count = 0;
+		if (args.length === 3) {
+			if (Number.isFinite(args[0]))
+				scroll = args.shift();
+			if (Number.isFinite(args[0]))
+				_width = args.shift();
+			if (Number.isFinite(args[0]))
+				_height = args.shift();
 		}
-		count++;
-	}
-}
-
-template <class T, class C>
-int UIList<T, C>.TotalHeight() {
-	return items.size();
-}
-
-template <class T, class C>
-MenuResult UIList<T, C>.Update(int x, int y, bool clicked, TCOD_key_t key) {
-	if (x >= _x && x < _x + width && y >= _y && y < _y + height) {
-		if (clicked) {
-			if (selectable) {
-				selection = y - _y;
+		the_console.setAlignment(TCOD_LEFT);
+		for (let item of this.items) {
+			if (count >= scroll && count < scroll + _height) {
+				this.draw(item, count, x, y + (count - scroll), _width, this.selection == count, the_console);
 			}
-			if (onclick) {
-				onclick(y - _y);
-			}
-		}
-		return MENUHIT;
-	}
-	return NOMENUHIT;
-}
-
-template <class T, class C>
-void UIList<T, C>.GetTooltip(int x, int y, Tooltip *tooltip) {
-	if(getTooltip) {
-		if (x >= _x && x < _x + width && y >= _y && y < _y + width && y - _y < (signed int)items.size()) {
-			typename C.iterator it = items.begin();
-			for(int i = 0; i < (y - _y); i++) {
-				it++;
-			}
-			getTooltip(*it, tooltip);
+			count++;
 		}
 	}
-}
 
-template <class T, class C>
-int UIList<T, C>.Selected() {
-	if(selection >= 0 && selection < (signed int)items.size()) {
-		return selection;
+	TotalHeight() {
+		return this.items.length;
 	}
-	return -1;
-}
 
-template <class T, class C>
-void UIList<T, C>.Select(int i) {
-	selection = i;
+	Update(x, y, clicked, key) {
+		if (x >= this._x && x < this._x + this.width && y >= this._y && y < this._y + this.height) {
+			if (clicked) {
+				if (this.selectable) {
+					this.selection = y - this._y;
+				}
+				if (this.onclick) {
+					this.onclick(y - this._y);
+				}
+			}
+			return MenuResult.MENUHIT;
+		}
+		return MenuResult.NOMENUHIT;
+	}
+
+	GetTooltip(x, y, tooltip) {
+		if (this.getTooltip) {
+			if (x >= this._x && x < this._x + this.width && y >= this._y && y < this._y + this.width && y - this._y < this.items.length) {
+				for (let i = 0; i < (y - this._y); i++) {
+					;
+				}
+				this.getTooltip(this.items[i], tooltip);
+			}
+		}
+	}
+
+	Selected() {
+		if (this.selection >= 0 && this.selection < this.items.length) {
+			return this.selection;
+		}
+		return -1;
+	}
+
+	Select(i) {
+		this.selection = i;
+	}
 }

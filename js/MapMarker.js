@@ -13,29 +13,28 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "libtcod.js"
 
 import "Coordinate.js"
 import "data/Serialization.js"
-
-const  MarkerType ={ // enum
-	FLASHINGMARKER: Symbol('MarkerType.FLASHINGMARKER')
-};
+import {
+	MarkerType
+} from "./MarkerType.js";
 
 class MapMarker {
 	GC_SERIALIZABLE_CLASS
-	
+
 	MarkerType type;
 	TCODColor origColor, color;
 	int duration;
 	int graphic;
 	int x, y; //TODO switch to Coordinate
 	float counter;
-//public extends 
-	MapMarker(MarkerType=FLASHINGMARKER, int graphic='?', Coordinate position=Coordinate(0,0), 
-		int duration=1, TCODColor color=TCODColor.pink);
+	//public extends 
+	MapMarker(MarkerType = MarkerType.FLASHINGMARKER, int graphic = '?', Coordinate position = Coordinate(0, 0),
+		int duration = 1, TCODColor color = TCODColor.pink);
 	bool Update();
 	int X() const;
 	int Y() const;
@@ -68,16 +67,15 @@ import "MapMarker.js"
 import "Random.js"
 import "Coordinate.js"
 
-MapMarker.MapMarker(MarkerType t, int g, Coordinate pos, int d, TCODColor c) : type(t), 
+MapMarker.MapMarker(MarkerType t, int g, Coordinate pos, int d, TCODColor c): type(t),
 	origColor(c), color(c), duration(d), graphic(g),
-x(pos.X()), y(pos.Y()), counter(0.0f) {
-}
+	x(pos.X()), y(pos.Y()), counter(0.0 f) {}
 
 bool MapMarker.Update() {
 	if (duration > 0) --duration;
 	color = TCODColor.lerp(origColor, TCODColor.white, std.abs(std.sin(counter)));
-	counter += 0.1f;
-	if (counter > boost.math.constants.pi<float>()) counter = 0.0f;
+	counter += 0.1 f;
+	if (counter > boost.math.constants.pi < float > ()) counter = 0.0 f;
 	return duration != 0;
 }
 
@@ -90,7 +88,7 @@ int MapMarker.Y() const {
 }
 
 Coordinate MapMarker.Position() const {
-	return Coordinate(x,y);
+	return Coordinate(x, y);
 }
 
 int MapMarker.Graphic() const {
@@ -101,7 +99,8 @@ TCODColor MapMarker.Color() const {
 	return color;
 }
 
-void MapMarker.save(OutputArchive& ar, const unsigned int version) const {
+void MapMarker.save(OutputArchive & ar,
+	const unsigned int version) const {
 	ar & type;
 	ar & origColor.r;
 	ar & origColor.g;
@@ -116,7 +115,8 @@ void MapMarker.save(OutputArchive& ar, const unsigned int version) const {
 	ar & counter;
 }
 
-void MapMarker.load(InputArchive& ar, const unsigned int version) {
+void MapMarker.load(InputArchive & ar,
+	const unsigned int version) {
 	ar & type;
 	ar & origColor.r;
 	ar & origColor.g;

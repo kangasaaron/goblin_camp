@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "libtcod.js"
 import "vector "
@@ -26,37 +26,41 @@ import "UI/SideBar.js"
 import "Entity.js"
 import "Game.js"
 
-const UIState = { // enum
-	UINORMAL: Symbol('UIState.UINORMAL'),		 // No selection highlights
-	UIPLACEMENT: Symbol('UIState.UIPLACEMENT'),
-	UIABPLACEMENT: Symbol('UIState.UIABPLACEMENT'), 
-	UIRECTPLACEMENT: Symbol('UIState.UIRECTPLACEMENT'),  
-	UICOUNT: Symbol('UIState.UICOUNT')
-};
+import {
+	UIState
+} from "./UIState.js";
 
-static const TCOD_key_t NO_KEY = {
-	TCODK_NONE, 0, false, false, false, false, false, false
+static
+const TCOD_key_t NO_KEY = {
+	TCODK_NONE,
+	0,
+	false,
+	false,
+	false,
+	false,
+	false,
+	false
 };
 
 class UI {
-//private extends 
+	//private extends 
 	UI();
-	static UI* instance;
+	static UI * instance;
 	bool menuOpen;
 	int menuX, menuY;
 	TCOD_key_t key;
 	TCOD_mouse_t mouseInput;
 	TCOD_event_t event;
-	Panel* currentMenu;
+	Panel * currentMenu;
 	UIState _state;
-	boost.function<void(Coordinate)> callback;
-	boost.function<void(Coordinate,Coordinate)> rectCallback;
-	boost.function<bool(Coordinate,Coordinate)> placementCallback;
+	boost.function < void(Coordinate) > callback;
+	boost.function < void(Coordinate, Coordinate) > rectCallback;
+	boost.function < bool(Coordinate, Coordinate) > placementCallback;
 	Coordinate _blueprint;
 	bool placeable;
-	Coordinate a,b;
-	std.vector<Panel*> menuHistory;
-	std.list<boost.weak_ptr<Entity> > underCursor;
+	Coordinate a, b;
+	std.vector < Panel * > menuHistory;
+	std.list < boost.weak_ptr < Entity > > underCursor;
 	bool drawCursor;
 	bool lbuttonPressed, mbuttonPressed, rbuttonPressed;
 	TCOD_mouse_t oldMouseInput;
@@ -69,26 +73,26 @@ class UI {
 	int inputStringLimit;
 	std.string extraTooltip;
 
-	boost.weak_ptr<Entity> GetEntity(const Coordinate&);
-	int DrawShortcutHelp(TCODConsole *the_console, int x, int y, std.string shortcut);
-	void DrawTopBar(TCODConsole*);
+	boost.weak_ptr < Entity > GetEntity(const Coordinate & );
+	int DrawShortcutHelp(TCODConsole * the_console, int x, int y, std.string shortcut);
+	void DrawTopBar(TCODConsole * );
 	void HandleKeyboard();
 	void HandleMouse();
-	boost.weak_ptr<Entity> currentStrobeTarget;
-//public:
-	static UI* Inst();
+	boost.weak_ptr < Entity > currentStrobeTarget;
+	//public:
+	static UI * Inst();
 	static void Reset();
 	void Update();
-	void Draw(TCODConsole*);
-	void blueprint(const Coordinate&);
+	void Draw(TCODConsole * );
+	void blueprint(const Coordinate & );
 	void state(UIState);
-	static void ChangeMenu(Panel*);
+	static void ChangeMenu(Panel * );
 	static void ChooseConstruct(ConstructionType, UIState);
 	static void ChooseStockpile(ConstructionType);
 	static void ChooseTreeFelling();
 	static void ChoosePlantHarvest();
-	static void ChooseOrderTargetCoordinate(boost.shared_ptr<Squad>, Order);
-	static void ChooseOrderTargetEntity(boost.shared_ptr<Squad>, Order);
+	static void ChooseOrderTargetCoordinate(boost.shared_ptr < Squad > , Order);
+	static void ChooseOrderTargetEntity(boost.shared_ptr < Squad > , Order);
 	static void ChooseDesignateTree();
 	static void ChooseDismantle();
 	static void ChooseUndesignate();
@@ -99,28 +103,28 @@ class UI {
 	static void ChooseNaturify();
 	static void ChooseChangeTerritory(bool add);
 	static void ChooseGatherItems();
-	static void ChooseNormalPlacement(boost.function<void(Coordinate)> callback,
-		boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip = "");
-	static void ChooseRectPlacement(boost.function<void(Coordinate, Coordinate)> rectCallback,
-		boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip = "");
-	static void ChooseRectPlacementCursor(boost.function<void(Coordinate, Coordinate)> rectCallback,
-		boost.function<bool(Coordinate, Coordinate)> placement, CursorType cursor);
-	static void ChooseABPlacement(boost.function<void(Coordinate)> callback,
-		boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip = "");
-	void SetCallback(boost.function<void(Coordinate)>);
-	void SetRectCallback(boost.function<void(Coordinate,Coordinate)>);
-	void SetPlacementCallback(boost.function<bool(Coordinate,Coordinate)>);
-	Panel* CurrentMenu();
-	void CurrentMenu(Panel*);
-	void AddToHistory(Panel*);
+	static void ChooseNormalPlacement(boost.function < void(Coordinate) > callback,
+		boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip = "");
+	static void ChooseRectPlacement(boost.function < void(Coordinate, Coordinate) > rectCallback,
+		boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip = "");
+	static void ChooseRectPlacementCursor(boost.function < void(Coordinate, Coordinate) > rectCallback,
+		boost.function < bool(Coordinate, Coordinate) > placement, CursorType cursor);
+	static void ChooseABPlacement(boost.function < void(Coordinate) > callback,
+		boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip = "");
+	void SetCallback(boost.function < void(Coordinate) > );
+	void SetRectCallback(boost.function < void(Coordinate, Coordinate) > );
+	void SetPlacementCallback(boost.function < bool(Coordinate, Coordinate) > );
+	Panel * CurrentMenu();
+	void CurrentMenu(Panel * );
+	void AddToHistory(Panel * );
 	int KeyHelpTextColor() const;
-	void SetTextMode(bool, int=50);
+	void SetTextMode(bool, int = 50);
 	std.string InputString();
 	void InputString(std.string);
 	void HideMenu();
 	void CloseMenu();
 	bool ShiftPressed();
-	void HandleUnderCursor(const Coordinate&, std.list<boost.weak_ptr<Entity> >*);
+	void HandleUnderCursor(const Coordinate & , std.list < boost.weak_ptr < Entity > > * );
 	TCOD_key_t getKey();
 	void SetExtraTooltip(std.string);
 };
@@ -169,14 +173,14 @@ import "UI/Tooltip.js"
 import "UI/JobDialog.js"
 import "UI/DevConsole.js"
 
-UI* UI.instance = 0;
+UI * UI.instance = 0;
 
-UI.UI() :
-menuOpen(false),
+UI.UI():
+	menuOpen(false),
 	_state(UINORMAL),
-	_blueprint(1,1),
+	_blueprint(1, 1),
 	placeable(false),
-	underCursor(std.list<boost.weak_ptr<Entity> >()),
+	underCursor(std.list < boost.weak_ptr < Entity > > ()),
 	drawCursor(false),
 	lbuttonPressed(false),
 	mbuttonPressed(false),
@@ -186,19 +190,18 @@ menuOpen(false),
 	draggingPlacement(false),
 	textMode(false),
 	inputString(std.string("")),
-	currentStrobeTarget(boost.weak_ptr<Entity>())
-{
-	currentMenu = Menu.MainMenu();
-	menuHistory.reserve(10);
-	placementCallback = boost.bind(Game.CheckPlacement, _1, _2, std.set<TileType>());
-	callback = boost.bind(Game.PlaceConstruction, _1, 0);
-	rectCallback = boost.bind(Game.PlaceStockpile, _1, _2, 0, 0);
-	event = (TCOD_event_t)0; // FIXME: bug Doryen to have TCOD_EVENT_NONE
-	mouseInput = TCODMouse.getStatus();
-	oldMouseInput = mouseInput;
-}
+	currentStrobeTarget(boost.weak_ptr < Entity > ()) {
+		currentMenu = Menu.MainMenu();
+		menuHistory.reserve(10);
+		placementCallback = boost.bind(Game.CheckPlacement, _1, _2, std.set < TileType > ());
+		callback = boost.bind(Game.PlaceConstruction, _1, 0);
+		rectCallback = boost.bind(Game.PlaceStockpile, _1, _2, 0, 0);
+		event = (TCOD_event_t) 0; // FIXME: bug Doryen to have TCOD_EVENT_NONE
+		mouseInput = TCODMouse.getStatus();
+		oldMouseInput = mouseInput;
+	}
 
-UI* UI.Inst() {
+UI * UI.Inst() {
 	if (!instance) instance = new UI();
 	return instance;
 }
@@ -208,16 +211,16 @@ void UI.Update() {
 	if (keyHelpTextColor < 0) keyHelpTextColor = 0;
 
 	// FIXME: should probably be elsewhere
-	event = TCODSystem.checkForEvent(TCOD_EVENT_ANY, &key, &mouseInput);
+	event = TCODSystem.checkForEvent(TCOD_EVENT_ANY, & key, & mouseInput);
 
 	if (event & TCOD_EVENT_KEY_PRESS)
-	    HandleKeyboard();
+		HandleKeyboard();
 	if (event & TCOD_EVENT_MOUSE)
-	    HandleMouse();
+		HandleMouse();
 }
 
 void UI.HandleKeyboard() {
-	Config.KeyMap& keyMap = Config.GetKeyMap();
+	Config.KeyMap & keyMap = Config.GetKeyMap();
 
 	float diffX = 0;
 	float diffY = 0;
@@ -332,16 +335,16 @@ void UI.HandleKeyboard() {
 			} else if (key.vk == TCODK_PRINTSCREEN) {
 				Data.SaveScreenshot();
 			}
-			
+
 			if (key.vk >= TCODK_F1 && key.vk <= TCODK_F12) {
-				if(ShiftPressed()) {
+				if (ShiftPressed()) {
 					Game.Inst().SetMark(key.vk - TCODK_F1);
 				} else {
 					Game.Inst().ReturnToMark(key.vk - TCODK_F1);
 				}
 			}
 		} else {
-			if (key.c >= ' ' && key.c <= '}' && key.c != '+' && key.c != '-' && (signed int)inputString.size() < inputStringLimit) {
+			if (key.c >= ' ' && key.c <= '}' && key.c != '+' && key.c != '-' && (signed int) inputString.size() < inputStringLimit) {
 				inputString += key.c;
 			} else if (key.vk == TCODK_BACKSPACE) {
 				if (inputString.size() > 0) inputString.erase(inputString.end() - 1);
@@ -363,16 +366,16 @@ void UI.HandleKeyboard() {
 		mouseInput.x = 0;
 		mouseInput.cx = 0;
 	} else if (mouseInput.cx >= Game.Inst().ScreenWidth()) {
-		diffX += mouseInput.cx - (Game.Inst().ScreenWidth()-1);
+		diffX += mouseInput.cx - (Game.Inst().ScreenWidth() - 1);
 		mouseInput.cx = Game.Inst().ScreenWidth() - 1;
-		mouseInput.x = (Game.Inst().ScreenWidth() - 1)* Game.Inst().CharWidth();
+		mouseInput.x = (Game.Inst().ScreenWidth() - 1) * Game.Inst().CharWidth();
 	}
 	if (mouseInput.y < 0) {
 		diffY += mouseInput.cy;
 		mouseInput.y = 0;
 		mouseInput.cy = 0;
 	} else if (mouseInput.cy >= Game.Inst().ScreenHeight()) {
-		diffY += mouseInput.cy - (Game.Inst().ScreenHeight()-1);
+		diffY += mouseInput.cy - (Game.Inst().ScreenHeight() - 1);
 		mouseInput.cy = Game.Inst().ScreenHeight() - 1;
 		mouseInput.y = (Game.Inst().ScreenHeight() - 1) * Game.Inst().CharHeight();
 	}
@@ -399,7 +402,7 @@ void UI.HandleMouse() {
 	if (newMouseInput.rbutton_pressed) rbuttonPressed = true;
 
 	if (_state == UINORMAL) {
-		HandleUnderCursor(Game.Inst().TileAt(mouseInput.x, mouseInput.y), &underCursor);
+		HandleUnderCursor(Game.Inst().TileAt(mouseInput.x, mouseInput.y), & underCursor);
 	}
 
 	if (_state == UIPLACEMENT || _state == UIABPLACEMENT || _state == UIRECTPLACEMENT) {
@@ -417,13 +420,14 @@ void UI.HandleMouse() {
 			draggingViewport = false;
 		} else {
 			menuResult = NOMENUHIT;
-			if(!draggingPlacement) {
+			if (!draggingPlacement) {
 				menuResult = sideBar.Update(mouseInput.cx, mouseInput.cy, true);
 				if (menuResult & NOMENUHIT) {
 					menuResult = Announce.Inst().Update(mouseInput.cx, mouseInput.cy, true);
 					if (menuResult & NOMENUHIT) {
 						if (menuOpen) {
-							menuResult = currentMenu.Update(mouseInput.cx, mouseInput.cy, true, NO_KEY); lbuttonPressed = false;
+							menuResult = currentMenu.Update(mouseInput.cx, mouseInput.cy, true, NO_KEY);
+							lbuttonPressed = false;
 						}
 					}
 				}
@@ -437,8 +441,7 @@ void UI.HandleMouse() {
 				} else if (_state == UIABPLACEMENT && placeable) {
 					if (a.X() == 0) {
 						a = Game.Inst().TileAt(mouseInput.x, mouseInput.y);
-					}
-					else if(!draggingPlacement || a.X() != b.X() || a.Y() != b.Y()) {
+					} else if (!draggingPlacement || a.X() != b.X() || a.Y() != b.Y()) {
 						//Place construction from a.b
 						if (a.X() > b.X()) {
 							tmp = a.X();
@@ -470,13 +473,15 @@ void UI.HandleMouse() {
 									callback(Coordinate(a.X(), iy));
 							}
 						}
-						a.X(0); a.Y(0); b.X(0); b.Y(0);
+						a.X(0);
+						a.Y(0);
+						b.X(0);
+						b.Y(0);
 					}
 				} else if (_state == UIRECTPLACEMENT && placeable) {
 					if (a.X() == 0) {
 						a = Game.Inst().TileAt(mouseInput.x, mouseInput.y);
-					}
-					else if(!draggingPlacement || a.X() != b.X() || a.Y() != b.Y()) {
+					} else if (!draggingPlacement || a.X() != b.X() || a.Y() != b.Y()) {
 						//Place construction from a.b
 						if (a.X() > b.X()) {
 							tmp = a.X();
@@ -493,13 +498,16 @@ void UI.HandleMouse() {
 
 						/*I removed the placement call from here, it causes unnecessary cancelations
 						Callbacks should check tile validity anyway*/
-						rectCallback(a,b);
+						rectCallback(a, b);
 
-						a.X(0); a.Y(0); b.X(0); b.Y(0);
+						a.X(0);
+						a.Y(0);
+						b.X(0);
+						b.Y(0);
 					}
 				} else { //Current state is not any kind of placement, so open construction/npc context menu if over one
-					if (!underCursor.empty()) sideBar.SetEntity(*underCursor.begin());
-					else sideBar.SetEntity(boost.weak_ptr<Entity>());
+					if (!underCursor.empty()) sideBar.SetEntity( * underCursor.begin());
+					else sideBar.SetEntity(boost.weak_ptr < Entity > ());
 				}
 			}
 		}
@@ -535,17 +543,17 @@ void UI.HandleMouse() {
 			CloseMenu();
 		}
 		currentMenu = 0;
-		if(!underCursor.empty()) {
+		if (!underCursor.empty()) {
 			if (underCursor.begin().lock()) {
-				if (boost.dynamic_pointer_cast<Construction>(underCursor.begin().lock())) {
-					if (!boost.static_pointer_cast<Construction>(underCursor.begin().lock()).DismantlingOrdered())
+				if (boost.dynamic_pointer_cast < Construction > (underCursor.begin().lock())) {
+					if (!boost.static_pointer_cast < Construction > (underCursor.begin().lock()).DismantlingOrdered())
 						currentMenu = underCursor.begin().lock().GetContextMenu();
 				} else {
 					currentMenu = underCursor.begin().lock().GetContextMenu();
 				}
 			}
 		}
-		if(!currentMenu) {
+		if (!currentMenu) {
 			currentMenu = Menu.MainMenu();
 		}
 		if (menuOpen) currentMenu.Open();
@@ -555,7 +563,9 @@ void UI.HandleMouse() {
 
 	if (mbuttonPressed && menuOpen && !menuHistory.empty()) {
 		currentMenu.selected(-1);
-		_state = UINORMAL; a.X(0); a.Y(0);
+		_state = UINORMAL;
+		a.X(0);
+		a.Y(0);
 		currentMenu.Close();
 		currentMenu = menuHistory.back();
 		currentMenu.Open();
@@ -563,7 +573,7 @@ void UI.HandleMouse() {
 	}
 
 	if (newMouseInput.lbutton && _state == UINORMAL) {
-		Game.Inst().MoveCam(-(newMouseInput.dx / 3.0f), -(newMouseInput.dy / 3.0f));
+		Game.Inst().MoveCam(-(newMouseInput.dx / 3.0 f), -(newMouseInput.dy / 3.0 f));
 		if (newMouseInput.dx > 0 || newMouseInput.dy > 0) draggingViewport = true;
 	}
 
@@ -573,7 +583,7 @@ void UI.HandleMouse() {
 	oldMouseInput = newMouseInput;
 }
 
-void UI.Draw(TCODConsole* the_console) {
+void UI.Draw(TCODConsole * the_console) {
 	int tmp;
 	bool xswap = false, yswap = false;
 
@@ -582,14 +592,13 @@ void UI.Draw(TCODConsole* the_console) {
 	if (menuOpen) {
 		currentMenu.Draw(menuX, menuY, the_console);
 	}
-	
+
 	Coordinate mouseTile(Game.Inst().TileAt(mouseInput.x, mouseInput.y));
-	boost.shared_ptr<MapRenderer> renderer = Game.Inst().Renderer();
+	boost.shared_ptr < MapRenderer > renderer = Game.Inst().Renderer();
 
 	if (_state == UIPLACEMENT || ((_state == UIABPLACEMENT || _state == UIRECTPLACEMENT) && a.X() == 0)) {
 		renderer.DrawCursor(mouseTile, Coordinate(mouseTile.X() + _blueprint.X() - 1, mouseTile.Y() + _blueprint.Y() - 1), placeable);
-	}
-	else if (_state == UIABPLACEMENT && a.X() > 0) {
+	} else if (_state == UIABPLACEMENT && a.X() > 0) {
 		if (a.X() > b.X()) {
 			tmp = a.X();
 			a.X(b.X());
@@ -605,16 +614,14 @@ void UI.Draw(TCODConsole* the_console) {
 		for (int ix = a.X(); ix <= b.X(); ++ix) {
 			if (!yswap) {
 				renderer.DrawCursor(Coordinate(ix, a.Y()), placeable);
-			}
-			else {
+			} else {
 				renderer.DrawCursor(Coordinate(ix, b.Y()), placeable);
 			}
 		}
 		for (int iy = a.Y(); iy <= b.Y(); ++iy) {
 			if (!xswap) {
 				renderer.DrawCursor(Coordinate(b.X(), iy), placeable);
-			}
-			else {
+			} else {
 				renderer.DrawCursor(Coordinate(a.X(), iy), placeable);
 			}
 		}
@@ -655,11 +662,11 @@ void UI.Draw(TCODConsole* the_console) {
 	}
 
 	if (drawCursor) renderer.DrawCursor(mouseTile, true);
-	
+
 	Announce.Inst().Draw(the_console);
 	sideBar.Draw(the_console);
 
-	Tooltip *tooltip = Tooltip.Inst();
+	Tooltip * tooltip = Tooltip.Inst();
 	tooltip.Clear();
 
 	if (extraTooltip != "") tooltip.AddEntry(TooltipEntry(extraTooltip, TCODColor.white));
@@ -669,29 +676,31 @@ void UI.Draw(TCODConsole* the_console) {
 
 	sideBar.GetTooltip(mouseInput.cx, mouseInput.cy, tooltip, the_console);
 
-	if (_state == UINORMAL && (!menuOpen || (currentMenu.Update(mouseInput.cx, mouseInput.cy, false, NO_KEY) & NOMENUHIT)) 
-		&& (sideBar.Update(mouseInput.cx, mouseInput.cy, false) & NOMENUHIT)
-		&& (Announce.Inst().Update(mouseInput.cx, mouseInput.cy, false) & NOMENUHIT)
-		&& !underCursor.empty()) {
+	if (_state == UINORMAL && (!menuOpen || (currentMenu.Update(mouseInput.cx, mouseInput.cy, false, NO_KEY) & NOMENUHIT)) &&
+		(sideBar.Update(mouseInput.cx, mouseInput.cy, false) & NOMENUHIT) &&
+		(Announce.Inst().Update(mouseInput.cx, mouseInput.cy, false) & NOMENUHIT) &&
+		!underCursor.empty()) {
 
-			if (boost.shared_ptr<Entity> strobeEntity = currentStrobeTarget.lock()) { strobeEntity.Strobe(); }
-			for (std.list<boost.weak_ptr<Entity> >.iterator ucit = underCursor.begin(); ucit != underCursor.end(); ++ucit) {
-				if (boost.shared_ptr<Entity> entity = ucit.lock()) {
-					Coordinate mouseLoc = Game.Inst().TileAt(mouseInput.x, mouseInput.y);
-					entity.GetTooltip(mouseLoc.X(), mouseLoc.Y(), tooltip);
+		if (boost.shared_ptr < Entity > strobeEntity = currentStrobeTarget.lock()) {
+			strobeEntity.Strobe();
+		}
+		for (std.list < boost.weak_ptr < Entity > > .iterator ucit = underCursor.begin(); ucit != underCursor.end(); ++ucit) {
+			if (boost.shared_ptr < Entity > entity = ucit.lock()) {
+				Coordinate mouseLoc = Game.Inst().TileAt(mouseInput.x, mouseInput.y);
+				entity.GetTooltip(mouseLoc.X(), mouseLoc.Y(), tooltip);
 
-					if (entity.CanStrobe()) {
-						if (boost.shared_ptr<Entity> strobeTarget = currentStrobeTarget.lock()) {
-							if (entity != strobeTarget) {
-								strobeTarget.ResetStrobe();
-							}
+				if (entity.CanStrobe()) {
+					if (boost.shared_ptr < Entity > strobeTarget = currentStrobeTarget.lock()) {
+						if (entity != strobeTarget) {
+							strobeTarget.ResetStrobe();
 						}
-						currentStrobeTarget = entity;
 					}
-							
+					currentStrobeTarget = entity;
 				}
+
 			}
-	} else if (boost.shared_ptr<Entity> strobeEntity = currentStrobeTarget.lock()) {
+		}
+	} else if (boost.shared_ptr < Entity > strobeEntity = currentStrobeTarget.lock()) {
 		strobeEntity.ResetStrobe();
 		currentStrobeTarget.reset();
 	}
@@ -700,26 +709,26 @@ void UI.Draw(TCODConsole* the_console) {
 	tooltip.Draw(mouseInput.cx, mouseInput.cy, the_console);
 }
 
-int UI.DrawShortcutHelp(TCODConsole *the_console, int x, int y, std.string shortcut) {
-	Config.KeyMap& keyMap = Config.GetKeyMap();
+int UI.DrawShortcutHelp(TCODConsole * the_console, int x, int y, std.string shortcut) {
+	Config.KeyMap & keyMap = Config.GetKeyMap();
 	std.string out = "";
 	bool found = false;
-	for(std.string.iterator it = shortcut.begin(); it != shortcut.end(); it++) {
-		if(!found && tolower(*it) == keyMap[shortcut]) {
+	for (std.string.iterator it = shortcut.begin(); it != shortcut.end(); it++) {
+		if (!found && tolower( * it) == keyMap[shortcut]) {
 			out.push_back(TCOD_COLCTRL_1);
-			out.push_back(*it);
+			out.push_back( * it);
 			out.push_back(TCOD_COLCTRL_STOP);
 			found = true;
 		} else {
-			out.push_back(*it);
+			out.push_back( * it);
 		}
 	}
 
-	if(!found) {
-		if(keyMap[shortcut] == ' ') {
-			out.insert(0, (boost.format("%cSpace%c-") % (char)TCOD_COLCTRL_1 % (char)TCOD_COLCTRL_STOP).str());
+	if (!found) {
+		if (keyMap[shortcut] == ' ') {
+			out.insert(0, (boost.format("%cSpace%c-") % (char) TCOD_COLCTRL_1 % (char) TCOD_COLCTRL_STOP).str());
 		} else {
-			out.insert(0, (boost.format("%c%c%c-") % (char)TCOD_COLCTRL_1 % (char)toupper(keyMap[shortcut]) % (char)TCOD_COLCTRL_STOP).str());
+			out.insert(0, (boost.format("%c%c%c-") % (char) TCOD_COLCTRL_1 % (char) toupper(keyMap[shortcut]) % (char) TCOD_COLCTRL_STOP).str());
 		}
 	}
 
@@ -728,12 +737,12 @@ int UI.DrawShortcutHelp(TCODConsole *the_console, int x, int y, std.string short
 	return out.length() - 2;
 }
 
-void UI.DrawTopBar(TCODConsole* the_console) {
+void UI.DrawTopBar(TCODConsole * the_console) {
 	the_console.setAlignment(TCOD_CENTER);
 	the_console.setDefaultForeground(TCODColor.white);
 	the_console.print(the_console.getWidth() / 2, 0, "w(%s)  -  %s  -  Orcs: %d   Goblins: %d  -  Year %d, %s  FPS: %d", Map.Inst().GetWindAbbreviation().c_str(),
 		Camp.Inst().GetName().c_str(),
-		Game.Inst().OrcCount(), Game.Inst().GoblinCount(), 
+		Game.Inst().OrcCount(), Game.Inst().GoblinCount(),
 		Game.Inst().GetAge(),
 		Game.Inst().SeasonToString(Game.Inst().CurrentSeason()).c_str(),
 		TCODSystem.getFps());
@@ -745,8 +754,8 @@ void UI.DrawTopBar(TCODConsole* the_console) {
 	the_console.setAlignment(TCOD_LEFT);
 
 	if (keyHelpTextColor > 0) {
-		the_console.setDefaultForeground(TCODColor(std.min(255, keyHelpTextColor), std.min(255, keyHelpTextColor), std.min(255, keyHelpTextColor)));
-		the_console.setColorControl(TCOD_COLCTRL_1, TCODColor(0, std.min(255, keyHelpTextColor), 0), TCODColor.black);
+		the_console.setDefaultForeground(TCODColor(Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor)));
+		the_console.setColorControl(TCOD_COLCTRL_1, TCODColor(0, Math.min(255, keyHelpTextColor), 0), TCODColor.black);
 		int x = 10;
 		x += DrawShortcutHelp(the_console, x, 3, "Exit");
 		x += DrawShortcutHelp(the_console, x, 3, "Basics");
@@ -758,7 +767,7 @@ void UI.DrawTopBar(TCODConsole* the_console) {
 		x += DrawShortcutHelp(the_console, x, 3, "Announcements");
 		x += DrawShortcutHelp(the_console, x, 3, "Jobs");
 		x = 10;
-		the_console.print(x, 5, "%cShift+F1-F12%c Set Mark  %cF1-F12%c Return To Mark  ", TCOD_COLCTRL_1,TCOD_COLCTRL_STOP, TCOD_COLCTRL_1,TCOD_COLCTRL_STOP, TCOD_COLCTRL_1,TCOD_COLCTRL_STOP);
+		the_console.print(x, 5, "%cShift+F1-F12%c Set Mark  %cF1-F12%c Return To Mark  ", TCOD_COLCTRL_1, TCOD_COLCTRL_STOP, TCOD_COLCTRL_1, TCOD_COLCTRL_STOP, TCOD_COLCTRL_1, TCOD_COLCTRL_STOP);
 		x = 56;
 		x += DrawShortcutHelp(the_console, x, 5, "Center");
 		the_console.print(x, 5, "Camp");
@@ -769,12 +778,14 @@ void UI.DrawTopBar(TCODConsole* the_console) {
 	the_console.setDefaultForeground(TCODColor.white);
 }
 
-void UI.blueprint(const Coordinate& newBlue) {
+void UI.blueprint(const Coordinate & newBlue) {
 	_blueprint = newBlue;
 }
-void UI.state(UIState newState) { _state = newState; }
+void UI.state(UIState newState) {
+	_state = newState;
+}
 
-void UI.ChangeMenu(Panel* menu) {
+void UI.ChangeMenu(Panel * menu) {
 	if (UI.Inst().CurrentMenu()) {
 		UI.Inst().CurrentMenu().Close();
 	}
@@ -785,13 +796,25 @@ void UI.ChangeMenu(Panel* menu) {
 	menu.Open();
 }
 
-void UI.AddToHistory(Panel* menu) {menuHistory.push_back(menu);}
-Panel* UI.CurrentMenu() {return currentMenu;}
-void UI.CurrentMenu(Panel* menu) {currentMenu = menu;}
+void UI.AddToHistory(Panel * menu) {
+	menuHistory.push_back(menu);
+}
+Panel * UI.CurrentMenu() {
+	return currentMenu;
+}
+void UI.CurrentMenu(Panel * menu) {
+	currentMenu = menu;
+}
 
-void UI.SetCallback(boost.function<void(Coordinate)> newCallback) {callback = newCallback;}
-void UI.SetRectCallback(boost.function<void(Coordinate,Coordinate)> newCallback) {rectCallback = newCallback;}
-void UI.SetPlacementCallback(boost.function<bool(Coordinate,Coordinate)> newCallback) {placementCallback = newCallback;}
+void UI.SetCallback(boost.function < void(Coordinate) > newCallback) {
+	callback = newCallback;
+}
+void UI.SetRectCallback(boost.function < void(Coordinate, Coordinate) > newCallback) {
+	rectCallback = newCallback;
+}
+void UI.SetPlacementCallback(boost.function < bool(Coordinate, Coordinate) > newCallback) {
+	placementCallback = newCallback;
+}
 
 void UI.ChooseConstruct(ConstructionType construct, UIState state) {
 	UI.Inst().SetCallback(boost.bind(Game.PlaceConstruction, _1, construct));
@@ -823,7 +846,7 @@ void UI.ChooseTreeFelling() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.FellTree, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_TreeFelling);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Fell trees");
@@ -833,13 +856,13 @@ void UI.ChoosePlantHarvest() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.HarvestWildPlant, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Harvest);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Harvest plants");
 }
 
-void UI.ChooseOrderTargetCoordinate(boost.shared_ptr<Squad> squad, Order order) {
+void UI.ChooseOrderTargetCoordinate(boost.shared_ptr < Squad > squad, Order order) {
 	UI.Inst().state(UIPLACEMENT);
 	bool autoClose = true;
 	if (order == PATROL) {
@@ -847,16 +870,16 @@ void UI.ChooseOrderTargetCoordinate(boost.shared_ptr<Squad> squad, Order order) 
 		order = GUARD;
 	}
 	UI.Inst().SetCallback(boost.bind(Game.SetSquadTargetCoordinate, order, _1, squad, autoClose));
-	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1,1)));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1, 1)));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Order);
 }
 
-void UI.ChooseOrderTargetEntity(boost.shared_ptr<Squad> squad, Order order) {
+void UI.ChooseOrderTargetEntity(boost.shared_ptr < Squad > squad, Order order) {
 	UI.Inst().state(UIPLACEMENT);
 	UI.Inst().SetCallback(boost.bind(Game.SetSquadTargetEntity, order, _1, squad));
-	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1,1)));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1, 1)));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Order);
 }
 
@@ -864,7 +887,7 @@ void UI.ChooseDesignateTree() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.DesignateTree, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Tree);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Designate trees");
@@ -874,7 +897,7 @@ void UI.ChooseDismantle() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.DismantleConstruction, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Dismantle);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Dismantle");
@@ -884,7 +907,7 @@ void UI.ChooseUndesignate() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.Undesignate, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Undesignate);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Undesignate");
@@ -894,21 +917,21 @@ void UI.ChooseDesignateBog() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.DesignateBog, _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTileType, TILEBOG, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Bog);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Designate bog");
 }
 
 
-boost.weak_ptr<Entity> UI.GetEntity(const Coordinate& pos) {
+boost.weak_ptr < Entity > UI.GetEntity(const Coordinate & pos) {
 	if (pos.X() >= 0 && pos.X() < Map.Inst().Width() && pos.Y() >= 0 && pos.Y() < Map.Inst().Height()) {
-		std.set<int> *npcList = Map.Inst().NPCList(pos);
-		if (!npcList.empty()) return Game.Inst().GetNPC((*npcList.begin()));
+		std.set < int > * npcList = Map.Inst().NPCList(pos);
+		if (!npcList.empty()) return Game.Inst().GetNPC(( * npcList.begin()));
 
-		std.set<int> *itemList = Map.Inst().ItemList(pos);
+		std.set < int > * itemList = Map.Inst().ItemList(pos);
 		if (!itemList.empty()) {
-			std.set<boost.weak_ptr<Item> >.iterator itemi = Game.Inst().freeItems.find(Game.Inst().itemList[*itemList.begin()]);
+			std.set < boost.weak_ptr < Item > > .iterator itemi = Game.Inst().freeItems.find(Game.Inst().itemList[ * itemList.begin()]);
 			if (itemi != Game.Inst().freeItems.end()) {
 				return *itemi;
 			}
@@ -920,24 +943,24 @@ boost.weak_ptr<Entity> UI.GetEntity(const Coordinate& pos) {
 		entity = Map.Inst().GetConstruction(pos);
 		if (entity > -1) return Game.Inst().GetConstruction(entity);
 	}
-	return boost.weak_ptr<Entity>();
+	return boost.weak_ptr < Entity > ();
 }
 
-void UI.HandleUnderCursor(const Coordinate& pos, std.list<boost.weak_ptr<Entity> >* result) {
+void UI.HandleUnderCursor(const Coordinate & pos, std.list < boost.weak_ptr < Entity > > * result) {
 	result.clear();
 
 	if (Map.Inst().IsInside(pos)) {
-		std.set<int> *npcList = Map.Inst().NPCList(pos);
+		std.set < int > * npcList = Map.Inst().NPCList(pos);
 		if (!npcList.empty()) {
-			for (std.set<int>.iterator npci = npcList.begin(); npci != npcList.end(); ++npci) {
-				result.push_back(Game.Inst().GetNPC(*npci));
+			for (std.set < int > .iterator npci = npcList.begin(); npci != npcList.end(); ++npci) {
+				result.push_back(Game.Inst().GetNPC( * npci));
 			}
 		}
 
-		std.set<int> *itemList = Map.Inst().ItemList(pos);
+		std.set < int > * itemList = Map.Inst().ItemList(pos);
 		if (!itemList.empty()) {
-			for (std.set<int>.iterator itemi = itemList.begin(); itemi != itemList.end(); ++itemi) {
-				result.push_back(Game.Inst().itemList[*itemi]);
+			for (std.set < int > .iterator itemi = itemList.begin(); itemi != itemList.end(); ++itemi) {
+				result.push_back(Game.Inst().itemList[ * itemi]);
 			}
 		}
 
@@ -953,16 +976,22 @@ void UI.HandleUnderCursor(const Coordinate& pos, std.list<boost.weak_ptr<Entity>
 	}
 }
 
-int UI.KeyHelpTextColor() const { return keyHelpTextColor; }
-
-void UI.SetTextMode(bool val, int limit) { 
-	textMode = val; 
-	if (!textMode) inputString = "";
-	inputStringLimit = limit; 
+int UI.KeyHelpTextColor() const {
+	return keyHelpTextColor;
 }
 
-std.string UI.InputString() { return inputString;}
-void UI.InputString(std.string value) { inputString = value; }
+void UI.SetTextMode(bool val, int limit) {
+	textMode = val;
+	if (!textMode) inputString = "";
+	inputStringLimit = limit;
+}
+
+std.string UI.InputString() {
+	return inputString;
+}
+void UI.InputString(std.string value) {
+	inputString = value;
+}
 
 void UI.HideMenu() {
 	menuOpen = false;
@@ -972,19 +1001,24 @@ void UI.HideMenu() {
 void UI.CloseMenu() {
 	menuOpen = false;
 	_state = UINORMAL;
-	a.X(0); a.Y(0);
+	a.X(0);
+	a.Y(0);
 	textMode = false;
 	if (currentMenu) currentMenu.Close();
 	currentMenu = Menu.MainMenu();
 	extraTooltip = "";
 }
 
-bool UI.ShiftPressed() { return TCODConsole.isKeyPressed(TCODK_SHIFT); }
-TCOD_key_t UI.getKey() { return key; }
+bool UI.ShiftPressed() {
+	return TCODConsole.isKeyPressed(TCODK_SHIFT);
+}
+TCOD_key_t UI.getKey() {
+	return key;
+}
 
 void UI.ChooseCreateNPC() {
 	int npc;
-	Menu *NPCChoiceMenu = new Menu(std.vector<MenuChoice>(), "NPC");
+	Menu * NPCChoiceMenu = new Menu(std.vector < MenuChoice > (), "NPC");
 	NPCChoiceMenu.AddChoice(MenuChoice("None", boost.lambda.var(npc) = -1));
 	for (unsigned int i = 0; i < NPC.Presets.size(); ++i) {
 		NPCChoiceMenu.AddChoice(MenuChoice(NPC.Presets[i].name, boost.lambda.var(npc) = i));
@@ -993,23 +1027,23 @@ void UI.ChooseCreateNPC() {
 
 	if (npc >= 0) {
 		UI.Inst().state(UIPLACEMENT);
-		UI.Inst().SetCallback(boost.bind(&Game.CreateNPC, Game.Inst(), _1, NPCType(npc)));
-		UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1,1)));
-		UI.Inst().blueprint(Coordinate(1,1));
+		UI.Inst().SetCallback(boost.bind( & Game.CreateNPC, Game.Inst(), _1, NPCType(npc)));
+		UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1, 1)));
+		UI.Inst().blueprint(Coordinate(1, 1));
 		Game.Inst().Renderer().SetCursorMode(NPC.Presets[npc]);
 	}
 }
 
 void UI.ChooseCreateItem() {
 	int item, category;
-	Menu *ItemCategoryMenu = new Menu(std.vector<MenuChoice>(), "Categories");
+	Menu * ItemCategoryMenu = new Menu(std.vector < MenuChoice > (), "Categories");
 	for (unsigned int i = 0; i < Item.Categories.size(); ++i) {
 		if (Item.Categories[i].parent < 0)
 			ItemCategoryMenu.AddChoice(MenuChoice(Item.Categories[i].name, boost.lambda.var(category) = i));
 	}
 	ItemCategoryMenu.ShowModal();
 
-	Menu *ItemChoiceMenu = new Menu(std.vector<MenuChoice>(), "Item");
+	Menu * ItemChoiceMenu = new Menu(std.vector < MenuChoice > (), "Item");
 	ItemChoiceMenu.AddChoice(MenuChoice("None", boost.lambda.var(item) = -1));
 	for (unsigned int i = 0; i < Item.Presets.size(); ++i) {
 		if (Item.Presets[i].categories.find(category) != Item.Presets[i].categories.end())
@@ -1019,10 +1053,10 @@ void UI.ChooseCreateItem() {
 
 	if (item >= 0) {
 		UI.Inst().state(UIPLACEMENT);
-		UI.Inst().SetCallback(boost.bind(&Game.CreateItem, Game.Inst(), _1, ItemType(item), false,
-			0, std.vector<boost.weak_ptr<Item> >(), boost.shared_ptr<Container>()));
-		UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1,1)));
-		UI.Inst().blueprint(Coordinate(1,1));
+		UI.Inst().SetCallback(boost.bind( & Game.CreateItem, Game.Inst(), _1, ItemType(item), false,
+			0, std.vector < boost.weak_ptr < Item > > (), boost.shared_ptr < Container > ()));
+		UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, Coordinate(1, 1)));
+		UI.Inst().blueprint(Coordinate(1, 1));
 		Game.Inst().Renderer().SetCursorMode(Item.Presets[item]);
 	}
 
@@ -1031,8 +1065,8 @@ void UI.ChooseCreateItem() {
 void UI.ChooseDig() {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(boost.bind(Game.Dig, _1, _2));
-	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckPlacement, _1, _2, std.set<TileType>()));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckPlacement, _1, _2, std.set < TileType > ()));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Dig);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Dig");
@@ -1050,9 +1084,9 @@ void UI.ChooseChangeTerritory(bool add) {
 		Announce.Inst().AddMsg("Automatic territory handling disabled", TCODColor.cyan);
 	}
 	UI.Inst().state(UIRECTPLACEMENT);
-	UI.Inst().SetRectCallback(boost.bind(&Map.SetTerritoryRectangle, Map.Inst(), _1, _2, add));
+	UI.Inst().SetRectCallback(boost.bind( & Map.SetTerritoryRectangle, Map.Inst(), _1, _2, add));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(add ? Cursor_AddTerritory : Cursor_RemoveTerritory);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip(add ? "Expand" : "Shrink");
@@ -1060,19 +1094,19 @@ void UI.ChooseChangeTerritory(bool add) {
 
 void UI.ChooseGatherItems() {
 	UI.Inst().state(UIRECTPLACEMENT);
-	UI.Inst().SetRectCallback(boost.bind(&Game.GatherItems, Game.Inst(), _1, _2));
+	UI.Inst().SetRectCallback(boost.bind( & Game.GatherItems, Game.Inst(), _1, _2));
 	UI.Inst().SetPlacementCallback(boost.bind(Game.CheckTree, _1, _2));
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(Cursor_Gather);
 	UI.Inst().HideMenu();
 	UI.Inst().SetExtraTooltip("Gather items");
 }
 
-void UI.ChooseNormalPlacement(boost.function<void(Coordinate)> callback, boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip) {
+void UI.ChooseNormalPlacement(boost.function < void(Coordinate) > callback, boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip) {
 	UI.Inst().state(UIPLACEMENT);
 	UI.Inst().SetCallback(callback);
 	UI.Inst().SetPlacementCallback(placement);
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(cursor);
 	if (optionalTooltip.length() > 0) {
 		UI.Inst().HideMenu();
@@ -1080,11 +1114,11 @@ void UI.ChooseNormalPlacement(boost.function<void(Coordinate)> callback, boost.f
 	}
 }
 
-void UI.ChooseRectPlacement(boost.function<void(Coordinate, Coordinate)> rectCallback, boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip) {
+void UI.ChooseRectPlacement(boost.function < void(Coordinate, Coordinate) > rectCallback, boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip) {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(rectCallback);
 	UI.Inst().SetPlacementCallback(placement);
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(cursor);
 	if (optionalTooltip.length() > 0) {
 		UI.Inst().HideMenu();
@@ -1092,19 +1126,19 @@ void UI.ChooseRectPlacement(boost.function<void(Coordinate, Coordinate)> rectCal
 	}
 }
 
-void UI.ChooseRectPlacementCursor(boost.function<void(Coordinate, Coordinate)> rectCallback, boost.function<bool(Coordinate, Coordinate)> placement, CursorType cursor) {
+void UI.ChooseRectPlacementCursor(boost.function < void(Coordinate, Coordinate) > rectCallback, boost.function < bool(Coordinate, Coordinate) > placement, CursorType cursor) {
 	UI.Inst().state(UIRECTPLACEMENT);
 	UI.Inst().SetRectCallback(rectCallback);
 	UI.Inst().SetPlacementCallback(placement);
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(cursor);
 }
 
-void UI.ChooseABPlacement(boost.function<void(Coordinate)> callback, boost.function<bool(Coordinate, Coordinate)> placement, int cursor, std.string optionalTooltip) {
+void UI.ChooseABPlacement(boost.function < void(Coordinate) > callback, boost.function < bool(Coordinate, Coordinate) > placement, int cursor, std.string optionalTooltip) {
 	UI.Inst().state(UIABPLACEMENT);
 	UI.Inst().SetCallback(callback);
 	UI.Inst().SetPlacementCallback(placement);
-	UI.Inst().blueprint(Coordinate(1,1));
+	UI.Inst().blueprint(Coordinate(1, 1));
 	Game.Inst().Renderer().SetCursorMode(cursor);
 	if (optionalTooltip.length() > 0) {
 		UI.Inst().HideMenu();

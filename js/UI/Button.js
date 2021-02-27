@@ -13,51 +13,60 @@
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
 
-import "string"
-import "vector"
-
-import "boost/function.js"
-import "boost/bind.js"
-import "boost/weak_ptr.js"
 import "libtcod.js"
 
-import "UIComponents.js"
+import {
+	Drawable
+} from "./Drawable.js";
 
-class Button extends /*public*/ Drawable {
-//protected:
-	std.string text;
-	bool selected;
-	char shortcut;
-	bool dismiss;
-	boost.function<void()> callback;
-//public:
-	Button(std.string ntext, boost.function<void()> ncallback, int x, int y, int nwidth, char nshortcut = 0, bool ndismiss = false):
-		Drawable(x, y, nwidth, 0),
-		text(ntext),
-		selected(false),
-		shortcut(nshortcut),
-		dismiss(ndismiss),
-		callback(ncallback) {}
-	void Draw(int, int, TCODConsole *);
-	MenuResult Update(int, int, bool, TCOD_key_t);
-};
+export class Button extends Drawable {
+	text = "";
+	selected = false;
+	shortcut = '';
+	dismiss = false;
+	callback = null;
+	constructor(ntext, ncallback, x, y, nwidth, nshortcut = '', ndismiss = false) {
+		super(x, y, nwidth, 0);
+		this.text = ntext;
+		this.selected = false;
+		this.shortcut = nshortcut;
+		this.dismiss = ndismiss;
+		this.callback = ncallback;
+	}
 
-class LiveButton extends /*public*/ Button {
-//private:
-	boost.function<std.string()> textFunc;
-//public:
-	LiveButton(boost.function<std.string()> ntextFunc, boost.function<void()> ncallback, int x, int y, int nwidth, char nshortcut = 0):
-		Button("", ncallback, x, y, nwidth, nshortcut), textFunc(ntextFunc) {}
-	void Draw(int, int, TCODConsole *);
-};
+	Draw(x, y, the_console) {
+		the_console.setBackgroundFlag(TCOD_BKGND_SET);
+		if (this.selected) {
+			the_console.setDefaultForeground(TCODColor.black);
+			the_console.setDefaultBackground(TCODColor.white);
+		} else {
+			the_console.setDefaultForeground(TCODColor.white);
+			the_console.setDefaultBackground(TCODColor.black);
+		}
+		the_console.setAlignment(TCOD_CENTER);
+		the_console.printFrame(x + this._x, y + this._y, this.width, 3);
+		the_console.print(x + this._x + this.width / 2, y + this._y + 1, this.text);
+		the_console.setDefaultForeground(TCODColor.white);
+		the_console.setDefaultBackground(TCODColor.black);
+	}
 
-class ToggleButton extends /*public*/ Button {
-//private:
-	boost.function<bool()> isOn;
-//public:
-	ToggleButton(std.string ntext, boost.function<void()> ncallback, boost.function<bool()> nisOn, int x, int y, int nwidth, char nshortcut = 0):
-		Button(ntext, ncallback, x, y, nwidth, nshortcut), isOn(nisOn) {}
-	void Draw(int, int, TCODConsole *);
-};
+	Update(x, y, clicked, key) {
+		if (this.shortcut && (key.c == this.shortcut || key.vk == this.shortcut)) {
+			if (this.callback) {
+				this.callback();
+			}
+			return ((this.dismiss ? MenuResult.DISMISS : 0) | MenuResult.KEYRESPOND);
+		}
+		if (x >= this._x && x < this._x + this.width && y >= this._y && y < this._y + 3) {
+			this.selected = true;
+			if (clicked && this.callback) {
+				this.callback();
+			}
+			return (((clicked && this.dismiss) ? MenuResult.DISMISS : 0) | MenuResult.MENUHIT);
+		} else {
+			this.selected = false;
+			return MenuResult.NOMENUHIT;
+		}
+	}
+}

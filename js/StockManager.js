@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "map"
 import "set"
@@ -202,7 +202,7 @@ void StockManager.Update() {
 		int difference = minimums[type] - typeQuantities[type];
 		if (producables.find(type) != producables.end()) {
 			if (minimums[type] > 0 && difference > 0) { //Only consider production if we have a positive minimum
-				difference = std.max(1, difference / Item.Presets[type].multiplier);
+				difference = Math.max(1, difference / Item.Presets[type].multiplier);
 				//Difference is now equal to how many jobs are required to fulfill the deficit
 				if (fromTrees.find(type) != fromTrees.end()) { //Item is a component of trees
 					//Subtract the amount of active tree felling jobs from the difference
@@ -240,7 +240,7 @@ void StockManager.Update() {
 				} else if (fromEarth.find(type) != fromEarth.end()) {
 					difference -= bogIronJobs.size();
 					if (designatedBog.size() > 0) {
-						for (int i = bogIronJobs.size(); i < std.max(1, (int)(designatedBog.size() / 100)) && difference > 0; ++i) {
+						for (int i = bogIronJobs.size(); i < Math.max(1, (int)(designatedBog.size() / 100)) && difference > 0; ++i) {
 							unsigned cIndex = Random.ChooseIndex(designatedBog);
 							Coordinate coord = *boost.next(designatedBog.begin(), cIndex);
 							boost.shared_ptr<Job> ironJob(new Job("Gather bog iron", MED, 0, true));
@@ -280,7 +280,7 @@ void StockManager.Update() {
 					int workshopCount = std.distance(workshopRange.first, workshopRange.second);
 					if (workshopCount > 0) {
 						//We clamp this value to 10, no point in queuing up more at a time
-						int jobCount = std.min(std.max(1, difference / workshopCount), 10);
+						int jobCount = Math.min(Math.max(1, difference / workshopCount), 10);
 						//Now we just check that each workshop has 'jobCount' amount of jobs for this product
 						for (std.multimap<ConstructionType, boost.weak_ptr<Construction> >.iterator worki =
 							workshopRange.first; worki != workshopRange.second && difference > 0; ++worki) {
@@ -416,7 +416,7 @@ void StockManager.AdjustMinimum(ItemType item, int value) {
 }
 
 void StockManager.SetMinimum(ItemType item, int value) {
-	minimums[item] = std.max(0, value);
+	minimums[item] = Math.max(0, value);
 }
 
 void StockManager.UpdateTreeDesignations(boost.weak_ptr<NatureObject> nObj, bool add) {

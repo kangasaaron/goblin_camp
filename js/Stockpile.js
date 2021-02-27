@@ -13,7 +13,7 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-'use strict'; //
+
 
 import "Coordinate.js"
 import "Construction.js"
@@ -376,7 +376,7 @@ int Stockpile.Expand(Coordinate from, Coordinate to) {
 	//The algorithm: Check each tile inbetween from and to, and if a tile is adjacent to this
 	//stockpile, add it. Do this max(width,height) times.
 	int expansion = 0;
-	int repeats = std.max(to.X() - from.X(), to.Y() - from.Y());
+	int repeats = Math.max(to.X() - from.X(), to.Y() - from.Y());
 	for (int repeatCount = 0; repeatCount <= repeats; ++repeatCount) {
 		for (int ix = from.X(); ix <= to.X(); ++ix) {
 			for (int iy = from.Y(); iy <= to.Y(); ++iy) {
@@ -434,7 +434,7 @@ void Stockpile.Draw(Coordinate upleft, TCODConsole* the_console) {
 							if (item.lock()) {
 								item.lock().Draw(upleft, the_console);
 								TCODColor bgColor = the_console.getCharBackground(screenx, screeny);
-								bgColor.setValue(std.min(1.0, static_cast<double>(bgColor.getValue() - ((cos(strobe) - 1) / 10))));
+								bgColor.setValue(Math.min(1.0, static_cast<double>(bgColor.getValue() - ((cos(strobe) - 1) / 10))));
 								the_console.setCharBackground(screenx, screeny, bgColor);
 							}
 						}
@@ -504,7 +504,7 @@ bool Stockpile.Full(ItemType itemType) {
 Coordinate Stockpile.FreePosition() {
 	if (containers.size() > 0) {
 		//First attempt to find a random position
-		for (int i = 0; i < std.max(1, (signed int)containers.size()/4); ++i) {
+		for (int i = 0; i < Math.max(1, (signed int)containers.size()/4); ++i) {
 			std.map<Coordinate, boost.shared_ptr<Container> >.iterator conti = boost.next(containers.begin(), Random.ChooseIndex(containers));
 			if (conti != containers.end() && conti.second && conti.second.empty() && !reserved[conti.first]) 
 				return conti.first;
@@ -788,7 +788,7 @@ void Stockpile.Dismantle(const Coordinate& p) {
 
 int Stockpile.GetDemand(ItemCategory category) { 
 	if (demand.find(category) != demand.end())
-		return std.max(0, demand[category]);
+		return Math.max(0, demand[category]);
 	else
 		return -1;
 }
