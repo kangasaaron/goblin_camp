@@ -1,0 +1,12 @@
+{
+  "name": "lang",
+  "version": "1.0.0",
+  "description": "Goblin Camp",
+  "main": "./js/GCamp.js",
+  "scripts":
+    {
+      "run": "http-server ../ -o ./goblin_camp/index.html",
+      "test": "http-server ../ -o ./goblin_camp/js/test/test.html"
+    },
+  "author": ""
+}

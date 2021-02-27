@@ -1,0 +1,27 @@
+{
+	"folders": [
+		{
+			"path": ".."
+		}
+	],
+	"settings": {},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"type": "pwa-chrome",
+				"name": "Goblin Camp Run",
+				"request": "launch",
+				"url": "http://localhost:5500",
+				"webRoot": "${workspaceFolder}"
+			},
+			{
+				"type": "pwa-chrome",
+				"name": "Goblin Camp Test",
+				"request": "launch",
+				"url": "http://localhost:5500/test.html",
+				"webRoot": "${workspaceFolder}"
+			}
+		]
+	}
+}
