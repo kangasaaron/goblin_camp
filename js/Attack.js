@@ -15,143 +15,151 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	DamageType
+    DamageType
 } from "./DamageType.js";
 
 class Attack {
-	static CLASS_VERSION = 0;
+    static CLASS_VERSION = 0;
 
-	damageType = DamageType.DAMAGE_BLUNT;
-	/*
-		damageAmount.addsub = 1;
-		damageAmount.multiplier = 1;
-		damageAmount.nb_rolls = 1;
-		damageAmount.nb_faces = 1;
-	*/
-	damageAmount = new Dice(1, 1, 1, 1);
-	cooldown = 0;
-	cooldownMax = UPDATES_PER_SECOND;
-	statusEffects = [];
-	projectile = 0;
-	magicProjectile = false;
+    damageType = DamageType.DAMAGE_BLUNT;
+    /*
+    	damageAmount.addsub = 1;
+    	damageAmount.multiplier = 1;
+    	damageAmount.nb_rolls = 1;
+    	damageAmount.nb_faces = 1;
+    */
+    damageAmount = new Dice(1, 1, 1, 1);
+    cooldown = 0;
+    cooldownMax = UPDATES_PER_SECOND;
+    statusEffects = [];
+    projectile = 0;
+    magicProjectile = false;
 
 
 
-	Type(value) {
-		if (value !== undefined && value instanceof DamageType) {
-			this.damageType = value;
-		}
-		return this.damageType;
-	}
-	Amount(value) {
-		if (value !== undefined && value instanceof Dice) {
-			this.damageAmount = value;
-		}
-		return this.damageAmount;
-	}
-	CooldownMax(value) {
-		if (value !== undefined && Number.isFinite(value)) {
-			this.cooldownMax = value;
-		}
-		return this.cooldownMax;
-	}
-	Cooldown() {
-		return this.cooldown;
-	}
-	Update() {
-		if (this.cooldown > 0) --this.cooldown;
-	}
-	ResetCooldown() {
-		this.cooldown = this.cooldownMax;
-	}
-	StatusEffects() {
-		return this.statusEffects;
-	}
-	Ranged() {
-		return this.damageType == DamageType.DAMAGE_RANGED;
-	}
+    Type(value) {
+        if (value !== undefined && value instanceof DamageType) {
+            this.damageType = value;
+        }
+        return this.damageType;
+    }
+    Amount(value) {
+        if (value !== undefined && value instanceof Dice) {
+            this.damageAmount = value;
+        }
+        return this.damageAmount;
+    }
+    CooldownMax(value) {
+        if (value !== undefined && Number.isFinite(value)) {
+            this.cooldownMax = value;
+        }
+        return this.cooldownMax;
+    }
+    Cooldown() {
+        return this.cooldown;
+    }
+    Update() {
+        if (this.cooldown > 0) --this.cooldown;
+    }
+    ResetCooldown() {
+        this.cooldown = this.cooldownMax;
+    }
+    StatusEffects() {
+        return this.statusEffects;
+    }
+    Ranged() {
+        return this.damageType == DamageType.DAMAGE_RANGED;
+    }
 
-	Projectile(value) {
-		if (value !== undefined && Number.isFinite(value)) {
-			projectile = value;
-		}
-		return projectile;
-	}
+    Projectile(value) {
+        if (value !== undefined && Number.isFinite(value)) {
+            projectile = value;
+        }
+        return projectile;
+    }
 
-	AddDamage(value) {
-		this.damageAmount.addsub += Game.DiceToInt(value);
-	}
+    AddDamage(value) {
+        this.damageAmount.addsub += Game.DiceToInt(value);
+    }
 
-	SetMagicProjectile() {
-		this.magicProjectile = true;
-	}
-	IsProjectileMagic() {
-		return this.magicProjectile;
-	}
+    SetMagicProjectile() {
+        this.magicProjectile = true;
+    }
+    IsProjectileMagic() {
+        return this.magicProjectile;
+    }
 
-	static StringToDamageType(type) {
-		type = type.toLowerCase();
-		if (type == "slashing") {
-			return DamageType.DAMAGE_SLASH;
-		} else if (type == "piercing") {
-			return DamageType.DAMAGE_PIERCE;
-		} else if (type == "blunt") {
-			return DamageType.DAMAGE_BLUNT;
-		} else if (type == "magic") {
-			return DamageType.DAMAGE_MAGIC;
-		} else if (type == "fire") {
-			return DamageType.DAMAGE_FIRE;
-		} else if (type == "cold") {
-			return DamageType.DAMAGE_COLD;
-		} else if (type == "poison") {
-			return DamageType.DAMAGE_POISON;
-		} else if (type == "wielded") {
-			return DamageType.DAMAGE_WIELDED;
-		} else if (type == "ranged") {
-			return DamageType.DAMAGE_RANGED;
-		}
-		return DamageType.DAMAGE_SLASH;
-	}
-	static DamageTypeToString(type) {
-		//TODO (easy) use switch
-		if (type == DamageType.DAMAGE_SLASH) {
-			return "slashing";
-		} else if (type == DamageType.DAMAGE_PIERCE) {
-			return "piercing";
-		} else if (type == DamageType.DAMAGE_BLUNT) {
-			return "blunt";
-		} else if (type == DamageType.DAMAGE_MAGIC) {
-			return "magic";
-		} else if (type == DamageType.DAMAGE_FIRE) {
-			return "fire";
-		} else if (type == DamageType.DAMAGE_COLD) {
-			return "cold";
-		} else if (type == DamageType.DAMAGE_POISON) {
-			return "poison";
-		} else if (type == DamageType.DAMAGE_WIELDED) {
-			return "wielded";
-		} else if (type == DamageType.DAMAGE_RANGED) {
-			return "ranged";
-		}
-		return "";
-	}
-	save(ar, version) {
-		ar.save(this, "damageType");
-		ar.save(this, "damageAmount");
-		ar.save(this, "cooldown");
-		ar.save(this, "cooldownMax");
-		ar.save(this, "statusEffects");
-		ar.save(this, "projectile");
-		ar.save(this, "magicProjectile");
-	}
+    static StringToDamageType(type) {
+        type = type.toLowerCase();
+        if (type == "slashing") {
+            return DamageType.DAMAGE_SLASH;
+        } else if (type == "piercing") {
+            return DamageType.DAMAGE_PIERCE;
+        } else if (type == "blunt") {
+            return DamageType.DAMAGE_BLUNT;
+        } else if (type == "magic") {
+            return DamageType.DAMAGE_MAGIC;
+        } else if (type == "fire") {
+            return DamageType.DAMAGE_FIRE;
+        } else if (type == "cold") {
+            return DamageType.DAMAGE_COLD;
+        } else if (type == "poison") {
+            return DamageType.DAMAGE_POISON;
+        } else if (type == "wielded") {
+            return DamageType.DAMAGE_WIELDED;
+        } else if (type == "ranged") {
+            return DamageType.DAMAGE_RANGED;
+        }
+        return DamageType.DAMAGE_SLASH;
+    }
+    static DamageTypeToString(type) {
+        //TODO (easy) use switch
+        if (type == DamageType.DAMAGE_SLASH) {
+            return "slashing";
+        } else if (type == DamageType.DAMAGE_PIERCE) {
+            return "piercing";
+        } else if (type == DamageType.DAMAGE_BLUNT) {
+            return "blunt";
+        } else if (type == DamageType.DAMAGE_MAGIC) {
+            return "magic";
+        } else if (type == DamageType.DAMAGE_FIRE) {
+            return "fire";
+        } else if (type == DamageType.DAMAGE_COLD) {
+            return "cold";
+        } else if (type == DamageType.DAMAGE_POISON) {
+            return "poison";
+        } else if (type == DamageType.DAMAGE_WIELDED) {
+            return "wielded";
+        } else if (type == DamageType.DAMAGE_RANGED) {
+            return "ranged";
+        }
+        return "";
+    }
+    serialize(ar, version) {
+        ar.register_type(DamageType);
+        ar.register_type(Dice);
+        return {
+            "damageType": ar.serializable(this.damageType),
+            "damageAmount": ar.serializable(this.damageAmount),
+            "cooldown": this.cooldown,
+            "cooldownMax": this.cooldownMax,
+            "statusEffects": this.statusEffects,
+            "projectile": this.projectile,
+            "magicProjectile": this.magicProjectile
+        };
+    }
 
-	load(ar, version) {
-		this.damageType = ar.damageType;
-		this.damageAmount = new Dice().load(ar.damageAmount);
-		this.cooldown = ar.cooldown;
-		this.cooldownMax = ar.cooldownMax;
-		this.statusEffects = ar.statusEffects;
-		this.projectile = ar.projectile;
-		this.magicProjectile = ar.magicProjectile;
-	}
+    static deserialize(data, version, deserializer) {
+        deserializer.register_type(DamageType);
+        deserializer.register_type(Dice);
+        let result = new Attack();
+        result.damageType = deserializer.deserializable(data.damageType);
+        result.damageAmount = deserializer.deserializable(data.damageAmount);
+        result.cooldown = data.cooldown;
+        result.cooldownMax = data.cooldownMax;
+        result.statusEffects = data.statusEffects;
+        result.projectile = data.projectile;
+        result.magicProjectile = data.magicProjectile;
+        return result;
+    }
 }

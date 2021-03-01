@@ -16,18 +16,24 @@ export class Task {
         this.item = itt;
         this.flags = fla;
     }
-    save(ar, version) {
-        ar.save(this, "target");
-        ar.save(this, "entity");
-        ar.save(this, "action");
-        ar.save(this, "item");
-        ar.save(this, "flags");
+    serialize(ar, version) {
+        ar.register_type(Coordinate);
+        return {
+            target: ar.serialize(this.target),
+            entity: ar.serialize(this.entity),
+            action: ar.serialize(this.action),
+            item: ar.serialize(this.item),
+            flags: ar.serialize(this.flags)
+        }
     }
-    load(ar, version) {
-        this.target = ar.load(this, "target");
-        this.entity = ar.load(this, "entity");
-        this.action = ar.load(this, "action");
-        this.item = ar.load(this, "item");
-        this.flags = ar.load(this, "flags");
+    static deserialize(data, version, deserializer) {
+        ar.register_type(Coordinate);
+        return new Task(
+            deserializer.deserializable(data.action),
+            deserializer.deserializable(data.target),
+            deserializer.deserializable(data.entity),
+            deserializer.deserializable(data.item),
+            deserializer.deserializable(data.flags)
+        );
     }
 }

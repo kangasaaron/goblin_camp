@@ -3,14 +3,13 @@ import {
 } from "./Skill.js";
 
 let skillSetHandlers = {
-    set: function (obj, prop, value) {
+    set: function(obj, prop, value) {
         obj[Number(prop)] = value;
     },
-    get: function (obj, prop, receiver) {
+    get: function(obj, prop, receiver) {
         return obj[Number(prop)];
     }
 }
-
 
 export class SkillSet {
     static CLASS_VERSION = 0;
@@ -19,10 +18,14 @@ export class SkillSet {
     constructor() {
         return new Proxy(this, skillSetHandlers);
     }
-    save(ar, version) {
-        ar.save(this, "skills");
+    serialize(ar, version) {
+        return {
+            skills: this.skills
+        };
     }
-    load(ar, version) {
-        this.skills = ar.skills;
+    static deserialize(data, version, deserialzier) {
+        let result = new SkillSet();
+        result.skills = data.skills;
+        return result;
     }
 }

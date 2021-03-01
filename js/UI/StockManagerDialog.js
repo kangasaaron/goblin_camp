@@ -27,15 +27,15 @@ import "UIComponents.js"
 import "Dialog.js"
 import "Grid.js"
 
-class StockManagerDialog  extends /*public*/ Dialog {
-//private:
-	std.string filter;
-	Grid *grid;
-//public:
-	StockManagerDialog();
-	static Dialog* stocksDialog;
-	static Dialog* StocksDialog();
-	std.string GetFilter();
+class StockManagerDialog extends /*public*/ Dialog {
+    //private:
+    std.string filter;
+    Grid * grid;
+    //public:
+    StockManagerDialog();
+    static Dialog * stocksDialog;
+    static Dialog * StocksDialog();
+    std.string GetFilter();
 };
 /* Copyright 2010-2011 Ilkka Halila
  This file is part of Goblin Camp.
@@ -68,85 +68,83 @@ import "UI/Spinner.js"
 import "UI/Label.js"
 import "UI/TextBox.js"
 
-Dialog* StockManagerDialog.stocksDialog = 0;
+Dialog * StockManagerDialog.stocksDialog = 0;
 
 class StockPanel extends /*public*/ UIContainer {
-//private:
-	ItemType itemType;
-	StockManagerDialog *owner;
-//public:
-	bool ShowItem() {
-		if (boost.icontains(Item.Presets[itemType].name, owner.GetFilter()))
-			return StockManager.Inst().TypeQuantity(itemType) > -1;
-		else {
-			for (std.set<ItemCategory>.iterator cati = Item.Presets[itemType].categories.begin();
-				cati != Item.Presets[itemType].categories.end(); ++cati) {
-					if (boost.icontains(Item.Categories[*cati].name, owner.GetFilter()))
-						return StockManager.Inst().TypeQuantity(itemType) > -1;
-			}
-		}
-		return false;
-	}
-	
-	void _GetTooltip(int x, int y, Tooltip *tooltip) {
-		if(x >= _x && x < _x + width && y >= _y && y < _y + height - 2) { // subtract 2 from height so tooltip doesn't appear when mouse is over spinner
-			tooltip.AddEntry(TooltipEntry(Item.ItemTypeToString(itemType), TCODColor.white));
-			std.string compName = "";
-			int compAmt = 0;
-			for (int compi = 0; compi < (signed int)Item.Components(itemType).size(); ++compi) {
-				std.string thisCompName = Item.ItemCategoryToString(Item.Components(itemType, compi));
-				if(compName == thisCompName) {
-					compAmt++;
-				} else {
-					if(compName.length() > 0) {
-						tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
-					}
-					compName = thisCompName;
-					compAmt = 1;
-				}
-			}
-			if(compName.length() > 0) {
-				tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
-			}
-		}
-	}
-	
-	StockPanel(ItemType nItemType, StockManagerDialog *nowner): UIContainer(std.vector<Drawable *>(), 0, 0, 16, 4), itemType(nItemType), owner(nowner) {
-		AddComponent(new Spinner(0, 2, 16, boost.bind(&StockManager.Minimum, StockManager.Inst(), itemType), 
-								 boost.bind(&StockManager.SetMinimum, StockManager.Inst(), itemType, _1)));
-		SetTooltip(boost.bind(&StockPanel._GetTooltip, this, _1, _2, _3));
-		visible = boost.bind(&StockPanel.ShowItem, this);
-	}
-	
-	void Draw(int x, int y, TCODConsole *the_console) {
-		the_console.setAlignment(TCOD_CENTER);
-		the_console.setDefaultForeground(Item.Presets[itemType].color);
-		the_console.print(x + 8, y, "%c %s", Item.Presets[itemType].graphic, Item.Presets[itemType].name.c_str());
-		the_console.setDefaultForeground(TCODColor.white);
-		the_console.print(x + 8, y+1, "%d", StockManager.Inst().TypeQuantity(itemType));
-		UIContainer.Draw(x, y, the_console);
-	}
+    //private:
+    ItemType itemType;
+    StockManagerDialog * owner;
+    //public:
+    bool ShowItem() {
+        if (boost.icontains(Item.Presets[itemType].name, owner.GetFilter()))
+            return StockManager.TypeQuantity(itemType) > -1;
+        else {
+            for (std.set < ItemCategory > .iterator cati = Item.Presets[itemType].categories.begin(); cati != Item.Presets[itemType].categories.end(); ++cati) {
+                if (boost.icontains(Item.Categories[ * cati].name, owner.GetFilter()))
+                    return StockManager.TypeQuantity(itemType) > -1;
+            }
+        }
+        return false;
+    }
+
+    void _GetTooltip(int x, int y, Tooltip * tooltip) {
+        if (x >= _x && x < _x + width && y >= _y && y < _y + height - 2) { // subtract 2 from height so tooltip doesn't appear when mouse is over spinner
+            tooltip.AddEntry(TooltipEntry(Item.ItemTypeToString(itemType), TCODColor.white));
+            std.string compName = "";
+            int compAmt = 0;
+            for (int compi = 0; compi < (signed int) Item.Components(itemType).size(); ++compi) {
+                std.string thisCompName = Item.ItemCategoryToString(Item.Components(itemType, compi));
+                if (compName == thisCompName) {
+                    compAmt++;
+                } else {
+                    if (compName.length() > 0) {
+                        tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
+                    }
+                    compName = thisCompName;
+                    compAmt = 1;
+                }
+            }
+            if (compName.length() > 0) {
+                tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
+            }
+        }
+    }
+
+    StockPanel(ItemType nItemType, StockManagerDialog * nowner): UIContainer(std.vector < Drawable * > (), 0, 0, 16, 4), itemType(nItemType), owner(nowner) {
+        AddComponent(new Spinner(0, 2, 16, boost.bind( & StockManager.Minimum, StockManager.Inst(), itemType),
+            boost.bind( & StockManager.SetMinimum, StockManager.Inst(), itemType, _1)));
+        SetTooltip(boost.bind( & StockPanel._GetTooltip, this, _1, _2, _3));
+        visible = boost.bind( & StockPanel.ShowItem, this);
+    }
+
+    void Draw(int x, int y, TCODConsole * the_console) {
+        the_console.setAlignment(TCOD_CENTER);
+        the_console.setDefaultForeground(Item.Presets[itemType].color);
+        the_console.print(x + 8, y, "%c %s", Item.Presets[itemType].graphic, Item.Presets[itemType].name.c_str());
+        the_console.setDefaultForeground(TCODColor.white);
+        the_console.print(x + 8, y + 1, "%d", StockManager.TypeQuantity(itemType));
+        UIContainer.Draw(x, y, the_console);
+    }
 
 };
 
 
-StockManagerDialog.StockManagerDialog(): Dialog(0, "Stock Manager", 68, 75), filter("")
-{
-	contents = new UIContainer(std.vector<Drawable *>(), 0, 0, 68, 75);
+StockManagerDialog.StockManagerDialog(): Dialog(0, "Stock Manager", 68, 75), filter("") {
+    contents = new UIContainer(std.vector < Drawable * > (), 0, 0, 68, 75);
 
-	static_cast<UIContainer*>(contents).AddComponent(new Label("Filter", 34, 1));
-	static_cast<UIContainer*>(contents).AddComponent(new TextBox(1, 2, 66, &filter));
+    static_cast < UIContainer * > (contents).AddComponent(new Label("Filter", 34, 1));
+    static_cast < UIContainer * > (contents).AddComponent(new TextBox(1, 2, 66, & filter));
 
-	Grid *grid = new Grid(std.vector<Drawable *>(), 4, 0, 0, 68, 71);
-	for (std.set<ItemType>.iterator it = StockManager.Inst().Producables().begin(); it != StockManager.Inst().Producables().end(); it++) {
-		grid.AddComponent(new StockPanel(*it, this));
-	}
-	static_cast<UIContainer*>(contents).AddComponent(new ScrollPanel(0, 3, 68, 72, grid, false, 4));
+    Grid * grid = new Grid(std.vector < Drawable * > (), 4, 0, 0, 68, 71);
+    for (std.set < ItemType > .iterator it = StockManager.Producables().begin(); it != StockManager.Producables().end(); it++) {
+        grid.AddComponent(new StockPanel( * it, this));
+    }
+    static_cast < UIContainer * > (contents).AddComponent(new ScrollPanel(0, 3, 68, 72, grid, false, 4));
 }
 
-Dialog* StockManagerDialog.StocksDialog() {
-	if (!stocksDialog) stocksDialog = new StockManagerDialog();
-	return stocksDialog;
+Dialog * StockManagerDialog.StocksDialog() {
+    if (!stocksDialog) stocksDialog = new StockManagerDialog();
+    return stocksDialog;
 }
 
 std.string StockManagerDialog.GetFilter() { return filter; }

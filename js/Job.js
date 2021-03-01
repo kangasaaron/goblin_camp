@@ -15,27 +15,27 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	JobPriority
+    JobPriority
 } from "./JobPriority.js";
 
 import {
-	JobCompletion
+    JobCompletion
 } from "./JobCompletion.js";
 
 import {
-	Action
+    Action
 } from "./Action.js";
 
 import {
-	TaskResult
+    TaskResult
 } from "./TaskResult.js";
 
 import {
-	Task
+    Task
 } from "./Task.js";
 
 import {
-	Construction
+    Construction
 } from "./Construction.js";
 
 
@@ -58,417 +58,419 @@ import "Stockpile.js"
 import "Door.js"
 import "Farmplot.js"
 import {
-	Coordinate
+    Coordinate
 } from "./Coordinate.js";
 
 export class Job {
-	static CLASS_VERSION = 1;
+    static CLASS_VERSION = 1;
 
-	_priority = null;
-	completion = null;
-	preReqs = [];
-	parent = null;
-	npcUid = 0;
-	zone = 0;
-	menial = false;
-	paused = false;
-	waitingForRemoval = false;
-	reservedEntities = [];
-	reservedSpot = {};
-	attempts = 0;
-	attemptMax = 5;
-	connectedEntity = null;
-	reservedContainer = null;
-	reservedSpace = 0;
-	tool = -1;
-	markedGround = undefined;
-	obeyTerritory = true;
-	mapMarkers = [];
-	fireAllowed = false;
-	name = "";
-	tasks = [];
-	internal = false;
-	statusEffects = [];
-	constructor(value = "NONAME JOB", pri = MED, z = 0, m = true) {
-		this._priority = pri;
-		this.completion = JobCompletion.ONGOING;
-		this.npcUid = -1;
-		this._zone = z;
-		this.menial = m;
-		this.name = value;
-	}
+    _priority = null;
+    completion = null;
+    preReqs = [];
+    parent = null;
+    npcUid = 0;
+    zone = 0;
+    menial = false;
+    paused = false;
+    waitingForRemoval = false;
+    reservedEntities = [];
+    reservedSpot = {};
+    attempts = 0;
+    attemptMax = 5;
+    connectedEntity = null;
+    reservedContainer = null;
+    reservedSpace = 0;
+    tool = -1;
+    markedGround = undefined;
+    obeyTerritory = true;
+    mapMarkers = [];
+    fireAllowed = false;
+    name = "";
+    tasks = [];
+    internal = false;
+    statusEffects = [];
+    constructor(value = "NONAME JOB", pri = MED, z = 0, m = true) {
+        this._priority = pri;
+        this.completion = JobCompletion.ONGOING;
+        this.npcUid = -1;
+        this._zone = z;
+        this.menial = m;
+        this.name = value;
+    }
 
-	destructor() {
-		/*	
-		preReqs.clear();
-		UnreserveEntities();
-		UnreserveSpot();
-		if (connectedEntity.lock()) connectedEntity.lock().CancelJob();
-		if (reservedContainer.lock()) {
-			reservedContainer.lock().ReserveSpace(false, reservedSpace);
-		}
-		if (Map.Inst().IsInside(markedGround)) {
-			Map.Inst().Unmark(markedGround);
-		}
-		for (std.list < int > .iterator marki = mapMarkers.begin(); marki != mapMarkers.end(); ++marki) {
-			Map.Inst().RemoveMarker( * marki);
-		}
-		mapMarkers.clear();
+    destructor() {
+        /*	
+        preReqs.clear();
+        UnreserveEntities();
+        UnreserveSpot();
+        if (connectedEntity.lock()) connectedEntity.lock().CancelJob();
+        if (reservedContainer.lock()) {
+        	reservedContainer.lock().ReserveSpace(false, reservedSpace);
+        }
+        if (Map.IsInside(markedGround)) {
+        	Map.Unmark(markedGround);
+        }
+        for (std.list < int > .iterator marki = mapMarkers.begin(); marki != mapMarkers.end(); ++marki) {
+        	Map.RemoveMarker( * marki);
+        }
+        mapMarkers.clear();
 
-		*/
-	}
-
-
-	priority(value) {
-		if (value instanceof JobPriority)
-			this._priority = value;
-		return this._priority;
-	}
-	Completed() {
-		return (this.completion == JobCompletion.SUCCESS || this.completion == JobCompletion.FAILURE);
-	}
-	Complete() {
-		this.completion = Job.SUCCESS;
-	}
-	Fail() {
-		this.completion = JobCompletion.FAILURE;
-		if (this.parent.lock()) this.parent.lock().Fail();
-		this.Remove();
-	}
-	PreReqsCompleted() {
-		for (let preReqIter of this.preReqs) {
-			if (preReqIter.lock() && !preReqIter.lock().Completed()) return false;
-		}
-		return true;
-	}
-	ParentCompleted() {
-		if (!this.parent.lock()) return true;
-		return this.parent.lock().Completed();
-	}
-
-	PreReqs() {
-		return this.preReqs;
-	}
-	Parent(value) {
-		if (value && value instanceof Job)
-			this.parent = value;
-		return this.parent;
-	}
-	Assign(uid) {
-		this.npcUid = Number(uid);
-	}
-	Assigned() {
-		return this.npcUid;
-	}
-	zone(value) {
-		if (value !== undefined)
-			this._zone = Number(value);
-		return this._zone;
-	}
-	Menial() {
-		return this.menial;
-	}
-	Paused(value) {
-		if (value !== undefined)
-			this._zone = !(!(value));
-		return this.paused;
-	}
-	Remove() {
-		this.waitingForRemoval = true;
-	}
-	Removable() {
-		return this.waitingForRemoval && this.PreReqsCompleted();
-	}
-	ReserveEntity(entity) {
-		if (entity.lock()) {
-			this.reservedEntities.push(entity);
-			entity.lock().Reserve(true);
-		}
-	}
-	UnreserveEntities() {
-		for (let itemI of this.reservedEntities) {
-			if (itemI.lock()) itemI.lock().Reserve(false);
-		}
-		this.reservedEntities.clear();
-	}
-	ReserveSpot(sp, pos, type) {
-		if (sp.lock()) {
-			sp.lock().ReserveSpot(pos, true, type);
-			this.reservedSpot = [sp, pos, type];
-		}
-	}
-	UnreserveSpot() {
-		if (this.reservedSpot[0].lock()) {
-			this.reservedSpot[0].lock().ReserveSpot(this.reservedSpot[1], false, this.reservedSpot[2]);
-			this.reservedSpot[0].reset();
-		}
-	}
+        */
+    }
 
 
-	ConnectToEntity(ent) {
-		if (ent !== undefined && ent instanceof Entity)
-			this.connectedEntity = ent;
-		return this.connectedEntity;
-	}
+    priority(value) {
+        if (value instanceof JobPriority)
+            this._priority = value;
+        return this._priority;
+    }
+    Completed() {
+        return (this.completion == JobCompletion.SUCCESS || this.completion == JobCompletion.FAILURE);
+    }
+    Complete() {
+        this.completion = Job.SUCCESS;
+    }
+    Fail() {
+        this.completion = JobCompletion.FAILURE;
+        if (this.parent.lock()) this.parent.lock().Fail();
+        this.Remove();
+    }
+    PreReqsCompleted() {
+        for (let preReqIter of this.preReqs) {
+            if (preReqIter.lock() && !preReqIter.lock().Completed()) return false;
+        }
+        return true;
+    }
+    ParentCompleted() {
+        if (!this.parent.lock()) return true;
+        return this.parent.lock().Completed();
+    }
 
-	ReserveSpace(cont, bulk = 1) {
-		if (cont.lock()) {
-			cont.lock().ReserveSpace(true, bulk);
-			this.reservedContainer = cont;
-			this.reservedSpace = bulk;
-		}
-	}
-
-	Attempts(value) {
-		if (value !== undefined)
-			this.attemptMax = Number(value); // Why is this setting attemptMax, and not attempts?
-		return this.attempts;
-	}
-	Attempt() {
-		if (++this.attempts > this.attemptMax) return false;
-		return true;
-	}
-	RequiresTool() {
-		return this.tool != -1;
-	}
-	SetRequiredTool(item) {
-		this.tool = item;
-	}
-	GetRequiredTool() {
-		return this.tool;
-	}
-	MarkGround(ground) {
-		if (!Map.Inst().IsInside(ground)) return;
-		this.markedGround = ground;
-		Map.Inst().Mark(ground);
-	}
-
-	static ActionToString(action) {
-		switch (action) {
-			case Action.NOACTION:
-				return "No Action";
-			case Action.USE:
-				return "Use";
-			case Action.TAKE:
-				return "Pick up";
-			case Action.DROP:
-				return "Drop";
-			case Action.PUTIN:
-				return "Put in";
-			case Action.BUILD:
-				return "Build";
-			case Action.MOVE:
-				return "Move";
-			case Action.MOVEADJACENT:
-				return "Move adjacent";
-			case Action.MOVENEAR:
-				return "Move Near";
-			case Action.WAIT:
-				return "Wait";
-			case Action.DRINK:
-				return "Drink";
-			case Action.EAT:
-				return "Eat";
-			case Action.FIND:
-				return "Find";
-			case Action.HARVEST:
-				return "Harvest";
-			case Action.FELL:
-				return "Fell";
-			case Action.HARVESTWILDPLANT:
-				return "Harvest plant";
-			case Action.KILL:
-				return "Kill";
-			case Action.FLEEMAP:
-				return "Flee!!";
-			case Action.SLEEP:
-				return "Sleep";
-			case Action.DISMANTLE:
-				return "Dismantle";
-			case Action.WIELD:
-				return "Wield";
-			case Action.BOGIRON:
-				return "Collect bog iron";
-			case Action.STOCKPILEITEM:
-				return "Stockpile item";
-			case Action.QUIVER:
-				return "Quiver";
-			case Action.FILL:
-				return "Fill";
-			case Action.POUR:
-				return "Pour";
-			case Action.DIG:
-				return "Dig";
-			case Action.FORGET:
-				return "Huh?";
-			default:
-				return "???";
-		}
-	}
-	DisregardTerritory() {
-		this.obeyTerritory = false;
-	}
-
-	OutsideTerritory() {
-		if (!this.obeyTerritory) return false;
-
-		for (let task of thsi.tasks) {
-			let coord = task.target;
-			if (!Map.Inst().IsInside(coord)) {
-				if (task.entity.lock()) {
-					coord = task.entity.lock().Position();
-				}
-			}
-
-			if (Map.Inst().IsInside(coord))
-				if (!Map.Inst().IsTerritory(coord))
-					return true;
-		}
-
-		return false;
-	}
-	AddMapMarker(marker) {
-		this.mapMarkers.push(Map.Inst().AddMarker(marker));
-	}
-	AllowFire() {
-		this.fireAllowed = true;
-	}
-	InvalidFireAllowance() {
-		if (this.fireAllowed) return false;
-
-		for (let task of this.tasks) {
-			let coord = task.target;
-			if (!Map.Inst().IsInside(coord)) {
-				if (task.entity.lock()) {
-					coord = task.entity.lock().Position();
-				}
-			}
-
-			if (Map.Inst().IsInside(coord)) {
-				if (Map.Inst().GetFire(coord).lock()) return true;
-			}
-		}
-
-		return false;
-	}
+    PreReqs() {
+        return this.preReqs;
+    }
+    Parent(value) {
+        if (value && value instanceof Job)
+            this.parent = value;
+        return this.parent;
+    }
+    Assign(uid) {
+        this.npcUid = Number(uid);
+    }
+    Assigned() {
+        return this.npcUid;
+    }
+    zone(value) {
+        if (value !== undefined)
+            this._zone = Number(value);
+        return this._zone;
+    }
+    Menial() {
+        return this.menial;
+    }
+    Paused(value) {
+        if (value !== undefined)
+            this._zone = !(!(value));
+        return this.paused;
+    }
+    Remove() {
+        this.waitingForRemoval = true;
+    }
+    Removable() {
+        return this.waitingForRemoval && this.PreReqsCompleted();
+    }
+    ReserveEntity(entity) {
+        if (entity.lock()) {
+            this.reservedEntities.push(entity);
+            entity.lock().Reserve(true);
+        }
+    }
+    UnreserveEntities() {
+        for (let itemI of this.reservedEntities) {
+            if (itemI.lock()) itemI.lock().Reserve(false);
+        }
+        this.reservedEntities.clear();
+    }
+    ReserveSpot(sp, pos, type) {
+        if (sp.lock()) {
+            sp.lock().ReserveSpot(pos, true, type);
+            this.reservedSpot = [sp, pos, type];
+        }
+    }
+    UnreserveSpot() {
+        if (this.reservedSpot[0].lock()) {
+            this.reservedSpot[0].lock().ReserveSpot(this.reservedSpot[1], false, this.reservedSpot[2]);
+            this.reservedSpot[0].reset();
+        }
+    }
 
 
-	static CreatePourWaterJob(job, location) {
-		job.Attempts(1);
+    ConnectToEntity(ent) {
+        if (ent !== undefined && ent instanceof Entity)
+            this.connectedEntity = ent;
+        return this.connectedEntity;
+    }
 
-		//First search for a container containing water
-		let waterItem = Game.Inst().FindItemByTypeFromStockpiles(Item.StringToItemType("Water"), location).lock();
-		let waterLocation = Game.Inst().FindWater(location);
+    ReserveSpace(cont, bulk = 1) {
+        if (cont.lock()) {
+            cont.lock().ReserveSpace(true, bulk);
+            this.reservedContainer = cont;
+            this.reservedSpace = bulk;
+        }
+    }
 
-		//If a water item exists, is closer and contained then use that
-		let waterContainerFound = false;
-		if (waterItem) {
-			let distanceToWater = Number.MAX_SAFE_INTEGER;
-			if (waterLocation !== undefined)
-				distanceToWater = Distance(location, waterLocation);
-			let distanceToItem = Distance(location, waterItem.Position());
+    Attempts(value) {
+        if (value !== undefined)
+            this.attemptMax = Number(value); // Why is this setting attemptMax, and not attempts?
+        return this.attempts;
+    }
+    Attempt() {
+        if (++this.attempts > this.attemptMax) return false;
+        return true;
+    }
+    RequiresTool() {
+        return this.tool != -1;
+    }
+    SetRequiredTool(item) {
+        this.tool = item;
+    }
+    GetRequiredTool() {
+        return this.tool;
+    }
+    MarkGround(ground) {
+        if (!Map.IsInside(ground)) return;
+        this.markedGround = ground;
+        Map.Mark(ground);
+    }
 
-			if (distanceToItem < distanceToWater && waterItem.ContainedIn().lock() &&
-				waterItem.ContainedIn().lock().IsCategory(Item.StringToItemCategory("Container"))) {
-				let container = waterItem.ContainedIn().lock();
-				//Reserve everything inside the container
-				for (let itemi of this.container) {
-					job.ReserveEntity(itemi);
-				}
-				job.ReserveEntity(container);
-				job.tasks.push(new Task(Action.MOVE, container.Position()));
-				job.tasks.push(new Task(Action.TAKE, container.Position(), container));
-				waterContainerFound = true;
-			}
-		}
+    static ActionToString(action) {
+        switch (action) {
+            case Action.NOACTION:
+                return "No Action";
+            case Action.USE:
+                return "Use";
+            case Action.TAKE:
+                return "Pick up";
+            case Action.DROP:
+                return "Drop";
+            case Action.PUTIN:
+                return "Put in";
+            case Action.BUILD:
+                return "Build";
+            case Action.MOVE:
+                return "Move";
+            case Action.MOVEADJACENT:
+                return "Move adjacent";
+            case Action.MOVENEAR:
+                return "Move Near";
+            case Action.WAIT:
+                return "Wait";
+            case Action.DRINK:
+                return "Drink";
+            case Action.EAT:
+                return "Eat";
+            case Action.FIND:
+                return "Find";
+            case Action.HARVEST:
+                return "Harvest";
+            case Action.FELL:
+                return "Fell";
+            case Action.HARVESTWILDPLANT:
+                return "Harvest plant";
+            case Action.KILL:
+                return "Kill";
+            case Action.FLEEMAP:
+                return "Flee!!";
+            case Action.SLEEP:
+                return "Sleep";
+            case Action.DISMANTLE:
+                return "Dismantle";
+            case Action.WIELD:
+                return "Wield";
+            case Action.BOGIRON:
+                return "Collect bog iron";
+            case Action.STOCKPILEITEM:
+                return "Stockpile item";
+            case Action.QUIVER:
+                return "Quiver";
+            case Action.FILL:
+                return "Fill";
+            case Action.POUR:
+                return "Pour";
+            case Action.DIG:
+                return "Dig";
+            case Action.FORGET:
+                return "Huh?";
+            default:
+                return "???";
+        }
+    }
+    DisregardTerritory() {
+        this.obeyTerritory = false;
+    }
 
-		if (!waterContainerFound && waterLocation !== undefined) {
-			job.SetRequiredTool(Item.StringToItemCategory("Bucket"));
-			job.tasks.push(new Task(Action.MOVEADJACENT, waterLocation));
-			job.tasks.push(new Task(Action.FILL, waterLocation));
-		}
+    OutsideTerritory() {
+        if (!this.obeyTerritory) return false;
 
-		if (waterContainerFound || waterLocation !== undefined) {
-			job.tasks.push(new Task(Action.MOVEADJACENT, location));
-			job.tasks.push(new Task(Action.POUR, location));
-			if (waterContainerFound) job.tasks.push(new Task(Action.STOCKPILEITEM));
-			job.DisregardTerritory();
-			job.AllowFire();
-			job.statusEffects.push(StatusEffectType.BRAVE);
-		} else {
-			job.reset();
-		}
-	}
+        for (let task of thsi.tasks) {
+            let coord = task.target;
+            if (!Map.IsInside(coord)) {
+                if (task.entity.lock()) {
+                    coord = task.entity.lock().Position();
+                }
+            }
 
-	save(ar, version) {
-		ar.register_type(Container);
-		ar.register_type(Item);
-		ar.register_type(Entity);
-		ar.register_type(NatureObject);
-		ar.register_type(Construction);
-		ar.register_type(Door);
-		ar.register_type(FarmPlot);
-		ar.save(this, "_priority");
-		ar.save(this, "completion");
-		ar.save(this, "preReqs");
-		ar.save(this, "parent");
-		ar.save(this, "npcUid");
-		ar.save(this, "_zone");
-		ar.save(this, "menial");
-		ar.save(this, "paused");
-		ar.save(this, "waitingForRemoval");
-		ar.save(this, "reservedEntities");
-		ar.save(this, "reservedSpot[0]");
-		ar.save(this, "reservedSpot[1]");
-		ar.save(this, "reservedSpot[2]");
-		ar.save(this, "attempts");
-		ar.save(this, "attemptMax");
-		ar.save(this, "connectedEntity");
-		ar.save(this, "reservedContainer");
-		ar.save(this, "reservedSpace");
-		ar.save(this, "tool");
-		ar.save(this, "name");
-		ar.save(this, "tasks");
-		ar.save(this, "internal");
-		ar.save(this, "markedGround");
-		ar.save(this, "obeyTerritory");
-		ar.save(this, "statusEffects");
-	}
+            if (Map.IsInside(coord))
+                if (!Map.IsTerritory(coord))
+                    return true;
+        }
 
-	load(ar, version) {
-		ar.register_type(Container);
-		ar.register_type(Item);
-		ar.register_type(Entity);
-		ar.register_type(NatureObject);
-		ar.register_type(Construction);
-		ar.register_type(Door);
-		ar.register_type(FarmPlot);
-		this._priority = ar._priority;
-		this.completion = ar.completion;
-		this.preReqs = ar.preReqs;
-		this.parent = ar.parent;
-		this.npcUid = ar.npcUid;
-		this._zone = ar._zone;
-		this.menial = ar.menial;
-		this.paused = ar.paused;
-		this.waitingForRemoval = ar.waitingForRemoval;
-		this.reservedEntities = ar.reservedEntities;
-		let location = new Coordinate();
-		location.load(ar.location, version);
-		this.reservedSpot = [ar.sp, location, ar.type];
-		this.attempts = ar.attempts;
-		this.attemptMax = ar.attemptMax;
-		this.connectedEntity = ar.connectedEntity;
-		this.reservedContainer = ar.reservedContainer;
-		this.reservedSpace = ar.reservedSpace;
-		this.tool = ar.tool;
-		this.name = ar.name;
-		this.tasks = ar.tasks;
-		this.internal = ar.internal;
-		this.markedGround = ar.markedGround;
-		this.obeyTerritory = ar.obeyTerritory;
-		if (version >= 1) {
-			this.statusEffects = ar.statusEffects;
-		}
-	}
+        return false;
+    }
+    AddMapMarker(marker) {
+        this.mapMarkers.push(Map.AddMarker(marker));
+    }
+    AllowFire() {
+        this.fireAllowed = true;
+    }
+    InvalidFireAllowance() {
+        if (this.fireAllowed) return false;
+
+        for (let task of this.tasks) {
+            let coord = task.target;
+            if (!Map.IsInside(coord)) {
+                if (task.entity.lock()) {
+                    coord = task.entity.lock().Position();
+                }
+            }
+
+            if (Map.IsInside(coord)) {
+                if (Map.GetFire(coord).lock()) return true;
+            }
+        }
+
+        return false;
+    }
+
+
+    static CreatePourWaterJob(job, location) {
+        job.Attempts(1);
+
+        //First search for a container containing water
+        let waterItem = Game.FindItemByTypeFromStockpiles(Item.StringToItemType("Water"), location).lock();
+        let waterLocation = Game.FindWater(location);
+
+        //If a water item exists, is closer and contained then use that
+        let waterContainerFound = false;
+        if (waterItem) {
+            let distanceToWater = Number.MAX_SAFE_INTEGER;
+            if (waterLocation !== undefined)
+                distanceToWater = Distance(location, waterLocation);
+            let distanceToItem = Distance(location, waterItem.Position());
+
+            if (distanceToItem < distanceToWater && waterItem.ContainedIn().lock() &&
+                waterItem.ContainedIn().lock().IsCategory(Item.StringToItemCategory("Container"))) {
+                let container = waterItem.ContainedIn().lock();
+                //Reserve everything inside the container
+                for (let itemi of this.container) {
+                    job.ReserveEntity(itemi);
+                }
+                job.ReserveEntity(container);
+                job.tasks.push(new Task(Action.MOVE, container.Position()));
+                job.tasks.push(new Task(Action.TAKE, container.Position(), container));
+                waterContainerFound = true;
+            }
+        }
+
+        if (!waterContainerFound && waterLocation !== undefined) {
+            job.SetRequiredTool(Item.StringToItemCategory("Bucket"));
+            job.tasks.push(new Task(Action.MOVEADJACENT, waterLocation));
+            job.tasks.push(new Task(Action.FILL, waterLocation));
+        }
+
+        if (waterContainerFound || waterLocation !== undefined) {
+            job.tasks.push(new Task(Action.MOVEADJACENT, location));
+            job.tasks.push(new Task(Action.POUR, location));
+            if (waterContainerFound) job.tasks.push(new Task(Action.STOCKPILEITEM));
+            job.DisregardTerritory();
+            job.AllowFire();
+            job.statusEffects.push(StatusEffectType.BRAVE);
+        } else {
+            job.reset();
+        }
+    }
+
+    serialize(ar, version) {
+        ar.register_type(Container);
+        ar.register_type(Item);
+        ar.register_type(Entity);
+        ar.register_type(NatureObject);
+        ar.register_type(Construction);
+        ar.register_type(Door);
+        ar.register_type(FarmPlot);
+        ar.register_type(StockPile);
+        ar.register_type(JobPriority);
+        ar.register_type(JobCompletion);
+        return {
+            _priority: ar.serializable(this._priority),
+            completion: ar.serializable(this.completion),
+            preReqs: ar.serializable(this.preReqs),
+            parent: ar.serializable(this.parent),
+            npcUid: this.npcUid,
+            _zone: this._zone,
+            menial: this.menial,
+            paused: this.paused,
+            waitingForRemoval: this.waitingForRemoval,
+            reservedEntities: ar.serializable(this.reservedEntities),
+            reservedSpot: ar.serializable(this.reservedSpot),
+            attempts: this.attempts,
+            attemptMax: this.attemptMax,
+            connectedEntity: ar.serializable(this.connectedEntity),
+            reservedContainer: ar.serializable(this.reservedContainer),
+            reservedSpace: this.reservedSpace,
+            tool: this.tool,
+            name: this.name,
+            tasks: ar.serializable(this.tasks),
+            internal: this.internal,
+            markedGround: ar.serializable(this.markedGround),
+            obeyTerritory: this.obeyTerritory,
+            statusEffects: ar.serializable(this.statusEffects)
+        }
+    }
+
+    static deserialize(data, version, deserializer) {
+        deserializer.register_type(Container);
+        deserializer.register_type(Item);
+        deserializer.register_type(Entity);
+        deserializer.register_type(NatureObject);
+        deserializer.register_type(Construction);
+        deserializer.register_type(Door);
+        deserializer.register_type(FarmPlot);
+        deserializer.register_type(StockPile);
+        deserializer.register_type(JobPriority);
+        deserializer.register_type(JobCompletion);
+        let result = new Job(data.name, deserializer.deserializable(data._priority), data._zone, data.menial);
+        result.completion = deserializer.deserializable(data.completion);
+        result.preReqs = deserializer.deserializable(data.preReqs);
+        result.parent = deserializer.deserializable(data.parent);
+        result.npcUid = data.npcUid;
+        result.paused = data.paused;
+        result.waitingForRemoval = data.waitingForRemoval;
+        result.reservedEntities = deserializer.deserializable(data.reservedEntities);
+        result.reservedSpot = deserializer.deserializable(data.reservedSpot);
+        result.attempts = data.attempts;
+        result.attemptMax = data.attemptMax;
+        result.connectedEntity = deserializer.deserializable(data.connectedEntity);
+        result.reservedContainer = deserializer.deserializable(data.reservedContainer);
+        result.reservedSpace = data.reservedSpace;
+        result.tool = data.tool;
+        result.tasks = deserializer.deserializable(data.tasks);
+        result.internal = data.internal;
+        result.markedGround = deserializer.deserializable(data.markedGround);
+        result.obeyTerritory = data.obeyTerritory;
+        if (version >= 1) {
+            result.statusEffects = deserializer.deserializable(data.statusEffects);
+        }
+        return result;
+    }
 }

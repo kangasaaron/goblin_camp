@@ -15,179 +15,183 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	FlightPath
+    FlightPath
 } from "./FlightPath.js";
 
 const ENTITYHEIGHT = 5;
 
 class Entity {
-	static CLASS_VERSION = 0;
-	static uids = 0;
-	pos = null;
-	uid = 0;
-	zone = 0;
-	reserved = false;
-	name = "NONAME";
-	faction = -1;
-	velocity = 0;
-	nextVelocityMove = 0;
-	velocityTarget = new Coordinate();
-	flightPath = [];
-	bulk = 0;
-	strobe = 0;
-	map = null;
-	constructor() {
-		this.uid = Entity.uids++; //TODO FIXME: Entity should keep track of freed uids
-	}
-	X() {
-		return this.pos.X();
-	}
-	Y() {
-		return this.pos.Y();
-	}
-	Center() {
-		return this.Position();
-	}
-	Position(p) {
-		if (p !== undefined && p instanceof Coordinate)
-			this.pos = p;
-		return this.pos;
-	}
-	Uid() {
-		return this.uid;
-	}
-	Zone(value) {
-		if (p !== undefined && Number.isFinite(p))
-			this.zone = value;
-		return this.zone;
-	}
-	Reserve(value) {
-		if (value !== undefined)
-			this.reserved = !(!(value));
-		return this.reserved;
-	}
-	Name(newName) {
-		if (newName !== undefined)
-			this.name = String(newName);
-		return this.name;
-	}
-	CancelJob() {}
-	GetFaction() {
-		return this.faction;
-	}
-	SetFaction(val) {
-		this.faction = val;
-	}
-	GetContextMenu() {
-		return null;
-	}
-	GetTooltip(x, y, tooltip) {
-		tooltip.AddEntry(new TooltipEntry(this.name, TCODColor.white));
-	}
-	GetVelocity() {
-		return this.velocity;
-	}
-	SetVelocity(value) {
-		this.velocity = value;
-	}
+    static CLASS_VERSION = 0;
+    static uids = 0;
+    pos = null;
+    uid = 0;
+    zone = 0;
+    reserved = false;
+    name = "NONAME";
+    faction = -1;
+    velocity = 0;
+    nextVelocityMove = 0;
+    velocityTarget = new Coordinate();
+    flightPath = [];
+    bulk = 0;
+    strobe = 0;
+    map = null;
+    constructor() {
+        this.uid = Entity.uids++; //TODO FIXME: Entity should keep track of freed uids
+    }
+    X() {
+        return this.pos.X();
+    }
+    Y() {
+        return this.pos.Y();
+    }
+    Center() {
+        return this.Position();
+    }
+    Position(p) {
+        if (p !== undefined && p instanceof Coordinate)
+            this.pos = p;
+        return this.pos;
+    }
+    Uid() {
+        return this.uid;
+    }
+    Zone(value) {
+        if (p !== undefined && Number.isFinite(p))
+            this.zone = value;
+        return this.zone;
+    }
+    Reserve(value) {
+        if (value !== undefined)
+            this.reserved = !(!(value));
+        return this.reserved;
+    }
+    Name(newName) {
+        if (newName !== undefined)
+            this.name = String(newName);
+        return this.name;
+    }
+    CancelJob() {}
+    GetFaction() {
+        return this.faction;
+    }
+    SetFaction(val) {
+        this.faction = val;
+    }
+    GetContextMenu() {
+        return null;
+    }
+    GetTooltip(x, y, tooltip) {
+        tooltip.AddEntry(new TooltipEntry(this.name, TCODColor.white));
+    }
+    GetVelocity() {
+        return this.velocity;
+    }
+    SetVelocity(value) {
+        this.velocity = value;
+    }
 
-	GetVelocityTarget() {
-		return this.velocityTarget;
-	}
-	SetVelocityTarget(value) {
-		this.velocityTarget = value;
-	}
-	GetHeight() {
-		return this.flightPath.length ? this.flightPath[this.flightPath.length - 1].height : 0;
-	}
-	SetBulk(amount) {
-		this.bulk = amount;
-	}
-	GetBulk() {
-		return this.bulk;
-	}
-	AddBulk(amount) {
-		this.bulk += amount;
-	}
-	RemoveBulk(amount) {
-		this.bulk -= amount;
-	}
-	Strobe() {
-		this.strobe += 0.1;
-	}
-	ResetStrobe() {
-		this.strobe = 0;
-	}
-	CanStrobe() {
-		return false;
-	}
-	SetMap(map) {
-		this.map = map;
-	}
-	save(ar, version) {
-		ar.save(this, "pos");
-		ar.save(this, "uid");
-		ar.save(this, "zone");
-		ar.save(this, "reserved");
-		ar.save(this, "name");
-		ar.save(this, "factionName", Faction.FactionTypeToString(this.faction));
-		ar.save(this, "velocity");
-		ar.save(this, "nextVelocityMove");
-		ar.save(this, "velocityTarget");
-		ar.save(this, "bulk");
-	}
+    GetVelocityTarget() {
+        return this.velocityTarget;
+    }
+    SetVelocityTarget(value) {
+        this.velocityTarget = value;
+    }
+    GetHeight() {
+        return this.flightPath.length ? this.flightPath[this.flightPath.length - 1].height : 0;
+    }
+    SetBulk(amount) {
+        this.bulk = amount;
+    }
+    GetBulk() {
+        return this.bulk;
+    }
+    AddBulk(amount) {
+        this.bulk += amount;
+    }
+    RemoveBulk(amount) {
+        this.bulk -= amount;
+    }
+    Strobe() {
+        this.strobe += 0.1;
+    }
+    ResetStrobe() {
+        this.strobe = 0;
+    }
+    CanStrobe() {
+        return false;
+    }
+    SetMap(map) {
+        this.map = map;
+    }
+    serialize(ar, version) {
+        ar.register_type(Coordinate);
+        return {
+            "pos": ar.serializeable(this.pos),
+            "uid": this.uid,
+            "zone": this.zone,
+            "reserved": this.reserved,
+            "name": this.name,
+            "factionName": Faction.FactionTypeToString(this.faction),
+            "velocity": this.velocity,
+            "nextVelocityMove": this.nextVelocityMove,
+            "velocityTarget": ar.serializeable(this.velocityTarget),
+            "bulk": this.bulk,
+        }
+    }
+    static deserialize(data, version, deserializer) {
+        let result = new Entity();
+        result.pos = deserializer.deserializable(data.pos);
+        result.uid = data.uid;
+        result.zone = data.zone;
+        result.reserved = data.reserved;
+        result.name = data.name;
+        result.faction = Faction.StringToFactionType(data.factionName);
+        result.velocity = data.velocity;
+        result.nextVelocityMove = data.nextVelocityMove;
+        result.velocityTarget = deserializer.deserializable(data.velocityTarget);
+        result.bulk = data.bulk;
+        return result;
+    }
+    CalculateFlightPath(target, speed, initialHeight = 0) {
+        if (DEBUG) {
+            console.log(`Calculating flightpath for ${this.name} from ${this.pos.X()},${this.pos.Y()} to ${target.X()},${target.Y()} at v:${speed}`);
+        }
+        this.velocityTarget = target;
+        this.flightPath = [];
+        TCODLine.init(target.X(), target.Y(), this.pos.X(), this.pos.Y());
+        let p = target;
+        do {
+            if (Map.IsInside(p))
+                this.flightPath.push(new FlightPath(p));
+        } while (!TCODLine.step(p.Xptr(), p.Yptr()));
 
-	load(ar, version) {
-		this.pos = new Coordinate(ar.x, ar.y);
-		this.uid = ar.uid;
-		this.zone = ar.zone;
-		this.reserved = ar.reserved;
-		this.name = ar.name;
-		this.faction = Faction.StringToFactionType(ar.factionName);
-		this.velocity = ar.velocity;
-		this.nextVelocityMove = ar.nextVelocityMove;
-		this.velocityTarget = ar.velocityTarget;
-		this.bulk = ar.bulk;
-	}
-	CalculateFlightPath(target, speed, initialHeight = 0) {
-		if (DEBUG) {
-			console.log(`Calculating flightpath for ${this.name} from ${this.pos.X()},${this.pos.Y()} to ${target.X()},${target.Y()} at v:${speed}`);
-		}
-		this.velocityTarget = target;
-		this.flightPath = [];
-		TCODLine.init(target.X(), target.Y(), this.pos.X(), this.pos.Y());
-		let p = target;
-		do {
-			if (Map.Inst().IsInside(p))
-				this.flightPath.push(new FlightPath(p));
-		} while (!TCODLine.step(p.Xptr(), p.Yptr()));
+        if (this.flightPath.length <= 0) {
+            this.SetVelocity(speed);
+            return;
+        }
 
-		if (this.flightPath.length <= 0) {
-			this.SetVelocity(speed);
-			return;
-		}
+        let h = 0;
+        let hAdd = Math.max(1, 50 / speed);
+        /* The lower the speed, the higher the entity has to arch in order
+        					   for it to fly the distance */
 
-		let h = 0;
-		let hAdd = Math.max(1, 50 / speed);
-		/* The lower the speed, the higher the entity has to arch in order
-							   for it to fly the distance */
+        let begIt = 0;
+        let endIt = this.flightPath.length;
+        --endIt;
 
-		let begIt = 0;
-		let endIt = this.flightPath.length;
-		--endIt;
+        while (this.flightPath[begIt].height == -1 && this.flightPath[endIt].height == -1) {
+            this.flightPath[begIt].height = h;
+            this.flightPath[endIt].height = Math.max(initialHeight, h);
+            h += hAdd;
+            // Preventing iterator problems
+            if (begIt != this.flightPath.length) ++begIt;
+            if (endIt != 0) --endIt;
+            if (begIt == this.flightPath.length || endIt == this.flightPath.length) break;
+        }
+        this.flightPath.pop(); //Last coordinate is the entity's coordinate
 
-		while (this.flightPath[begIt].height == -1 && this.flightPath[endIt].height == -1) {
-			this.flightPath[begIt].height = h;
-			this.flightPath[endIt].height = Math.max(initialHeight, h);
-			h += hAdd;
-			// Preventing iterator problems
-			if (begIt != this.flightPath.length) ++begIt;
-			if (endIt != 0) --endIt;
-			if (begIt == this.flightPath.length || endIt == this.flightPath.length) break;
-		}
-		this.flightPath.pop(); //Last coordinate is the entity's coordinate
-
-		this.SetVelocity(speed);
-	}
+        this.SetVelocity(speed);
+    }
 
 }

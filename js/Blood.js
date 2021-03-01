@@ -53,13 +53,14 @@ export class BloodNode {
             "__id": this.__id
         };
     }
-    static deserialize(ar, version, deserializer) {
+    static deserialize(data, version, deserializer) {
+        ar.register_type(Coordinate);
         let result = new BloodNode(
-            Coordinate.deserialize(ar.pos),
-            ar.depth)
-        result.graphic = ar.graphic;
-        result.color = ar.color;
-        result.__id = ar.__id;
+            deserializer.deserializable(data.pos),
+            data.depth)
+        result.graphic = data.graphic;
+        result.color = data.color;
+        result.__id = data.__id;
         return result;
     }
 }

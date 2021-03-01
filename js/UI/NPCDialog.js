@@ -15,43 +15,43 @@
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	UIContainer
+    UIContainer
 } from "./UIContainer.js";
 import {
-	Dialog
+    Dialog
 } from "./Dialog.js";
 import {
-	ScrollPanel
+    ScrollPanel
 } from "./ScrollPanel.js";
 import {
-	UIList
+    UIList
 } from "./UIList.js";
 
 export class NPCDialog extends UIContainer {
-	npcListDialog = null;
-	NPCListDialog() {
-		if (!this.npcListDialog) {
-			this.npcListDialog = new Dialog(new NPCDialog(), "NPCs", Game.Inst().ScreenWidth() - 20, Game.Inst().ScreenHeight() - 20);
-		}
-		return this.npcListDialog;
-	}
+    npcListDialog = null;
+    NPCListDialog() {
+        if (!this.npcListDialog) {
+            this.npcListDialog = new Dialog(new NPCDialog(), "NPCs", Game.ScreenWidth() - 20, Game.ScreenHeight() - 20);
+        }
+        return this.npcListDialog;
+    }
 
-	constructor() {
-		super([], 0, 0, Game.Inst().ScreenWidth() - 20, Game.Inst().ScreenHeight() - 20)
-		this.AddComponent(
-			new ScrollPanel(0, 0, width, height,
-				new UIList(
-					(Game.Inst().npcList), 0, 0, width - 2, height, this.DrawNPC.bind(this)
-				),
-				false
-			)
-		);
-	}
+    constructor() {
+        super([], 0, 0, Game.ScreenWidth() - 20, Game.ScreenHeight() - 20)
+        this.AddComponent(
+            new ScrollPanel(0, 0, width, height,
+                new UIList(
+                    (Game.npcList), 0, 0, width - 2, height, this.DrawNPC.bind(this)
+                ),
+                false
+            )
+        );
+    }
 
-	DrawNPC(npci, i, x, y, width, selected, the_console) {
-		the_console.print(x, y, "NPC: %d", npci.second.Uid());
-		the_console.print(x + 11, y, "%s: %s",
-			npci.second.currentJob().lock() ? npci.second.currentJob().lock().name : "No job",
-			npci.second.currentTask() ? Job.ActionToString(npci.second.currentTask().action) : "No task");
-	}
+    DrawNPC(npci, i, x, y, width, selected, the_console) {
+        the_console.print(x, y, "NPC: %d", npci.second.Uid());
+        the_console.print(x + 11, y, "%s: %s",
+            npci.second.currentJob().lock() ? npci.second.currentJob().lock().name : "No job",
+            npci.second.currentTask() ? Job.ActionToString(npci.second.currentTask().action) : "No task");
+    }
 }

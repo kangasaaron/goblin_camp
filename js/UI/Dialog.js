@@ -16,36 +16,36 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 import {
-	Panel
+    Panel
 } from './Panel.js';
 
 export class Dialog extends Panel {
-	title = "";
-	contents = [];
-	constructor(ncontents, ntitle, nwidth, nheight) {
-		super(nwidth, nheight)
-		this.title = ntitle;
-		this.contents = ncontents;
-		this._x = (Game.Inst().ScreenWidth() - nwidth) / 2;
-		this._y = (Game.Inst().ScreenHeight() - nheight) / 2;
-	}
-	SetTitle(ntitle) {
-		this.title = ntitle;
-	}
-	SetHeight(nheight) {
-		this.height = nheight;
-		this._x = (Game.Inst().ScreenWidth() - this.width) / 2;
-		this._y = (Game.Inst().ScreenHeight() - this.height) / 2;
-	}
-	Draw(x, y, the_console) {
-		the_console.printFrame(this._x, this._y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? "" : this.title);
-		this.contents.Draw(this._x, this._y, the_console);
-	}
-	Update(x, y, clicked, key) {
-		return this.contents.Update(x - this._x, y - this._y, clicked, key);
-	}
-	GetTooltip(x, y, tooltip) {
-		super.GetTooltip(x, y, tooltip);
-		this.contents.GetTooltip(x - this._x, y - this._y, tooltip);
-	}
+    title = "";
+    contents = [];
+    constructor(ncontents, ntitle, nwidth, nheight) {
+        super(nwidth, nheight)
+        this.title = ntitle;
+        this.contents = ncontents;
+        this._x = (Game.ScreenWidth() - nwidth) / 2;
+        this._y = (Game.ScreenHeight() - nheight) / 2;
+    }
+    SetTitle(ntitle) {
+        this.title = ntitle;
+    }
+    SetHeight(nheight) {
+        this.height = nheight;
+        this._x = (Game.ScreenWidth() - this.width) / 2;
+        this._y = (Game.ScreenHeight() - this.height) / 2;
+    }
+    Draw(x, y, the_console) {
+        the_console.printFrame(this._x, this._y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? "" : this.title);
+        this.contents.Draw(this._x, this._y, the_console);
+    }
+    Update(x, y, clicked, key) {
+        return this.contents.Update(x - this._x, y - this._y, clicked, key);
+    }
+    GetTooltip(x, y, tooltip) {
+        super.GetTooltip(x, y, tooltip);
+        this.contents.GetTooltip(x - this._x, y - this._y, tooltip);
+    }
 }

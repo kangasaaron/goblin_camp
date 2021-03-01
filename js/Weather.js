@@ -20,8 +20,6 @@ import "vector.js";
 import "Coordinate.js"
 import "data/Serialization.js"
 
-class Map;
-
 import {
     WeatherType
 } from "./WeatherType.js";
@@ -102,7 +100,7 @@ class Weather {
         this.tileChange = false;
         this.changeAll = false;
 
-        switch (Game.Inst().CurrentSeason()) {
+        switch (Game.CurrentSeason()) {
             case Season.EarlySummer:
             case Season.Summer:
             case Season.LateSummer:
@@ -157,27 +155,35 @@ class Weather {
                 break;
         }
     }
-    save(ar.version) {
-        ar.save(this, "map");
-        ar.save(this, "windDirection");
-        ar.save(this, "prevailingWindDirection");
-        ar.save(this, "currentWeather");
-        ar.save(this, "tileChange");
-        ar.save(this, "changeAll");
-        ar.save(this, "tileChangeRate");
-        ar.save(this, "changePosition");
-        ar.save(this, "currentTemperature");
+    serialize(ar, version) {
+        ar.register_type(Map);
+        ar.register_type(Direction);
+        ar.register_type(WeatherType);
+        return {
+            map: ar.serializable(this.map),
+            windDirection: ar.serializable(this.windDirection),
+            prevailingWindDirection: ar.serializable(this.prevailingWindDirection),
+            currentWeather: ar.serializable(this.currentWeather),
+            tileChange: this.tileChange,
+            changeAll: this.changeAll,
+            tileChangeRate: this.tileChangeRate,
+            changePosition: this.changePosition,
+            currentTemperature: this.currentTemperature,
+        }
     }
-    load(ar, version) {
-        this.map = ar.map;
-        this.windDirection = ar.windDirection;
-        this.prevailingWindDirection = ar.prevailingWindDirection;
-        this.currentWeather = ar.currentWeather;
-        this.tileChange = ar.tileChange;
-        this.changeAll = ar.changeAll;
-        this.tileChangeRate = ar.tileChangeRate;
-        this.changePosition = ar.changePosition;
-        this.currentTemperature = ar.currentTemperature;
+    static deserialize(data, version, deserializer) {
+        deserializer.register_type(Map);
+        deserializer.register_type(Direction);
+        deserializer.register_type(WeatherType);
+        let result = new Weather(deserializer.deserializable(data.map));
+        result.windDirection = deserializer.deserializable(data.windDirection);
+        result.prevailingWindDirection = deserializer.deserializable(data.prevailingWindDirection);
+        result.currentWeather = eserializer.deserializable(data.currentWeather);
+        result.tileChange = data.tileChange;
+        result.changeAll = data.changeAll;
+        result.tileChangeRate = data.tileChangeRate;
+        result.changePosition = data.changePosition;
+        result.currentTemperature = data.currentTemperature;
     }
     Update() {
         if (Random.Generate(MONTH_LENGTH) == 0) this.ShiftWind();
@@ -187,10 +193,10 @@ class Weather {
             } else this.currentWeather = WeatherType.RAIN;
         }
         if (!this.tileChange && this.currentTemperature >= 0 && this.currentWeather == WeatherType.RAIN)
-            Game.Inst().CreateWater(Coordinate(Random.Generate(this.map.Width() - 1), Random.Generate(this.map.Height() - 1)), 1);
+            Game.CreateWater(Coordinate(Random.Generate(this.map.Width() - 1), Random.Generate(this.map.Height() - 1)), 1);
 
-        if (Game.Inst().CurrentSeason() != this.currentSeason) {
-            this.currentSeason = Game.Inst().CurrentSeason();
+        if (Game.CurrentSeason() != this.currentSeason) {
+            this.currentSeason = Game.CurrentSeason();
             this.SeasonChange();
         }
         if (this.tileChange)
@@ -202,12 +208,12 @@ class Weather {
         }
         if (this.currentTemperature < 0) {
             if (this.map.GetWater(p).lock() && this.map.GetWater(p).lock().IsCoastal()) {
-                Game.Inst().CreateNatureObject(Coordinate(p), "Ice");
+                Game.CreateNatureObject(Coordinate(p), "Ice");
             }
         } else if (this.currentTemperature > 0) {
             if (this.map.GetNatureObject(p) >= 0) {
-                if (Game.Inst().natureList[this.map.GetNatureObject(p)].IsIce()) {
-                    Game.Inst().RemoveNatureObject(Game.Inst().natureList[this.map.GetNatureObject(p)]);
+                if (Game.natureList[this.map.GetNatureObject(p)].IsIce()) {
+                    Game.RemoveNatureObject(Game.natureList[this.map.GetNatureObject(p)]);
                 }
             }
         }

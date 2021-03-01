@@ -15,45 +15,45 @@
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	Scrollable
+    Scrollable
 } from "./Scrollable.js"
 import {
-	Dialog
+    Dialog
 } from "./Dialog.js"
 import {
-	ScrollPanel
+    ScrollPanel
 } from "./ScrollPanel.js"
 import {
-	MenuResult
+    MenuResult
 } from "./MenuResult.js"
 
 export class AnnounceDialog extends Scrollable {
 
-	Draw(x, y, scroll, width, height, the_console) {
-		Announce.Inst().Draw(new Coordinate(x + 1, y), scroll, height, the_console);
-	}
+    Draw(x, y, scroll, width, height, the_console) {
+        Announce.Draw(new Coordinate(x + 1, y), scroll, height, the_console);
+    }
 
-	Update(x, y, clicked, key) {
-		if (clicked) {
-			Announce.Inst().AnnouncementClicked(y - 1);
-		}
-		return MenuResult.MENUHIT;
-	}
+    Update(x, y, clicked, key) {
+        if (clicked) {
+            Announce.AnnouncementClicked(y - 1);
+        }
+        return MenuResult.MENUHIT;
+    }
 
-	TotalHeight() {
-		return Announce.Inst().AnnounceAmount();
-	}
+    TotalHeight() {
+        return Announce.AnnounceAmount();
+    }
 
-	announcementsDialog = null;
-	AnnouncementsDialog() {
-		if (!this.announcementsDialog) {
-			let width = Game.Inst().ScreenWidth() - 20;
-			let height = Game.Inst().ScreenHeight() - 20;
-			this.announcementsDialog = new Dialog(
-				new ScrollPanel(0, 0, width, height, new AnnounceDialog(), false),
-				"Announcements", width, height
-			);
-		}
-		return this.announcementsDialog;
-	}
+    announcementsDialog = null;
+    AnnouncementsDialog() {
+        if (!this.announcementsDialog) {
+            let width = Game.ScreenWidth() - 20;
+            let height = Game.ScreenHeight() - 20;
+            this.announcementsDialog = new Dialog(
+                new ScrollPanel(0, 0, width, height, new AnnounceDialog(), false),
+                "Announcements", width, height
+            );
+        }
+        return this.announcementsDialog;
+    }
 }

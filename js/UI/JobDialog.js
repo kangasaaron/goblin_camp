@@ -15,34 +15,34 @@
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	Scrollable
+    Scrollable
 } from "./Scrollable.js";
 import {
-	Dialog
+    Dialog
 } from "./Dialog.js";
 import {
-	ScrollPanel
+    ScrollPanel
 } from "./ScrollPanel.js";
 
 export class JobDialog extends Scrollable {
-	Draw(_x, _y, scroll, width, height, the_console) {
-		JobManager.Inst().Draw(new Coordinate(_x + 1, _y), scroll, width, height, the_console);
-	}
-	TotalHeight() {
-		return JobManager.Inst().JobAmount();
-	}
+    Draw(_x, _y, scroll, width, height, the_console) {
+        JobManager.Draw(new Coordinate(_x + 1, _y), scroll, width, height, the_console);
+    }
+    TotalHeight() {
+        return JobManager.JobAmount();
+    }
 
-	jobListingDialog = null;
-	JobListingDialog() {
-		if (this.jobListingDialog) return this.jobListingDialog;
+    jobListingDialog = null;
+    JobListingDialog() {
+        if (this.jobListingDialog) return this.jobListingDialog;
 
-		let width = 50;
-		if (DEBUG) {
-			width = 100;
-		}
-		let height = Game.Inst().ScreenHeight() - 20;
-		this.jobListingDialog = new Dialog(new ScrollPanel(0, 0, width, height, new JobDialog(), false), "Jobs", width, height);
+        let width = 50;
+        if (DEBUG) {
+            width = 100;
+        }
+        let height = Game.ScreenHeight() - 20;
+        this.jobListingDialog = new Dialog(new ScrollPanel(0, 0, width, height, new JobDialog(), false), "Jobs", width, height);
 
-		return this.jobListingDialog;
-	}
+        return this.jobListingDialog;
+    }
 }

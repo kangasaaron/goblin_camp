@@ -46,26 +46,27 @@ export class FilthNode {
         if (val !== undefined) {
             this.depth = Math.floor(Number(val));
             let add = Random.Generate(60);
-            this.color.r = 170 - Math.min(Map.Inst().GetCorruption(pos), 40) + add;
-            this.color.g = 150 - Math.min(Map.Inst().GetCorruption(pos), 80) + add;
+            this.color.r = 170 - Math.min(Map.GetCorruption(pos), 40) + add;
+            this.color.g = 150 - Math.min(Map.GetCorruption(pos), 80) + add;
         }
         return this.depth;
     }
     Position() {
         return this.pos;
     }
-    save(ar, version) {
-        ar({
-            'pos': this.pos,
+    serialize(ar, version) {
+        ar.register_type(Coordinate);
+        return {
+            'pos': ar.serializable(this.pos),
             'depth': this.depth,
             'graphic': this.graphic,
             'color': this.color
-        });
+        }
     }
-    load(ar, version) {
-        this.pos = ar.pos;
-        this.depth = ar.depth;
-        this.graphic = ar.graphic;
-        this.color = ar.color;
+    static deserialize(data, version, deserializer) {
+        let result = new FilthNode(deserializer.deserializable(data.pos), data.depth);
+        result.graphic = ar.graphic;
+        result.color = ar.color;
+        return result;
     }
 }

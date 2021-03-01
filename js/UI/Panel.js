@@ -10,30 +10,29 @@ export class Panel extends Drawable {
     selected(newSel) {}
     Open() {}
     Close() {
-        UI.Inst().SetTextMode(false);
+        UI.SetTextMode(false);
     }
 
     ShowModal() {
-        let background = new TCODConsole(Game.Inst().ScreenWidth(), Game.Inst().ScreenHeight());
-        TCODConsole.blit(TCODConsole.root, 0, 0, Game.Inst().ScreenWidth(), Game.Inst().ScreenHeight(),
+        let background = new TCODConsole(Game.ScreenWidth(), Game.ScreenHeight());
+        TCODConsole.blit(TCODConsole.root, 0, 0, Game.ScreenWidth(), Game.ScreenHeight(),
             background, 0, 0);
 
-        let _x = (Game.Inst().ScreenWidth() - width) / 2;
-        let _y = (Game.Inst().ScreenHeight() - height) / 2;
+        let _x = (Game.ScreenWidth() - width) / 2;
+        let _y = (Game.ScreenHeight() - height) / 2;
         let key;
         let mouse;
         let event;
 
         TCODMouse.showCursor(true);
-        while (this.PanelLoop(_x, _y, event, mouse, key)) {
-            ;
+        while (this.PanelLoop(_x, _y, event, mouse, key)) {;
         }
     }
     PanelLoop(_x, _y, event, mouse, key) {
         TCODConsole.root.clear();
         TCODConsole.root.setDefaultForeground(TCODColor.white);
         TCODConsole.root.setDefaultBackground(TCODColor.black);
-        TCODConsole.blit(background, 0, 0, Game.Inst().ScreenWidth(), Game.Inst().ScreenHeight(),
+        TCODConsole.blit(background, 0, 0, Game.ScreenWidth(), Game.ScreenHeight(),
             TCODConsole.root, 0, 0, 0.7, 1.0);
 
         this.Draw(_x, _y, TCODConsole.root);
