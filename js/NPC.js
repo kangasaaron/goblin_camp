@@ -56,37 +56,6 @@ const WEARY_THRESHOLD = (UPDATES_PER_SECOND * 60 * 12);
 const DRINKABLE_WATER_DEPTH = 2;
 const WALKABLE_WATER_DEPTH = 1;
 
-typedef int NPCType;
-
-class Faction;
-
-
-struct NPCPreset {
-    NPCPreset(std.string);
-    std.string typeName;
-    std.string name;
-    std.string plural;
-    TCODColor color;
-    int graphic;
-    bool expert;
-    int health;
-    std.string ai;
-    bool needsNutrition;
-    bool needsSleep;
-    bool generateName;
-    int stats[STAT_COUNT];
-    int resistances[RES_COUNT];
-    bool spawnAsGroup;
-    TCOD_dice_t group;
-    std.list < Attack > attacks;
-    std.set < std.string > tags;
-    int tier;
-    ItemType deathItem;
-    std.string fallbackGraphicsSet;
-    int graphicsHint;
-    std.vector < std.vector < int > > possibleEquipment;
-    int faction;
-};
 
 class NPC extends /*public*/ Entity {
     GC_SERIALIZABLE_CLASS
@@ -325,7 +294,8 @@ import "boost/multi_array.js"
 import "boost/format.js"
 import "boost/algorithm/string.js"
 import "libtcod.js"
-if /* if(def */ (DEBUG) {) {
+if /* if(def */ (DEBUG) {
+) {
     import "iostream"
 } /*#endif*/
 
@@ -492,7 +462,8 @@ boost.weak_ptr < Job > NPC.currentJob() const {
 }
 
 void NPC.TaskFinished(TaskResult result, std.string msg) {
-    if /* if(def */ (DEBUG) {) {
+    if /* if(def */ (DEBUG) {
+    ) {
         if (msg.size() > 0) {
             std.cout << name << ":" << msg << "\n";
         }
@@ -947,248 +918,248 @@ void NPC.Think() {
                     break;
 
                 case MOVENEAR:
-                    /*MOVENEAR first figures out our "real" target, which is a tile near
-                    to our current target. Near means max 5 tiles away, visible and
-                    walkable. Once we have our target we can actually switch over
-                    to a normal MOVE task. In case we can't find a visible tile,
-                    we'll allow a non LOS one*/
-                    {
-                        bool checkLOS = true;
-                        for (int i = 0; i < 2; ++i) {
-                            tmp = 0;
-                            while (tmp++ < 10) {
-                                Coordinate tar = map.Shrink(Random.ChooseInRadius(currentTarget(), 5));
-                                if (map.IsWalkable(tar, (void * ) this) && !map.IsUnbridgedWater(tar) &&
-                                    !map.IsDangerous(tar, faction)) {
-                                    if (!checkLOS || map.LineOfSight(tar, currentTarget())) {
-                                        currentJob().lock().tasks[taskIndex] = Task(MOVE, tar);
-                                        goto MOVENEARend;
-                                    }
+                /*MOVENEAR first figures out our "real" target, which is a tile near
+                to our current target. Near means max 5 tiles away, visible and
+                walkable. Once we have our target we can actually switch over
+                to a normal MOVE task. In case we can't find a visible tile,
+                we'll allow a non LOS one*/
+                {
+                    bool checkLOS = true;
+                    for (int i = 0; i < 2; ++i) {
+                        tmp = 0;
+                        while (tmp++ < 10) {
+                            Coordinate tar = map.Shrink(Random.ChooseInRadius(currentTarget(), 5));
+                            if (map.IsWalkable(tar, (void * ) this) && !map.IsUnbridgedWater(tar) &&
+                                !map.IsDangerous(tar, faction)) {
+                                if (!checkLOS || map.LineOfSight(tar, currentTarget())) {
+                                    currentJob().lock().tasks[taskIndex] = Task(MOVE, tar);
+                                    goto MOVENEARend;
                                 }
                             }
-                            checkLOS = !checkLOS;
                         }
+                        checkLOS = !checkLOS;
                     }
-                    //If we got here we couldn't find a near coordinate
-                    TaskFinished(TASKFAILFATAL, "(MOVENEAR)Couldn't find NEAR coordinate");
-                    MOVENEARend:
-                        break;
-
-
-                case MOVEADJACENT:
-                    if (currentEntity().lock()) {
-                        if (Game.Adjacent(Position(), currentEntity())) {
-                            TaskFinished(TASKSUCCESS);
-                            break;
-                        }
-                    } else {
-                        if (Game.Adjacent(Position(), currentTarget())) {
-                            TaskFinished(TASKSUCCESS);
-                            break;
-                        }
-                    }
-                    if (!taskBegun) {
-                        if (currentEntity().lock()) tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
-                        else tmpCoord = Game.FindClosestAdjacent(Position(), currentTarget(), GetFaction());
-                        if (tmpCoord != undefined) {
-                            findPath(tmpCoord);
-                        } else {
-                            TaskFinished(TASKFAILFATAL, std.string("(MOVEADJACENT)No walkable adjacent tiles"));
-                            break;
-                        }
-                        taskBegun = true;
-                        lastMoveResult = TASKCONTINUE;
-                    }
-                    if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
-                        TaskFinished(lastMoveResult, std.string("Could not find path to target"));
-                        break;
-                    } else if (lastMoveResult == PATHEMPTY) {
-                        TaskFinished(TASKFAILFATAL, "(MOVEADJACENT)PATHEMPTY");
-                    }
+                }
+                //If we got here we couldn't find a near coordinate
+                TaskFinished(TASKFAILFATAL, "(MOVENEAR)Couldn't find NEAR coordinate");
+                MOVENEARend:
                     break;
 
-                case WAIT:
-                    //TODO remove that WAIT hack
-                    if (++timer > currentTarget().X()) {
+
+            case MOVEADJACENT:
+                if (currentEntity().lock()) {
+                    if (Game.Adjacent(Position(), currentEntity())) {
+                        TaskFinished(TASKSUCCESS);
+                        break;
+                    }
+                } else {
+                    if (Game.Adjacent(Position(), currentTarget())) {
+                        TaskFinished(TASKSUCCESS);
+                        break;
+                    }
+                }
+                if (!taskBegun) {
+                    if (currentEntity().lock()) tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                    else tmpCoord = Game.FindClosestAdjacent(Position(), currentTarget(), GetFaction());
+                    if (tmpCoord != undefined) {
+                        findPath(tmpCoord);
+                    } else {
+                        TaskFinished(TASKFAILFATAL, std.string("(MOVEADJACENT)No walkable adjacent tiles"));
+                        break;
+                    }
+                    taskBegun = true;
+                    lastMoveResult = TASKCONTINUE;
+                }
+                if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
+                    TaskFinished(lastMoveResult, std.string("Could not find path to target"));
+                    break;
+                } else if (lastMoveResult == PATHEMPTY) {
+                    TaskFinished(TASKFAILFATAL, "(MOVEADJACENT)PATHEMPTY");
+                }
+                break;
+
+            case WAIT:
+                //TODO remove that WAIT hack
+                if (++timer > currentTarget().X()) {
+                    timer = 0;
+                    TaskFinished(TASKSUCCESS);
+                }
+                break;
+
+            case BUILD:
+                if (Game.Adjacent(Position(), currentEntity())) {
+                    AddEffect(WORKING);
+                    tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Build();
+                    if (tmp > 0) {
+                        Announce.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), TCODColor.white, currentEntity().lock().Position());
+                        TaskFinished(TASKSUCCESS);
+                        break;
+                    } else if (tmp == BUILD_NOMATERIAL) {
+                        TaskFinished(TASKFAILFATAL, "(BUILD)Missing materials");
+                        break;
+                    }
+                } else {
+                    TaskFinished(TASKFAILFATAL, "(BUILD)Not adjacent to target");
+                    break;
+                }
+                break;
+
+            case TAKE:
+                if (!currentEntity().lock()) {
+                    TaskFinished(TASKFAILFATAL, "(TAKE)No target entity");
+                    break;
+                }
+                if (Position() == currentEntity().lock().Position()) {
+                    if (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()) {
+                        boost.weak_ptr < Container > cont(boost.static_pointer_cast < Container > (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()));
+                        cont.lock().RemoveItem(
+                            boost.static_pointer_cast < Item > (currentEntity().lock()));
+                    }
+                    PickupItem(boost.static_pointer_cast < Item > (currentEntity().lock()));
+                    TaskFinished(TASKSUCCESS);
+                    break;
+                } else {
+                    TaskFinished(TASKFAILFATAL, "(TAKE)Item not found");
+                    break;
+                }
+                break;
+
+            case DROP:
+                DropItem(carried);
+                carried.reset();
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case PUTIN:
+                if (carried.lock()) {
+                    inventory.RemoveItem(carried);
+                    carried.lock().Position(Position());
+                    if (!currentEntity().lock()) {
+                        TaskFinished(TASKFAILFATAL, "(PUTIN)Target does not exist");
+                        break;
+                    }
+                    if (!Game.Adjacent(Position(), currentEntity().lock().Position())) {
+                        TaskFinished(TASKFAILFATAL, "(PUTIN)Not adjacent to container");
+                        break;
+                    }
+                    if (boost.dynamic_pointer_cast < Container > (currentEntity().lock())) {
+                        boost.shared_ptr < Container > cont = boost.static_pointer_cast < Container > (currentEntity().lock());
+                        if (!cont.AddItem(carried)) {
+                            TaskFinished(TASKFAILFATAL, "(PUTIN)Container full");
+                            break;
+                        }
+                        bulk -= carried.lock().GetBulk();
+                    } else {
+                        TaskFinished(TASKFAILFATAL, "(PUTIN)Target not a container");
+                        break;
+                    }
+                }
+                carried.reset();
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case DRINK: //Either we have an item target to drink, or a water tile
+                if (carried.lock()) { //Drink from an item
+                    timer = boost.static_pointer_cast < OrganicItem > (carried.lock()).Nutrition();
+                    inventory.RemoveItem(carried);
+                    bulk -= carried.lock().GetBulk();
+                    ApplyEffects(carried.lock());
+                    Game.RemoveItem(carried);
+                    carried = boost.weak_ptr < Item > ();
+                } else if (timer == 0) { //Drink from a water tile
+                    if (Game.Adjacent(pos, currentTarget())) {
+                        if (boost.shared_ptr < WaterNode > water = map.GetWater(currentTarget()).lock()) {
+                            if (water.Depth() > DRINKABLE_WATER_DEPTH) {
+                                thirst -= (int)(THIRST_THRESHOLD / 10);
+                                AddEffect(DRINKING);
+
+                                //Create a temporary water item to give us the right effects
+                                boost.shared_ptr < Item > waterItem = Game.GetItem(Game.CreateItem(Position(), Item.StringToItemType("water"), false, -1)).lock();
+                                ApplyEffects(waterItem);
+                                Game.RemoveItem(waterItem);
+
+                                if (thirst < 0) {
+                                    TaskFinished(TASKSUCCESS);
+                                }
+                                break;
+                            }
+                        }
+                    }
+                    TaskFinished(TASKFAILFATAL, "(DRINK)Not enough water");
+                }
+
+                if (timer > 0) {
+                    AddEffect(DRINKING);
+                    thirst -= Math.min((int)(THIRST_THRESHOLD / 5), timer);
+                    timer -= (int)(THIRST_THRESHOLD / 5);
+                    if (timer <= 0) {
+                        timer = 0;
+                        TaskFinished(TASKSUCCESS);
+                    }
+                }
+                break;
+
+            case EAT:
+                if (carried.lock()) {
+                    //Set the nutrition to the timer variable
+                    if (boost.dynamic_pointer_cast < OrganicItem > (carried.lock())) {
+                        timer = boost.static_pointer_cast < OrganicItem > (carried.lock()).Nutrition();
+                    } else timer = 100;
+                    inventory.RemoveItem(carried);
+                    bulk -= carried.lock().GetBulk();
+                    ApplyEffects(carried.lock());
+                    for (std.list < ItemType > .iterator fruiti = Item.Presets[carried.lock().Type()].fruits.begin(); fruiti != Item.Presets[carried.lock().Type()].fruits.end(); ++fruiti) {
+                        Game.CreateItem(Position(), * fruiti, true);
+                    }
+
+                    Game.RemoveItem(carried);
+                } else if (timer == 0) { //Look in all adjacent tiles for anything edible
+                    for (int ix = pos.X() - 1; ix <= pos.X() + 1; ++ix) {
+                        for (int iy = pos.Y() - 1; iy <= pos.Y() + 1; ++iy) {
+                            Coordinate p(ix, iy);
+                            if (map.IsInside(p)) {
+                                for (std.set < int > .iterator itemi = map.ItemList(p).begin(); itemi != map.ItemList(p).end(); ++itemi) {
+                                    boost.shared_ptr < Item > item = Game.GetItem( * itemi).lock();
+                                    if (item && (item.IsCategory(Item.StringToItemCategory("food")) ||
+                                            item.IsCategory(Item.StringToItemCategory("corpse")))) {
+                                        jobs.front().ReserveEntity(item);
+                                        jobs.front().tasks.push_back(Task(MOVE, item.Position()));
+                                        jobs.front().tasks.push_back(Task(TAKE, item.Position(), item));
+                                        jobs.front().tasks.push_back(Task(EAT));
+                                        goto CONTINUEEAT;
+                                    }
+                                }
+
+                            }
+                        }
+                    }
+                }
+
+                if (timer > 0) {
+                    AddEffect(EATING);
+                    hunger -= Math.min(5000, timer);
+                    timer -= 5000;
+                    if (timer <= 0) {
                         timer = 0;
                         TaskFinished(TASKSUCCESS);
                     }
                     break;
+                }
+                CONTINUEEAT:
+                    carried = boost.weak_ptr < Item > ();
+                TaskFinished(TASKSUCCESS);
+                break;
 
-                case BUILD:
-                    if (Game.Adjacent(Position(), currentEntity())) {
-                        AddEffect(WORKING);
-                        tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Build();
-                        if (tmp > 0) {
-                            Announce.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), TCODColor.white, currentEntity().lock().Position());
-                            TaskFinished(TASKSUCCESS);
-                            break;
-                        } else if (tmp == BUILD_NOMATERIAL) {
-                            TaskFinished(TASKFAILFATAL, "(BUILD)Missing materials");
-                            break;
-                        }
-                    } else {
-                        TaskFinished(TASKFAILFATAL, "(BUILD)Not adjacent to target");
-                        break;
-                    }
+            case FIND:
+                foundItem = Game.FindItemByCategoryFromStockpiles(currentTask().item, currentTask().target, currentTask().flags);
+                if (!foundItem.lock()) {
+                    TaskFinished(TASKFAILFATAL, "(FIND)Failed");
                     break;
-
-                case TAKE:
-                    if (!currentEntity().lock()) {
-                        TaskFinished(TASKFAILFATAL, "(TAKE)No target entity");
-                        break;
-                    }
-                    if (Position() == currentEntity().lock().Position()) {
-                        if (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()) {
-                            boost.weak_ptr < Container > cont(boost.static_pointer_cast < Container > (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()));
-                            cont.lock().RemoveItem(
-                                boost.static_pointer_cast < Item > (currentEntity().lock()));
-                        }
-                        PickupItem(boost.static_pointer_cast < Item > (currentEntity().lock()));
-                        TaskFinished(TASKSUCCESS);
-                        break;
-                    } else {
-                        TaskFinished(TASKFAILFATAL, "(TAKE)Item not found");
-                        break;
-                    }
-                    break;
-
-                case DROP:
-                    DropItem(carried);
-                    carried.reset();
+                } else {
+                    if (factionPtr.IsFriendsWith(PLAYERFACTION)) currentJob().lock().ReserveEntity(foundItem);
                     TaskFinished(TASKSUCCESS);
                     break;
-
-                case PUTIN:
-                    if (carried.lock()) {
-                        inventory.RemoveItem(carried);
-                        carried.lock().Position(Position());
-                        if (!currentEntity().lock()) {
-                            TaskFinished(TASKFAILFATAL, "(PUTIN)Target does not exist");
-                            break;
-                        }
-                        if (!Game.Adjacent(Position(), currentEntity().lock().Position())) {
-                            TaskFinished(TASKFAILFATAL, "(PUTIN)Not adjacent to container");
-                            break;
-                        }
-                        if (boost.dynamic_pointer_cast < Container > (currentEntity().lock())) {
-                            boost.shared_ptr < Container > cont = boost.static_pointer_cast < Container > (currentEntity().lock());
-                            if (!cont.AddItem(carried)) {
-                                TaskFinished(TASKFAILFATAL, "(PUTIN)Container full");
-                                break;
-                            }
-                            bulk -= carried.lock().GetBulk();
-                        } else {
-                            TaskFinished(TASKFAILFATAL, "(PUTIN)Target not a container");
-                            break;
-                        }
-                    }
-                    carried.reset();
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case DRINK: //Either we have an item target to drink, or a water tile
-                    if (carried.lock()) { //Drink from an item
-                        timer = boost.static_pointer_cast < OrganicItem > (carried.lock()).Nutrition();
-                        inventory.RemoveItem(carried);
-                        bulk -= carried.lock().GetBulk();
-                        ApplyEffects(carried.lock());
-                        Game.RemoveItem(carried);
-                        carried = boost.weak_ptr < Item > ();
-                    } else if (timer == 0) { //Drink from a water tile
-                        if (Game.Adjacent(pos, currentTarget())) {
-                            if (boost.shared_ptr < WaterNode > water = map.GetWater(currentTarget()).lock()) {
-                                if (water.Depth() > DRINKABLE_WATER_DEPTH) {
-                                    thirst -= (int)(THIRST_THRESHOLD / 10);
-                                    AddEffect(DRINKING);
-
-                                    //Create a temporary water item to give us the right effects
-                                    boost.shared_ptr < Item > waterItem = Game.GetItem(Game.CreateItem(Position(), Item.StringToItemType("water"), false, -1)).lock();
-                                    ApplyEffects(waterItem);
-                                    Game.RemoveItem(waterItem);
-
-                                    if (thirst < 0) {
-                                        TaskFinished(TASKSUCCESS);
-                                    }
-                                    break;
-                                }
-                            }
-                        }
-                        TaskFinished(TASKFAILFATAL, "(DRINK)Not enough water");
-                    }
-
-                    if (timer > 0) {
-                        AddEffect(DRINKING);
-                        thirst -= Math.min((int)(THIRST_THRESHOLD / 5), timer);
-                        timer -= (int)(THIRST_THRESHOLD / 5);
-                        if (timer <= 0) {
-                            timer = 0;
-                            TaskFinished(TASKSUCCESS);
-                        }
-                    }
-                    break;
-
-                case EAT:
-                    if (carried.lock()) {
-                        //Set the nutrition to the timer variable
-                        if (boost.dynamic_pointer_cast < OrganicItem > (carried.lock())) {
-                            timer = boost.static_pointer_cast < OrganicItem > (carried.lock()).Nutrition();
-                        } else timer = 100;
-                        inventory.RemoveItem(carried);
-                        bulk -= carried.lock().GetBulk();
-                        ApplyEffects(carried.lock());
-                        for (std.list < ItemType > .iterator fruiti = Item.Presets[carried.lock().Type()].fruits.begin(); fruiti != Item.Presets[carried.lock().Type()].fruits.end(); ++fruiti) {
-                            Game.CreateItem(Position(), * fruiti, true);
-                        }
-
-                        Game.RemoveItem(carried);
-                    } else if (timer == 0) { //Look in all adjacent tiles for anything edible
-                        for (int ix = pos.X() - 1; ix <= pos.X() + 1; ++ix) {
-                            for (int iy = pos.Y() - 1; iy <= pos.Y() + 1; ++iy) {
-                                Coordinate p(ix, iy);
-                                if (map.IsInside(p)) {
-                                    for (std.set < int > .iterator itemi = map.ItemList(p).begin(); itemi != map.ItemList(p).end(); ++itemi) {
-                                        boost.shared_ptr < Item > item = Game.GetItem( * itemi).lock();
-                                        if (item && (item.IsCategory(Item.StringToItemCategory("food")) ||
-                                                item.IsCategory(Item.StringToItemCategory("corpse")))) {
-                                            jobs.front().ReserveEntity(item);
-                                            jobs.front().tasks.push_back(Task(MOVE, item.Position()));
-                                            jobs.front().tasks.push_back(Task(TAKE, item.Position(), item));
-                                            jobs.front().tasks.push_back(Task(EAT));
-                                            goto CONTINUEEAT;
-                                        }
-                                    }
-
-                                }
-                            }
-                        }
-                    }
-
-                    if (timer > 0) {
-                        AddEffect(EATING);
-                        hunger -= Math.min(5000, timer);
-                        timer -= 5000;
-                        if (timer <= 0) {
-                            timer = 0;
-                            TaskFinished(TASKSUCCESS);
-                        }
-                        break;
-                    }
-                    CONTINUEEAT:
-                        carried = boost.weak_ptr < Item > ();
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case FIND:
-                    foundItem = Game.FindItemByCategoryFromStockpiles(currentTask().item, currentTask().target, currentTask().flags);
-                    if (!foundItem.lock()) {
-                        TaskFinished(TASKFAILFATAL, "(FIND)Failed");
-                        break;
-                    } else {
-                        if (factionPtr.IsFriendsWith(PLAYERFACTION)) currentJob().lock().ReserveEntity(foundItem);
-                        TaskFinished(TASKSUCCESS);
-                        break;
-                    }
+                }
 
                 case USE:
                     if (currentEntity().lock() && boost.dynamic_pointer_cast < Construction > (currentEntity().lock())) {
@@ -1238,274 +1209,276 @@ void NPC.Think() {
                         break;
                     }
 
-                case FELL:
-                    if (boost.shared_ptr < NatureObject > tree = boost.static_pointer_cast < NatureObject > (currentEntity().lock())) {
-                        tmp = tree.Fell(); //This'll be called about 100-150 times per tree
-                        if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
-                        AddEffect(WORKING);
-                        if (tmp <= 0) {
-                            bool stockpile = false;
-                            if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
-                            for (std.list < ItemType > .iterator iti = NatureObject.Presets[tree.Type()].components.begin(); iti != NatureObject.Presets[tree.Type()].components.end(); ++iti) {
-                                if (stockpile) {
-                                    int item = Game.CreateItem(tree.Position(), * iti, false);
-                                    Stats.ItemBuilt(Item.Presets[ * iti].name); //Felling trees counts as item production
-                                    DropItem(carried);
-                                    PickupItem(Game.GetItem(item));
-                                    stockpile = false;
-                                } else {
-                                    Game.CreateItem(tree.Position(), * iti, true);
+                    case FELL:
+                        if (boost.shared_ptr < NatureObject > tree = boost.static_pointer_cast < NatureObject > (currentEntity().lock())) {
+                            tmp = tree.Fell(); //This'll be called about 100-150 times per tree
+                            if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
+                            AddEffect(WORKING);
+                            if (tmp <= 0) {
+                                bool stockpile = false;
+                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+                                for (std.list < ItemType > .iterator iti = NatureObject.Presets[tree.Type()].components.begin(); iti != NatureObject.Presets[tree.Type()].components.end(); ++iti) {
+                                    if (stockpile) {
+                                        int item = Game.CreateItem(tree.Position(), * iti, false);
+                                        Stats.ItemBuilt(Item.Presets[ * iti].name); //Felling trees counts as item production
+                                        DropItem(carried);
+                                        PickupItem(Game.GetItem(item));
+                                        stockpile = false;
+                                    } else {
+                                        Game.CreateItem(tree.Position(), * iti, true);
+                                    }
                                 }
+                                Game.RemoveNatureObject(tree);
+                                TaskFinished(TASKSUCCESS);
+                                break;
                             }
-                            Game.RemoveNatureObject(tree);
-                            TaskFinished(TASKSUCCESS);
+                            //Job underway
                             break;
                         }
-                        //Job underway
+                        TaskFinished(TASKFAILFATAL, "(FELL) No NatureObject to fell");
                         break;
-                    }
-                    TaskFinished(TASKFAILFATAL, "(FELL) No NatureObject to fell");
-                    break;
 
-                case HARVESTWILDPLANT:
-                    if (boost.shared_ptr < NatureObject > plant = boost.static_pointer_cast < NatureObject > (currentEntity().lock())) {
-                        tmp = plant.Harvest();
-                        AddEffect(WORKING);
-                        if (tmp <= 0) {
-                            bool stockpile = false;
-                            if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
-                            for (std.list < ItemType > .iterator iti = NatureObject.Presets[plant.Type()].components.begin(); iti != NatureObject.Presets[plant.Type()].components.end(); ++iti) {
-                                if (stockpile) {
-                                    int item = Game.CreateItem(plant.Position(), * iti, false);
-                                    DropItem(carried);
-                                    PickupItem(Game.GetItem(item));
-                                    stockpile = false;
-                                } else {
-                                    Game.CreateItem(plant.Position(), * iti, true);
+                    case HARVESTWILDPLANT:
+                        if (boost.shared_ptr < NatureObject > plant = boost.static_pointer_cast < NatureObject > (currentEntity().lock())) {
+                            tmp = plant.Harvest();
+                            AddEffect(WORKING);
+                            if (tmp <= 0) {
+                                bool stockpile = false;
+                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+                                for (std.list < ItemType > .iterator iti = NatureObject.Presets[plant.Type()].components.begin(); iti != NatureObject.Presets[plant.Type()].components.end(); ++iti) {
+                                    if (stockpile) {
+                                        int item = Game.CreateItem(plant.Position(), * iti, false);
+                                        DropItem(carried);
+                                        PickupItem(Game.GetItem(item));
+                                        stockpile = false;
+                                    } else {
+                                        Game.CreateItem(plant.Position(), * iti, true);
+                                    }
                                 }
+                                Game.RemoveNatureObject(plant);
+                                TaskFinished(TASKSUCCESS);
+                                break;
                             }
-                            Game.RemoveNatureObject(plant);
+                            //Job underway
+                            break;
+                        }
+                        TaskFinished(TASKFAILFATAL, "(HARVESTWILDPLANT)Harvest target doesn't exist");
+                        break;
+
+                    case KILL:
+                        //The reason KILL isn't a combination of MOVEADJACENT and something else is that the other moving actions
+                        //assume their target isn't a moving one
+                        if (!currentEntity().lock()) {
                             TaskFinished(TASKSUCCESS);
                             break;
                         }
-                        //Job underway
-                        break;
-                    }
-                    TaskFinished(TASKFAILFATAL, "(HARVESTWILDPLANT)Harvest target doesn't exist");
-                    break;
 
-                case KILL:
-                    //The reason KILL isn't a combination of MOVEADJACENT and something else is that the other moving actions
-                    //assume their target isn't a moving one
-                    if (!currentEntity().lock()) {
-                        TaskFinished(TASKSUCCESS);
-                        break;
-                    }
-
-                    if (Game.Adjacent(Position(), currentEntity())) {
-                        Hit(currentEntity(), currentTask().flags != 0);
-                        break;
-                    } else if (currentTask().flags == 0 && WieldingRangedWeapon() && quiver.lock() &&
-                        !quiver.lock().empty()) {
-                        FireProjectile(currentEntity());
-                        break;
-                    } else if (hasMagicRangedAttacks) {
-                        CastOffensiveSpell(currentEntity());
-                        break;
-                    }
-
-                    if (!taskBegun || Random.Generate(UPDATES_PER_SECOND * 2 - 1) == 0) { //Repath every ~2 seconds
-                        tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
-                        if (tmpCoord.X() >= 0) {
-                            findPath(tmpCoord);
-                        }
-                        taskBegun = true;
-                        lastMoveResult = TASKCONTINUE;
-                    }
-
-                    if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
-                        TaskFinished(lastMoveResult, std.string("(KILL)Could not find path to target"));
-                        break;
-                    } else if (lastMoveResult == PATHEMPTY) {
-                        tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
-                        if (tmpCoord.X() >= 0) {
-                            findPath(tmpCoord);
-                        }
-                    }
-                    break;
-
-                case FLEEMAP:
-                    if (pos.onExtentEdges(zero, map.Extent())) {
-                        //We are at the edge, escape!
-                        Escape();
-                        return;
-                    }
-
-                    //Find the closest edge and change into a MOVE task and a new FLEEMAP task
-                    //Unfortunately this assumes that FLEEMAP is the last task in a job,
-                    //which might not be.
-                    {
-                        Coordinate target;
-                        tmp = std.abs(pos.X() - map.Width() / 2);
-                        if (tmp < std.abs(pos.Y() - map.Height() / 2)) {
-                            int target_y = (pos.Y() < map.Height() / 2) ? 0 : map.Height() - 1;
-                            target = Coordinate(pos.X(), target_y);
-                        } else {
-                            int target_x = (pos.X() < map.Width() / 2) ? 0 : map.Width() - 1;
-                            target = Coordinate(target_x, pos.Y());
-                        }
-                        if (map.IsWalkable(target, static_cast < void * > (this)))
-                            currentJob().lock().tasks[taskIndex] = Task(MOVE, target);
-                        else
-                            currentJob().lock().tasks[taskIndex] = Task(MOVENEAR, target);
-                    }
-                    currentJob().lock().tasks.push_back(Task(FLEEMAP));
-                    break;
-
-                case SLEEP:
-                    AddEffect(SLEEPING);
-                    AddEffect(BADSLEEP);
-                    weariness -= 25;
-                    if (weariness <= 0) {
-                        if (boost.shared_ptr < Entity > entity = currentEntity().lock()) {
-                            if (boost.static_pointer_cast < Construction > (entity).HasTag(BED)) {
-                                RemoveEffect(BADSLEEP);
-                            }
-                        }
-                        TaskFinished(TASKSUCCESS);
-                        break;
-                    }
-                    break;
-
-                case DISMANTLE:
-                    if (boost.shared_ptr < Construction > construct = boost.static_pointer_cast < Construction > (currentEntity().lock())) {
-                        construct.Condition(construct.Condition() - 10);
-                        AddEffect(WORKING);
-                        if (construct.Condition() <= 0) {
-                            Game.RemoveConstruction(construct);
-                            TaskFinished(TASKSUCCESS);
+                        if (Game.Adjacent(Position(), currentEntity())) {
+                            Hit(currentEntity(), currentTask().flags != 0);
+                            break;
+                        } else if (currentTask().flags == 0 && WieldingRangedWeapon() && quiver.lock() &&
+                            !quiver.lock().empty()) {
+                            FireProjectile(currentEntity());
+                            break;
+                        } else if (hasMagicRangedAttacks) {
+                            CastOffensiveSpell(currentEntity());
                             break;
                         }
-                    } else {
-                        TaskFinished(TASKFAILFATAL, "(DISMANTLE)Construction does not exist!");
-                    }
-                    break;
 
-                case WIELD:
-                    if (carried.lock()) {
-                        if (mainHand.lock()) { //Drop currently wielded weapon if such exists
-                            DropItem(mainHand);
-                            mainHand.reset();
-                        }
-                        mainHand = carried;
-                        carried.reset();
-                        TaskFinished(TASKSUCCESS);
-                        if /* if(def */ (DEBUG) {) {
-                            std.cout << name << " wielded " << mainHand.lock().Name() << "\n";
-                        } /*#endif*/
-                        break;
-                    }
-                    TaskFinished(TASKFAILFATAL, "(WIELD)Not carrying an item");
-                    break;
-
-                case WEAR:
-                    if (carried.lock()) {
-                        if (carried.lock().IsCategory(Item.StringToItemCategory("Armor"))) {
-                            if (armor.lock()) { //Remove armor and drop if already wearing
-                                DropItem(armor);
-                                armor.reset();
+                        if (!taskBegun || Random.Generate(UPDATES_PER_SECOND * 2 - 1) == 0) { //Repath every ~2 seconds
+                            tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                            if (tmpCoord.X() >= 0) {
+                                findPath(tmpCoord);
                             }
-                            armor = carried;
-                            if /* if(def */ (DEBUG) {) {
-                                std.cout << name << " wearing " << armor.lock().Name() << "\n";
-                            } /*#endif*/
-                        } else if (carried.lock().IsCategory(Item.StringToItemCategory("Quiver"))) {
-                            if (quiver.lock()) { //Remove quiver and drop if already wearing
-                                DropItem(quiver);
-                                quiver.reset();
-                            }
-                            quiver = boost.static_pointer_cast < Container > (carried.lock());
-                            if /* if(def */ (DEBUG) {) {
-                                std.cout << name << " wearing " << quiver.lock().Name() << "\n";
-                            } /*#endif*/
+                            taskBegun = true;
+                            lastMoveResult = TASKCONTINUE;
                         }
-                        carried.reset();
-                        TaskFinished(TASKSUCCESS);
+
+                        if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
+                            TaskFinished(lastMoveResult, std.string("(KILL)Could not find path to target"));
+                            break;
+                        } else if (lastMoveResult == PATHEMPTY) {
+                            tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                            if (tmpCoord.X() >= 0) {
+                                findPath(tmpCoord);
+                            }
+                        }
                         break;
-                    }
-                    TaskFinished(TASKFAILFATAL, "(WEAR)Not carrying an item");
-                    break;
 
-                case BOGIRON:
-                    if (map.GetType(pos) == TILEBOG) {
-                        AddEffect(WORKING);
-                        if (Random.Generate(UPDATES_PER_SECOND * 15 - 1) == 0) {
-                            bool stockpile = false;
-                            if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+                    case FLEEMAP:
+                        if (pos.onExtentEdges(zero, map.Extent())) {
+                            //We are at the edge, escape!
+                            Escape();
+                            return;
+                        }
 
-                            if (stockpile) {
-                                int item = Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), false);
-                                DropItem(carried);
-                                PickupItem(Game.GetItem(item));
-                                stockpile = false;
+                        //Find the closest edge and change into a MOVE task and a new FLEEMAP task
+                        //Unfortunately this assumes that FLEEMAP is the last task in a job,
+                        //which might not be.
+                        {
+                            Coordinate target;
+                            tmp = std.abs(pos.X() - map.Width() / 2);
+                            if (tmp < std.abs(pos.Y() - map.Height() / 2)) {
+                                int target_y = (pos.Y() < map.Height() / 2) ? 0 : map.Height() - 1;
+                                target = Coordinate(pos.X(), target_y);
                             } else {
-                                Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), true);
+                                int target_x = (pos.X() < map.Width() / 2) ? 0 : map.Width() - 1;
+                                target = Coordinate(target_x, pos.Y());
                             }
-                            TaskFinished(TASKSUCCESS);
-                            break;
-                        } else {
-                            break;
+                            if (map.IsWalkable(target, static_cast < void * > (this)))
+                                currentJob().lock().tasks[taskIndex] = Task(MOVE, target);
+                            else
+                                currentJob().lock().tasks[taskIndex] = Task(MOVENEAR, target);
                         }
-                    }
-                    TaskFinished(TASKFAILFATAL, "(BOGIRON)Not on a bog tile");
-                    break;
-
-                case STOCKPILEITEM:
-                    if (boost.shared_ptr < Item > item = carried.lock()) {
-                        boost.shared_ptr < Job > stockJob = Game.StockpileItem(item, true, true, !item.Reserved());
-                        if (stockJob) {
-                            stockJob.internal = true;
-                            //Add remaining tasks into stockjob
-                            for (unsigned int i = 1; taskIndex + i < jobs.front().tasks.size(); ++i) {
-                                stockJob.tasks.push_back(jobs.front().tasks[taskIndex + i]);
-                            }
-                            jobs.front().tasks.clear();
-                            std.deque < boost.shared_ptr < Job > > .iterator jobi = jobs.begin();
-                            ++jobi;
-                            jobs.insert(jobi, stockJob);
-                            DropItem(item); //The stockpiling job will pickup the item
-                            carried.reset();
-                            TaskFinished(TASKSUCCESS);
-                            break;
-                        }
-                    }
-                    TaskFinished(TASKFAILFATAL, "(STOCKPILEITEM)Not carrying an item");
-                    break;
-
-                case QUIVER:
-                    if (carried.lock()) {
-                        if (!quiver.lock()) {
-                            DropItem(carried);
-                            carried.reset();
-                            TaskFinished(TASKFAILFATAL, "(QUIVER)No quiver");
-                            break;
-                        }
-                        inventory.RemoveItem(carried);
-                        if (!quiver.lock().AddItem(carried)) {
-                            DropItem(carried);
-                            carried.reset();
-                            TaskFinished(TASKFAILFATAL, "(QUIVER)Quiver full");
-                            break;
-                        }
-                        carried.reset();
-                        TaskFinished(TASKSUCCESS);
+                        currentJob().lock().tasks.push_back(Task(FLEEMAP));
                         break;
-                    }
-                    TaskFinished(TASKFAILFATAL, "(QUIVER)Not carrying an item");
-                    break;
 
-                case FILL:
-                    {
+                    case SLEEP:
+                        AddEffect(SLEEPING);
+                        AddEffect(BADSLEEP);
+                        weariness -= 25;
+                        if (weariness <= 0) {
+                            if (boost.shared_ptr < Entity > entity = currentEntity().lock()) {
+                                if (boost.static_pointer_cast < Construction > (entity).HasTag(BED)) {
+                                    RemoveEffect(BADSLEEP);
+                                }
+                            }
+                            TaskFinished(TASKSUCCESS);
+                            break;
+                        }
+                        break;
+
+                    case DISMANTLE:
+                        if (boost.shared_ptr < Construction > construct = boost.static_pointer_cast < Construction > (currentEntity().lock())) {
+                            construct.Condition(construct.Condition() - 10);
+                            AddEffect(WORKING);
+                            if (construct.Condition() <= 0) {
+                                Game.RemoveConstruction(construct);
+                                TaskFinished(TASKSUCCESS);
+                                break;
+                            }
+                        } else {
+                            TaskFinished(TASKFAILFATAL, "(DISMANTLE)Construction does not exist!");
+                        }
+                        break;
+
+                    case WIELD:
+                        if (carried.lock()) {
+                            if (mainHand.lock()) { //Drop currently wielded weapon if such exists
+                                DropItem(mainHand);
+                                mainHand.reset();
+                            }
+                            mainHand = carried;
+                            carried.reset();
+                            TaskFinished(TASKSUCCESS);
+                            if /* if(def */ (DEBUG) {
+                            ) {
+                                std.cout << name << " wielded " << mainHand.lock().Name() << "\n";
+                            } /*#endif*/
+                            break;
+                        }
+                        TaskFinished(TASKFAILFATAL, "(WIELD)Not carrying an item");
+                        break;
+
+                    case WEAR:
+                        if (carried.lock()) {
+                            if (carried.lock().IsCategory(Item.StringToItemCategory("Armor"))) {
+                                if (armor.lock()) { //Remove armor and drop if already wearing
+                                    DropItem(armor);
+                                    armor.reset();
+                                }
+                                armor = carried;
+                                if /* if(def */ (DEBUG) {
+                                ) {
+                                    std.cout << name << " wearing " << armor.lock().Name() << "\n";
+                                } /*#endif*/
+                            } else if (carried.lock().IsCategory(Item.StringToItemCategory("Quiver"))) {
+                                if (quiver.lock()) { //Remove quiver and drop if already wearing
+                                    DropItem(quiver);
+                                    quiver.reset();
+                                }
+                                quiver = boost.static_pointer_cast < Container > (carried.lock());
+                                if /* if(def */ (DEBUG) {
+                                ) {
+                                    std.cout << name << " wearing " << quiver.lock().Name() << "\n";
+                                } /*#endif*/
+                            }
+                            carried.reset();
+                            TaskFinished(TASKSUCCESS);
+                            break;
+                        }
+                        TaskFinished(TASKFAILFATAL, "(WEAR)Not carrying an item");
+                        break;
+
+                    case BOGIRON:
+                        if (map.GetType(pos) == TILEBOG) {
+                            AddEffect(WORKING);
+                            if (Random.Generate(UPDATES_PER_SECOND * 15 - 1) == 0) {
+                                bool stockpile = false;
+                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+
+                                if (stockpile) {
+                                    int item = Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), false);
+                                    DropItem(carried);
+                                    PickupItem(Game.GetItem(item));
+                                    stockpile = false;
+                                } else {
+                                    Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), true);
+                                }
+                                TaskFinished(TASKSUCCESS);
+                                break;
+                            } else {
+                                break;
+                            }
+                        }
+                        TaskFinished(TASKFAILFATAL, "(BOGIRON)Not on a bog tile");
+                        break;
+
+                    case STOCKPILEITEM:
+                        if (boost.shared_ptr < Item > item = carried.lock()) {
+                            boost.shared_ptr < Job > stockJob = Game.StockpileItem(item, true, true, !item.Reserved());
+                            if (stockJob) {
+                                stockJob.internal = true;
+                                //Add remaining tasks into stockjob
+                                for (unsigned int i = 1; taskIndex + i < jobs.front().tasks.size(); ++i) {
+                                    stockJob.tasks.push_back(jobs.front().tasks[taskIndex + i]);
+                                }
+                                jobs.front().tasks.clear();
+                                std.deque < boost.shared_ptr < Job > > .iterator jobi = jobs.begin();
+                                ++jobi;
+                                jobs.insert(jobi, stockJob);
+                                DropItem(item); //The stockpiling job will pickup the item
+                                carried.reset();
+                                TaskFinished(TASKSUCCESS);
+                                break;
+                            }
+                        }
+                        TaskFinished(TASKFAILFATAL, "(STOCKPILEITEM)Not carrying an item");
+                        break;
+
+                    case QUIVER:
+                        if (carried.lock()) {
+                            if (!quiver.lock()) {
+                                DropItem(carried);
+                                carried.reset();
+                                TaskFinished(TASKFAILFATAL, "(QUIVER)No quiver");
+                                break;
+                            }
+                            inventory.RemoveItem(carried);
+                            if (!quiver.lock().AddItem(carried)) {
+                                DropItem(carried);
+                                carried.reset();
+                                TaskFinished(TASKFAILFATAL, "(QUIVER)Quiver full");
+                                break;
+                            }
+                            carried.reset();
+                            TaskFinished(TASKSUCCESS);
+                            break;
+                        }
+                        TaskFinished(TASKFAILFATAL, "(QUIVER)Not carrying an item");
+                        break;
+
+                    case FILL: {
                         boost.shared_ptr < Container > cont;
                         if (carried.lock() &&
                             (carried.lock().IsCategory(Item.StringToItemCategory("Container")) ||
@@ -1548,164 +1521,163 @@ void NPC.Think() {
                     TaskFinished(TASKFAILFATAL, "(FILL)Not carrying a container");
                     break;
 
-                case POUR:
-                    {
-                        boost.shared_ptr < Container > sourceContainer;
-                        if (carried.lock() &&
-                            (carried.lock().IsCategory(Item.StringToItemCategory("Container")) ||
-                                carried.lock().IsCategory(Item.StringToItemCategory("Bucket")))) {
-                            sourceContainer = boost.static_pointer_cast < Container > (carried.lock());
-                        } else if (mainHand.lock() &&
-                            (mainHand.lock().IsCategory(Item.StringToItemCategory("Container")) ||
-                                mainHand.lock().IsCategory(Item.StringToItemCategory("Bucket")))) {
-                            sourceContainer = boost.static_pointer_cast < Container > (mainHand.lock());
-                        }
+                case POUR: {
+                    boost.shared_ptr < Container > sourceContainer;
+                    if (carried.lock() &&
+                        (carried.lock().IsCategory(Item.StringToItemCategory("Container")) ||
+                            carried.lock().IsCategory(Item.StringToItemCategory("Bucket")))) {
+                        sourceContainer = boost.static_pointer_cast < Container > (carried.lock());
+                    } else if (mainHand.lock() &&
+                        (mainHand.lock().IsCategory(Item.StringToItemCategory("Container")) ||
+                            mainHand.lock().IsCategory(Item.StringToItemCategory("Bucket")))) {
+                        sourceContainer = boost.static_pointer_cast < Container > (mainHand.lock());
+                    }
 
-                        if (sourceContainer) {
-                            if (currentEntity().lock() && boost.dynamic_pointer_cast < Container > (currentEntity().lock())) {
-                                boost.shared_ptr < Container > targetContainer(boost.static_pointer_cast < Container > (currentEntity().lock()));
-                                if (sourceContainer.ContainsWater() > 0) {
-                                    targetContainer.AddWater(sourceContainer.ContainsWater());
-                                    sourceContainer.RemoveWater(sourceContainer.ContainsWater());
-                                } else {
-                                    targetContainer.AddFilth(sourceContainer.ContainsFilth());
-                                    sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
-                                }
-                                TaskFinished(TASKSUCCESS);
-                                break;
-                            } else if (map.IsInside(currentTarget())) {
-                                if (sourceContainer.ContainsWater() > 0) {
-                                    Game.CreateWater(currentTarget(), sourceContainer.ContainsWater());
-                                    sourceContainer.RemoveWater(sourceContainer.ContainsWater());
-                                } else {
-                                    Game.CreateFilth(currentTarget(), sourceContainer.ContainsFilth());
-                                    sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
-                                }
-                                TaskFinished(TASKSUCCESS);
-                                break;
+                    if (sourceContainer) {
+                        if (currentEntity().lock() && boost.dynamic_pointer_cast < Container > (currentEntity().lock())) {
+                            boost.shared_ptr < Container > targetContainer(boost.static_pointer_cast < Container > (currentEntity().lock()));
+                            if (sourceContainer.ContainsWater() > 0) {
+                                targetContainer.AddWater(sourceContainer.ContainsWater());
+                                sourceContainer.RemoveWater(sourceContainer.ContainsWater());
+                            } else {
+                                targetContainer.AddFilth(sourceContainer.ContainsFilth());
+                                sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
                             }
-                        } else {
-                            TaskFinished(TASKFAILFATAL, "(POUR) Not carrying a container!");
+                            TaskFinished(TASKSUCCESS);
                             break;
-                        }
-                    }
-                    TaskFinished(TASKFAILFATAL, "(POUR)No valid target");
-                    break;
-
-                case DIG:
-                    if (!taskBegun) {
-                        timer = 0;
-                        taskBegun = true;
-                    } else {
-                        AddEffect(WORKING);
-                        if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
-                        if (++timer >= 50) {
-                            map.SetLow(currentTarget(), true);
-                            map.ChangeType(currentTarget(), TILEDITCH);
-                            int amount = 0;
-                            int chance = Random.Generate(9);
-                            if (chance < 4) amount = 1;
-                            else if (chance < 8) amount = 2;
-                            else amount = 3;
-                            for (int i = 0; i < amount; ++i)
-                                Game.CreateItem(Position(), Item.StringToItemType("earth"));
-                            TaskFinished(TASKSUCCESS);
-                        }
-                    }
-                    break;
-
-                case FORGET:
-                    foundItem.reset();
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case UNWIELD:
-                    if (mainHand.lock()) {
-                        foundItem = mainHand;
-                        DropItem(mainHand);
-                        mainHand.reset();
-                    }
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case GETANGRY:
-                    aggressive = true;
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case CALMDOWN:
-                    aggressive = false;
-                    TaskFinished(TASKSUCCESS);
-                    break;
-
-                case STARTFIRE:
-                    if (!taskBegun) {
-                        taskBegun = true;
-                        timer = 0;
-                    } else {
-                        AddEffect(WORKING);
-                        if (++timer >= 50) {
-                            Game.CreateFire(currentTarget(), 10);
-                            TaskFinished(TASKSUCCESS);
-                        }
-                    }
-                    break;
-
-                case REPAIR:
-                    if (currentEntity().lock() && boost.dynamic_pointer_cast < Construction > (currentEntity().lock())) {
-                        tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Repair();
-                        AddEffect(WORKING);
-                        if (tmp >= 100) {
-                            if (carried.lock()) { //Repairjobs usually require some material
-                                inventory.RemoveItem(carried);
-                                bulk -= carried.lock().GetBulk();
-                                Game.RemoveItem(carried);
-                                carried.reset();
+                        } else if (map.IsInside(currentTarget())) {
+                            if (sourceContainer.ContainsWater() > 0) {
+                                Game.CreateWater(currentTarget(), sourceContainer.ContainsWater());
+                                sourceContainer.RemoveWater(sourceContainer.ContainsWater());
+                            } else {
+                                Game.CreateFilth(currentTarget(), sourceContainer.ContainsFilth());
+                                sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
                             }
                             TaskFinished(TASKSUCCESS);
-                        } else if (tmp < 0) {
-                            TaskFinished(TASKFAILFATAL, "(USE)Can not use (tmp<0)");
                             break;
                         }
                     } else {
-                        TaskFinished(TASKFAILFATAL, "(USE)Attempted to use non-construct");
+                        TaskFinished(TASKFAILFATAL, "(POUR) Not carrying a container!");
                         break;
                     }
-                    break;
+                }
+                TaskFinished(TASKFAILFATAL, "(POUR)No valid target");
+                break;
 
-                case FILLDITCH:
-                    if (carried.lock() && carried.lock().IsCategory(Item.StringToItemCategory("earth"))) {
-                        if (map.GetType(currentTarget()) != TILEDITCH) {
-                            TaskFinished(TASKFAILFATAL, "(FILLDITCH)Target not a ditch");
-                            break;
+            case DIG:
+                if (!taskBegun) {
+                    timer = 0;
+                    taskBegun = true;
+                } else {
+                    AddEffect(WORKING);
+                    if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
+                    if (++timer >= 50) {
+                        map.SetLow(currentTarget(), true);
+                        map.ChangeType(currentTarget(), TILEDITCH);
+                        int amount = 0;
+                        int chance = Random.Generate(9);
+                        if (chance < 4) amount = 1;
+                        else if (chance < 8) amount = 2;
+                        else amount = 3;
+                        for (int i = 0; i < amount; ++i)
+                            Game.CreateItem(Position(), Item.StringToItemType("earth"));
+                        TaskFinished(TASKSUCCESS);
+                    }
+                }
+                break;
+
+            case FORGET:
+                foundItem.reset();
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case UNWIELD:
+                if (mainHand.lock()) {
+                    foundItem = mainHand;
+                    DropItem(mainHand);
+                    mainHand.reset();
+                }
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case GETANGRY:
+                aggressive = true;
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case CALMDOWN:
+                aggressive = false;
+                TaskFinished(TASKSUCCESS);
+                break;
+
+            case STARTFIRE:
+                if (!taskBegun) {
+                    taskBegun = true;
+                    timer = 0;
+                } else {
+                    AddEffect(WORKING);
+                    if (++timer >= 50) {
+                        Game.CreateFire(currentTarget(), 10);
+                        TaskFinished(TASKSUCCESS);
+                    }
+                }
+                break;
+
+            case REPAIR:
+                if (currentEntity().lock() && boost.dynamic_pointer_cast < Construction > (currentEntity().lock())) {
+                    tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Repair();
+                    AddEffect(WORKING);
+                    if (tmp >= 100) {
+                        if (carried.lock()) { //Repairjobs usually require some material
+                            inventory.RemoveItem(carried);
+                            bulk -= carried.lock().GetBulk();
+                            Game.RemoveItem(carried);
+                            carried.reset();
                         }
-
-                        if (!taskBegun) {
-                            taskBegun = true;
-                            timer = 0;
-                        } else {
-                            AddEffect(WORKING);
-                            if (++timer >= 50) {
-                                inventory.RemoveItem(carried);
-                                bulk -= carried.lock().GetBulk();
-                                Game.RemoveItem(carried);
-                                carried.reset();
-
-                                map.ChangeType(currentTarget(), TILEMUD);
-
-                                TaskFinished(TASKSUCCESS);
-                                break;
-                            }
-                        }
-                    } else {
-                        TaskFinished(TASKFAILFATAL, "(FILLDITCH)Not carrying earth");
+                        TaskFinished(TASKSUCCESS);
+                    } else if (tmp < 0) {
+                        TaskFinished(TASKFAILFATAL, "(USE)Can not use (tmp<0)");
                         break;
                     }
+                } else {
+                    TaskFinished(TASKFAILFATAL, "(USE)Attempted to use non-construct");
                     break;
+                }
+                break;
 
-                default:
-                    TaskFinished(TASKFAILFATAL, "*BUG*Unknown task*BUG*");
+            case FILLDITCH:
+                if (carried.lock() && carried.lock().IsCategory(Item.StringToItemCategory("earth"))) {
+                    if (map.GetType(currentTarget()) != TILEDITCH) {
+                        TaskFinished(TASKFAILFATAL, "(FILLDITCH)Target not a ditch");
+                        break;
+                    }
+
+                    if (!taskBegun) {
+                        taskBegun = true;
+                        timer = 0;
+                    } else {
+                        AddEffect(WORKING);
+                        if (++timer >= 50) {
+                            inventory.RemoveItem(carried);
+                            bulk -= carried.lock().GetBulk();
+                            Game.RemoveItem(carried);
+                            carried.reset();
+
+                            map.ChangeType(currentTarget(), TILEMUD);
+
+                            TaskFinished(TASKSUCCESS);
+                            break;
+                        }
+                    }
+                } else {
+                    TaskFinished(TASKFAILFATAL, "(FILLDITCH)Not carrying earth");
                     break;
+                }
+                break;
+
+            default:
+                TaskFinished(TASKFAILFATAL, "*BUG*Unknown task*BUG*");
+                break;
             }
         } else {
             if (HasEffect(DRUNK)) {
@@ -2540,147 +2512,6 @@ bool NPC.Escaped() const {
     return escaped;
 }
 
-class NPCListener extends /*public*/ ITCODParserListener {
-
-    int npcIndex;
-
-    bool parserNewStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (boost.iequals(str.getName(), "npc_type")) {
-            if (NPC.NPCTypeNames.find(name) != NPC.NPCTypeNames.end()) {
-                npcIndex = NPC.NPCTypeNames[name];
-                NPC.Presets[npcIndex] = NPCPreset(name);
-            } else {
-                NPC.Presets.push_back(NPCPreset(name));
-                NPC.NPCTypeNames[name] = NPC.Presets.size() - 1;
-                npcIndex = NPC.Presets.size() - 1;
-            }
-        } else if (boost.iequals(str.getName(), "attack")) {
-            NPC.Presets[npcIndex].attacks.push_back(Attack());
-        } else if (boost.iequals(str.getName(), "resistances")) {}
-        return true;
-    }
-    bool parserFlag(TCODParser * parser,
-        const char * name) {
-        if (boost.iequals(name, "generateName")) {
-            NPC.Presets[npcIndex].generateName = true;
-        } else if (boost.iequals(name, "needsNutrition")) {
-            NPC.Presets[npcIndex].needsNutrition = true;
-        } else if (boost.iequals(name, "needsSleep")) {
-            NPC.Presets[npcIndex].needsSleep = true;
-        } else if (boost.iequals(name, "expert")) {
-            NPC.Presets[npcIndex].expert = true;
-        }
-        return true;
-    }
-    bool parserProperty(TCODParser * parser,
-        const char * name, TCOD_value_type_t type, TCOD_value_t value) {
-        if (boost.iequals(name, "name")) {
-            NPC.Presets[npcIndex].name = value.s;
-        } else if (boost.iequals(name, "plural")) {
-            NPC.Presets[npcIndex].plural = value.s;
-        } else if (boost.iequals(name, "speed")) {
-            NPC.Presets[npcIndex].stats[MOVESPEED] = value.i;
-        } else if (boost.iequals(name, "col")) {
-            NPC.Presets[npcIndex].color = value.col;
-        } else if (boost.iequals(name, "graphic")) {
-            NPC.Presets[npcIndex].graphic = value.c;
-        } else if (boost.iequals(name, "fallbackGraphicsSet")) {
-            NPC.Presets[npcIndex].fallbackGraphicsSet = value.s;
-        } else if (boost.iequals(name, "health")) {
-            NPC.Presets[npcIndex].health = value.i;
-        } else if (boost.iequals(name, "AI")) {
-            NPC.Presets[npcIndex].ai = value.s;
-        } else if (boost.iequals(name, "dodge")) {
-            NPC.Presets[npcIndex].stats[DODGE] = value.i;
-        } else if (boost.iequals(name, "spawnAsGroup")) {
-            NPC.Presets[npcIndex].spawnAsGroup = true;
-            NPC.Presets[npcIndex].group = value.dice;
-        } else if (boost.iequals(name, "type")) {
-            NPC.Presets[npcIndex].attacks.back().Type(Attack.StringToDamageType(value.s));
-        } else if (boost.iequals(name, "damage")) {
-            NPC.Presets[npcIndex].attacks.back().Amount(value.dice);
-        } else if (boost.iequals(name, "cooldown")) {
-            NPC.Presets[npcIndex].attacks.back().CooldownMax(value.i);
-        } else if (boost.iequals(name, "statusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
-                if (StatusEffect.IsApplyableStatusEffect(type))
-                    NPC.Presets[npcIndex].attacks.back().StatusEffects().push_back(std.pair < StatusEffectType, int > (type, 100));
-            }
-        } else if (boost.iequals(name, "effectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                NPC.Presets[npcIndex].attacks.back().StatusEffects().at(i).second = (intptr_t) TCOD_list_get(value.list, i);
-            }
-        } else if (boost.iequals(name, "projectile")) {
-            NPC.Presets[npcIndex].attacks.back().Projectile(Item.StringToItemType(value.s));
-            if (NPC.Presets[npcIndex].attacks.back().Projectile() == -1) {
-                //No item found, probably a spell then
-                NPC.Presets[npcIndex].attacks.back().Projectile(Spell.StringToSpellType(value.s));
-                if (NPC.Presets[npcIndex].attacks.back().Projectile() >= 0)
-                    NPC.Presets[npcIndex].attacks.back().SetMagicProjectile();
-            }
-        } else if (boost.iequals(name, "physical")) {
-            NPC.Presets[npcIndex].resistances[PHYSICAL_RES] = value.i;
-        } else if (boost.iequals(name, "magic")) {
-            NPC.Presets[npcIndex].resistances[MAGIC_RES] = value.i;
-        } else if (boost.iequals(name, "cold")) {
-            NPC.Presets[npcIndex].resistances[COLD_RES] = value.i;
-        } else if (boost.iequals(name, "fire")) {
-            NPC.Presets[npcIndex].resistances[FIRE_RES] = value.i;
-        } else if (boost.iequals(name, "poison")) {
-            NPC.Presets[npcIndex].resistances[POISON_RES] = value.i;
-        } else if (boost.iequals(name, "bleeding")) {
-            NPC.Presets[npcIndex].resistances[BLEEDING_RES] = value.i;
-        } else if (boost.iequals(name, "tags")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                std.string tag = (char * ) TCOD_list_get(value.list, i);
-                NPC.Presets[npcIndex].tags.insert(boost.to_lower_copy(tag));
-            }
-        } else if (boost.iequals(name, "strength")) {
-            NPC.Presets[npcIndex].stats[STRENGTH] = value.i;
-        } else if (boost.iequals(name, "size")) {
-            NPC.Presets[npcIndex].stats[NPCSIZE] = value.i;
-            if (NPC.Presets[npcIndex].stats[STRENGTH] == 1) NPC.Presets[npcIndex].stats[STRENGTH] = value.i;
-        } else if (boost.iequals(name, "tier")) {
-            NPC.Presets[npcIndex].tier = value.i;
-        } else if (boost.iequals(name, "death")) {
-            if (boost.iequals(value.s, "filth")) NPC.Presets[npcIndex].deathItem = -1;
-            else NPC.Presets[npcIndex].deathItem = Item.StringToItemType(value.s);
-        } else if (boost.iequals(name, "equipOneOf")) {
-            NPC.Presets[npcIndex].possibleEquipment.push_back(std.vector < int > ());
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                std.string item = (char * ) TCOD_list_get(value.list, i);
-                NPC.Presets[npcIndex].possibleEquipment.back().push_back(Item.StringToItemType(item));
-            }
-        } else if (boost.iequals(name, "faction")) {
-            NPC.Presets[npcIndex].faction = Faction.StringToFactionType(value.s);
-        }
-        return true;
-    }
-    bool parserEndStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (NPC.Presets[npcIndex].plural == "") NPC.Presets[npcIndex].plural = NPC.Presets[npcIndex].name + "s";
-        if (NPC.Presets[npcIndex].faction == -1) {
-            if (NPC.Presets[npcIndex].ai == "PlayerNPC") {
-                NPC.Presets[npcIndex].faction = PLAYERFACTION;
-            } else if (NPC.Presets[npcIndex].ai == "PeacefulAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Peaceful animal");
-            } else if (NPC.Presets[npcIndex].ai == "HungryAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Hostile monster");
-            } else if (NPC.Presets[npcIndex].ai == "HostileAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Hostile monster");
-            }
-        }
-        return true;
-    }
-    void error(const char * msg) {
-        throw std.runtime_error(msg);
-    }
-};
-
 void NPC.LoadPresets(std.string filename) {
     TCODParser parser = TCODParser();
     TCODParserStruct * npcTypeStruct = parser.newStructure("npc_type");
@@ -3262,18 +3093,17 @@ void NPC.ValidateCurrentJob() {
                     }
                     break;
 
-                case DIG:
-                    {
-                        Season season = Game.CurrentSeason();
-                        if (season == EarlyWinter || season == Winter || season == LateWinter) {
-                            TaskFinished(TASKFAILFATAL, "(DIG)Cannot dig in winter");
-                            return;
-                        }
+                case DIG: {
+                    Season season = Game.CurrentSeason();
+                    if (season == EarlyWinter || season == Winter || season == LateWinter) {
+                        TaskFinished(TASKFAILFATAL, "(DIG)Cannot dig in winter");
+                        return;
                     }
-                    break;
+                }
+                break;
 
-                default:
-                    break; //Non-validatable tasks
+            default:
+                break; //Non-validatable tasks
             }
         }
     }
@@ -3310,20 +3140,20 @@ std.string NPC.GetDeathMsg() {
     int choice = Random.Generate(5);
     switch (choice) {
         default:
-            case 0:
+        case 0:
             return name + " has died";
 
         case 1:
-                return name + " has left the mortal realm";
+            return name + " has left the mortal realm";
 
         case 2:
-                return name + " is no longer among us";
+            return name + " is no longer among us";
 
         case 3:
-                return name + " is wormfood";
+            return name + " is wormfood";
 
         case 4:
-                return name + " lost his will to live";
+            return name + " lost his will to live";
     }
 }
 
@@ -3339,20 +3169,20 @@ std.string NPC.GetDeathMsgStrengthLoss() {
     int choice = Random.Generate(5);
     switch (choice) {
         default:
-            case 0:
+        case 0:
             return name + " has died from " + effectName;
 
         case 1:
-                return name + " succumbed to " + effectName;
+            return name + " succumbed to " + effectName;
 
         case 2:
-                return effectName + " claims another victim in " + name;
+            return effectName + " claims another victim in " + name;
 
         case 3:
-                return name + " is overcome by " + effectName;
+            return name + " is overcome by " + effectName;
 
         case 4:
-                return effectName + " was too much for " + name;
+            return effectName + " was too much for " + name;
     }
 }
 
@@ -3360,11 +3190,11 @@ std.string NPC.GetDeathMsgThirst() {
     int choice = Random.Generate(2);
     switch (choice) {
         default:
-            case 0:
+        case 0:
             return name + " has died from thirst";
 
         case 1:
-                return name + " died from dehydration";
+            return name + " died from dehydration";
     }
 }
 
@@ -3372,11 +3202,11 @@ std.string NPC.GetDeathMsgHunger() {
     int choice = Random.Generate(2);
     switch (choice) {
         default:
-            case 0:
+        case 0:
             return name + " has died from hunger";
 
         case 1:
-                return name + " was too weak to live";
+            return name + " was too weak to live";
     }
 }
 
@@ -3390,73 +3220,73 @@ std.string NPC.GetDeathMsgCombat(boost.weak_ptr < NPC > other, DamageType damage
             case DAMAGE_SLASH:
                 switch (choice) {
                     default:
-                        case 0:
+                    case 0:
                         return otherName + " sliced " + name + " into ribbons";
 
                     case 1:
-                            return otherName + " slashed " + name + " into pieces";
+                        return otherName + " slashed " + name + " into pieces";
 
                     case 2:
-                            return name + " was dissected by " + otherName;
+                        return name + " was dissected by " + otherName;
 
                     case 3:
-                            return otherName + " chopped " + name + " up";
+                        return otherName + " chopped " + name + " up";
                 }
 
-            case DAMAGE_BLUNT:
-                switch (choice) {
-                    default:
+                case DAMAGE_BLUNT:
+                    switch (choice) {
+                        default:
                         case 0:
-                        return otherName + " bludgeoned " + name + " to death";
+                            return otherName + " bludgeoned " + name + " to death";
 
-                    case 1:
+                        case 1:
                             return otherName + " smashed " + name + " into pulp";
 
-                    case 2:
+                        case 2:
                             return name + " was crushed by " + otherName;
 
-                    case 3:
+                        case 3:
                             return otherName + " hammered " + name + " to death";
-                }
+                    }
 
-            case DAMAGE_PIERCE:
-                switch (choice) {
-                    default:
-                        case 0:
-                        return otherName + " pierced " + name + " straight through";
+                    case DAMAGE_PIERCE:
+                        switch (choice) {
+                            default:
+                            case 0:
+                                return otherName + " pierced " + name + " straight through";
 
-                    case 1:
-                            return otherName + " punched holes through " + name;
+                            case 1:
+                                return otherName + " punched holes through " + name;
 
-                    case 2:
-                            return name + " was made into a pincushion by " + otherName;
-                }
+                            case 2:
+                                return name + " was made into a pincushion by " + otherName;
+                        }
 
-            case DAMAGE_FIRE:
-                switch (choice) {
-                    default:
-                        case 0:
-                        return otherName + " burnt " + name + " to ashes";
+                        case DAMAGE_FIRE:
+                            switch (choice) {
+                                default:
+                                case 0:
+                                    return otherName + " burnt " + name + " to ashes";
 
-                    case 1:
-                            return otherName + " fried " + name + " to a crisp";
+                                case 1:
+                                    return otherName + " fried " + name + " to a crisp";
 
-                    case 2:
-                            return name + " was barbecued by" + otherName;
-                }
+                                case 2:
+                                    return name + " was barbecued by" + otherName;
+                            }
 
-            default:
-                switch (choice) {
-                    default:
-                        case 0:
-                        return otherName + " ended " + name + "'s life";
+                            default:
+                                switch (choice) {
+                                    default:
+                                    case 0:
+                                        return otherName + " ended " + name + "'s life";
 
-                    case 1:
-                            return otherName + " was too much for " + name + " to handle";
+                                    case 1:
+                                        return otherName + " was too much for " + name + " to handle";
 
-                    case 2:
-                            return otherName + " killed " + name;
-                }
+                                    case 2:
+                                        return otherName + " killed " + name;
+                                }
         }
     }
 
@@ -3464,63 +3294,63 @@ std.string NPC.GetDeathMsgCombat(boost.weak_ptr < NPC > other, DamageType damage
         case DAMAGE_SLASH:
             switch (choice) {
                 default:
-                    case 0:
+                case 0:
                     return name + " was cut into ribbons";
 
                 case 1:
-                        return name + " got slashed into pieces";
+                    return name + " got slashed into pieces";
 
                 case 2:
-                        return name + " was dissected";
+                    return name + " was dissected";
 
                 case 3:
-                        return name + " was chopped up";
+                    return name + " was chopped up";
             }
 
-        case DAMAGE_BLUNT:
-            switch (choice) {
-                default:
+            case DAMAGE_BLUNT:
+                switch (choice) {
+                    default:
                     case 0:
-                    return name + " was bludgeoned to death";
+                        return name + " was bludgeoned to death";
 
-                case 1:
+                    case 1:
                         return name + " was smashed into pulp";
 
-                case 2:
+                    case 2:
                         return name + " was crushed";
 
-                case 3:
+                    case 3:
                         return name + " was hammered to death";
-            }
+                }
 
-        case DAMAGE_PIERCE:
-            switch (choice) {
-                default:
-                    case 0:
-                    return name + " got pierced straight through";
+                case DAMAGE_PIERCE:
+                    switch (choice) {
+                        default:
+                        case 0:
+                            return name + " got pierced straight through";
 
-                case 1:
-                        return name + " got too many holes punched through";
+                        case 1:
+                            return name + " got too many holes punched through";
 
-                case 2:
-                        return name + " was made into a pincushion";
-            }
+                        case 2:
+                            return name + " was made into a pincushion";
+                    }
 
-        case DAMAGE_FIRE:
-            switch (choice) {
-                default:
-                    case 0:
-                    return name + " burnt into ashes";
+                    case DAMAGE_FIRE:
+                        switch (choice) {
+                            default:
+                            case 0:
+                                return name + " burnt into ashes";
 
-                case 1:
-                        return name + " fried to a crisp";
+                            case 1:
+                                return name + " fried to a crisp";
 
-                case 2:
-                        return name + " was barbecued";
-            }
+                            case 2:
+                                return name + " was barbecued";
+                        }
 
-        default:
-            return GetDeathMsg();
+                        default:
+                            return GetDeathMsg();
     }
 }
 

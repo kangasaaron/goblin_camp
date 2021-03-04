@@ -15,118 +15,85 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "libtcod.js"
-
-import "Coordinate.js"
-import "data/Serialization.js"
+import {
+	Serializable
+} from "../data/Serialization.js";
+import {
+	Color
+} from "../other/Color.js";
+import {
+	Coordinate
+} from "./Coordinate.js";
 import {
 	MarkerType
 } from "./MarkerType.js";
 
-class MapMarker {
-	GC_SERIALIZABLE_CLASS
-
-	MarkerType type;
-	TCODColor origColor, color;
-	int duration;
-	int graphic;
-	int x, y; //TODO switch to Coordinate
-	float counter;
-	//public extends 
-	MapMarker(MarkerType = MarkerType.FLASHINGMARKER, int graphic = '?', Coordinate position = Coordinate(0, 0),
-		int duration = 1, TCODColor color = TCODColor.pink);
-	bool Update();
-	int X() const;
-	int Y() const;
-	Coordinate Position() const;
-	int Graphic() const;
-	TCODColor Color() const;
+export class MapMarker extends Serializable {
+	static CLASS_VERSION = 0;
+	type = MarkerType.FLASHINGMARKER;
+	origColor = new Color();
+	color = new Color();
+	duration = 0;
+	graphic = 0;
+	pos = new Coordinate();
+	counter = 0;
+	constructor(t = MarkerType.FLASHINGMARKER, g = '?', pos = Coordinate.zero, duration = 1, color = Color.pink) {
+		this.type = t;
+		this.origColor = color;
+		this.color = color;
+		this.duration = duration;
+		this.graphic = g;
+		this.pos = pos.clone();
+	}
+	Update() {
+		if (this.duration > 0) --this.duration;
+		this.color = Color.lerp(this.origColor, Color.white, Math.abs(Math.sin(counter)));
+		this.counter += 0.1;
+		if (this.counter > Math.PI) counter = 0.0;
+		return this.duration != 0;
+	}
+	X() {
+		return this.pos.X();
+	}
+	Y() {
+		return this.pos.Y();
+	}
+	Position() {
+		this.pos;
+	}
+	Graphic() {
+		return this.graphic;
+	}
+	Color() {
+		return this.color;
+	}
+	serialize(ar, version) {
+		ar.register_type(Coordinate);
+		ar.register_type(Color);
+		ar.register_type(MarkerType);
+		return {
+			type: ar.serialize(this.type),
+			origColor: ar.serialize(this.origColor),
+			color: ar.serialize(this.color),
+			duration: this.duration,
+			graphic: this.graphic,
+			pos: ar.serialize(this.pos),
+			counter: this.counter
+		};
+	}
+	static deserialize(data, version, deserializer) {
+		deserializer.register_type(Coordinate);
+		deserializer.register_type(Color);
+		deserializer.register_type(MarkerType);
+		let result = new MapMarker(
+			deserializer.deserialize(data.type),
+			data.graphic,
+			deserializer.deserialize(data.pos),
+			data.duration,
+			deserializer.deserialize(data.color)
+		);
+		result.origColor = deserializer.deserialize(data.origColor)
+		result.counter = data.counter;
+		return result;
+	}
 };
-
-BOOST_CLASS_VERSION(MapMarker, 0)
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/math/constants/constants.js"
-
-import "MapMarker.js"
-import "Random.js"
-import "Coordinate.js"
-
-MapMarker.MapMarker(MarkerType t, int g, Coordinate pos, int d, TCODColor c): type(t),
-	origColor(c), color(c), duration(d), graphic(g),
-	x(pos.X()), y(pos.Y()), counter(0.0 f) {}
-
-bool MapMarker.Update() {
-	if (duration > 0) --duration;
-	color = TCODColor.lerp(origColor, TCODColor.white, std.abs(std.sin(counter)));
-	counter += 0.1 f;
-	if (counter > boost.math.constants.pi < float > ()) counter = 0.0 f;
-	return duration != 0;
-}
-
-int MapMarker.X() const {
-	return x;
-}
-
-int MapMarker.Y() const {
-	return y;
-}
-
-Coordinate MapMarker.Position() const {
-	return Coordinate(x, y);
-}
-
-int MapMarker.Graphic() const {
-	return graphic;
-}
-
-TCODColor MapMarker.Color() const {
-	return color;
-}
-
-void MapMarker.save(OutputArchive & ar,
-	const unsigned int version) const {
-	ar & type;
-	ar & origColor.r;
-	ar & origColor.g;
-	ar & origColor.b;
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & duration;
-	ar & graphic;
-	ar & x;
-	ar & y;
-	ar & counter;
-}
-
-void MapMarker.load(InputArchive & ar,
-	const unsigned int version) {
-	ar & type;
-	ar & origColor.r;
-	ar & origColor.g;
-	ar & origColor.b;
-	ar & color.r;
-	ar & color.g;
-	ar & color.b;
-	ar & duration;
-	ar & graphic;
-	ar & x;
-	ar & y;
-	ar & counter;
-}

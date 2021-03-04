@@ -19,64 +19,6 @@ import {
 	Globals
 } from "./Globals.js";
 
-class Dice {
-	constructor(...args) {
-		if (args.length === 1)
-			this.constructor_tcod_dice(args[0]);
-		else
-			this.constructor_numbers(args[0], args[1], ags[2], args[3]);
-	}
-	constructor_tcod_dice(dice) {
-		this.dices = Math.max(1, dice.nb_rolls);
-		this.faces = Math.max(1, dice.nb_faces);
-		this.multiplier = dice.multiplier;
-		this.offset = dice.addsub;
-	}
-	constructor_numbers(dices, faces = 1, multiplier = 1, offest = 0) {
-		this.dices = dices;
-		this.faces = faces;
-		this.multiplier = multiplier;
-		this.offset = offset;
-	}
-	/**
-		Rolls the dice.
-		
-		@returns Result of the roll(s).
-	*/
-	Roll() {
-		let result = 0;
-
-		for (let i = 0; i < this.dices; ++i) {
-			result += Generate(1, Math.max(1, this.faces));
-		}
-
-		// round(x) = floor(x + 0.5)
-		result = Math.floor(
-			((this.multiplier * result) + this.offset) + 0.5
-		);
-		return result;
-	}
-
-	/**
-		Calculates maximum value of the roll.
-		
-		@returns Highest value that @ref Dice.Roll may return for this dice.
-	*/
-	Max() {
-		return Math.round(this.multiplier * (this.dices * this.faces) + this.offset);
-	}
-
-	/**
-		Calculates minimum value of the roll.
-		
-		@returns Lowest value that @ref Dice.Roll may return for this dice.
-	*/
-	Min() {
-		return Math.round((this.multiplier * (this.dices * 1)) + this.offset);
-	}
-}
-
-
 class Generator {
 	seed = 0;
 	generator = null;
@@ -247,37 +189,18 @@ function GetStandardSeed() {
 	A simplified interface to Boost.Random.
 */
 
-/**
-	\class Dice
-		Represents a single or multiple dice roll.
-*/
-/**
-	Creates the dice of format <tt>\<multiplier\> * \<dices\>d\<faces\> + \<offset\></tt>.
-	
-	@param[in] faces      Dice faces.
-	@param[in] dices      Number of dice rolls.
-	@param[in] multiplier Result modifier.
-	@param[in] offset     Result modifier.
-*/
-
 
 /**
-	Creates the dice out of TCOD_dice_t.
-	
-	@param[in] dice TCOD_dice_t to convert.
-*/
-
-/**
-	\class Generator
+	@class Generator
 		An interface to seed and use Mersenne Twister-based PNRG.
 		
-		\see Globals.generator
+		@see Globals.generator
 */
 
 /**
 	Creates and optionally seeds generator.
 	
-	\see Generator.Seed
+	@see Generator.Seed
 	@param[in] seed Seed to use.
 */
 
@@ -300,7 +223,7 @@ class Random {
 		Globals.generator.SetSeed(seed);
 	}
 
-	/** \copydoc Generator.Generate(int, int) */
+	/** @copydoc Generator.Generate(int, int) */
 	static Generate(...args) {
 		return Globals.generator.Generate(...args);
 	}
@@ -308,7 +231,7 @@ class Random {
 		return Globals.generator.GenerateBool();
 	}
 
-	/** \copydoc Generator.Sign */
+	/** @copydoc Generator.Sign */
 	static Sign() {
 		return Globals.generator.Sign();
 	}
@@ -324,17 +247,17 @@ class Random {
 	}
 
 	/**
-		\fn T Sign(const T&)
+		@fn T Sign(const T&)
 			Multiplies the expression by a random sign. XXX come up with a better name.
 			
-			\see Generator.Sign
+			@see Generator.Sign
 			@param    T    The expression type.
 			@param[in] expr The expression value.
 			@returns        The expression value multiplied by either 1 or -1.
 	*/
 
 	/**
-		\fn unsigned ChooseIndex(const T&)
+		@fn unsigned ChooseIndex(const T&)
 			Chooses a random index from a given STL container.
 			
 			@param T            The container type (must implement the <tt>Random Access Container</tt> concept).
@@ -343,7 +266,7 @@ class Random {
 	*/
 
 	/**
-		\fn unsigned ChooseElement(const T&)
+		@fn unsigned ChooseElement(const T&)
 			Chooses a random element from a given STL container.
 			
 			@param T            The container type (must implement the <tt>Random Access Container</tt> concept).
@@ -353,7 +276,6 @@ class Random {
 	// }
 }
 
-Random.Dice = Dice;
 Random.Generator = Generator;
 
 Globals.generator = new Random.Generator();

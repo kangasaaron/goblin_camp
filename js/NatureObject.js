@@ -14,354 +14,133 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-
-import "string"
-import "vector"
-
-import "Entity.js"
-import "data/Serialization.js"
-
-class Coordinate;
-class WaterNode;
-
-typedef int ItemType;
-typedef int NatureObjectType;
-
-class NatureObjectPreset {
-    //public extends 
-    NatureObjectPreset();
-    std.string name;
-    int graphic;
-    TCODColor color;
-    std.list < ItemType > components;
-    int rarity;
-    int cluster;
-    int condition;
-    bool tree, harvestable, walkable;
-    float minHeight, maxHeight;
-    bool evil;
-    std.string fallbackGraphicsSet;
-    int graphicsHint;
-};
-
-class NatureObject extends /*public*/ Entity {
-    GC_SERIALIZABLE_CLASS
-
-    friend class Game;
-    friend class Ice;
-    //protected:
-    NatureObject(Coordinate = Coordinate(0, 0), NatureObjectType = 0);
-    NatureObjectType type;
-    int graphic;
-    TCODColor color;
-    bool marked;
-    int condition;
-    bool tree, harvestable;
-    bool ice;
-    //public:
-    ~NatureObject();
-    static std.vector < NatureObjectPreset > Presets;
-    static void LoadPresets(std.string);
-
-    int Type();
-
-    int GetGraphicsHint() const;
-    void Draw(Coordinate, TCODConsole * );
-    void Update();
-    virtual void CancelJob(int = 0);
-    void Mark();
-    void Unmark();
-    bool Marked();
-    int Fell();
-    int Harvest();
-    bool Tree();
-    bool Harvestable();
-    bool IsIce();
-};
-
-BOOST_CLASS_VERSION(NatureObject, 1)
-
-class Ice extends /*public*/ NatureObject {
-    GC_SERIALIZABLE_CLASS
-
-    boost.shared_ptr < WaterNode > frozenWater;
-    //public:
-    Ice(Coordinate = Coordinate(0, 0), NatureObjectType = 0);
-    ~Ice();
-};
-
-BOOST_CLASS_VERSION(Ice, 0)
-    /* Copyright 2010-2011 Ilkka Halila
-    This file is part of Goblin Camp.
-
-    Goblin Camp is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Goblin Camp is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-if /* if(def */ (DEBUG) {) {
-    import "iostream"
-} /*#endif*/
-
-import "boost/algorithm/string.js"
-import "boost/serialization/shared_ptr.js"
-
-import "NatureObject.js"
-import "Map.js"
-import "Item.js"
-import "Game.js"
-import "Random.js"
-
-NatureObjectPreset.NatureObjectPreset():
-    name("NATUREOBJECT PRESET"),
-    graphic('?'),
-    color(TCODColor.pink),
-    components(std.list < ItemType > ()),
-    rarity(100),
-    cluster(1),
-    condition(1),
-    tree(false),
-    harvestable(false),
-    walkable(false),
-    minHeight(0.0 f),
-    maxHeight(2.0 f),
-    evil(false),
-    fallbackGraphicsSet(),
-    graphicsHint(-1) {}
-
-std.vector < NatureObjectPreset > NatureObject.Presets = std.vector < NatureObjectPreset > ();
-
-NatureObject.NatureObject(Coordinate pos, NatureObjectType typeVal): Entity(),
-    type(typeVal),
-    marked(false),
-    ice(false) {
-        Position(pos);
-
-        name = Presets[type].name;
-        graphic = Presets[type].graphic;
-        color = Presets[type].color;
-        condition = Presets[type].condition;
-        tree = Presets[type].tree;
-        harvestable = Presets[type].harvestable;
-    }
-
-NatureObject.~NatureObject() {
-    if (!NatureObject.Presets[type].walkable) {
-        Map.SetWalkable(pos, true);
-        Map.SetBlocksLight(pos, false);
-    }
-    Map.SetBuildable(pos, true);
+import {
+    Entity
 }
-
-int NatureObject.GetGraphicsHint() const {
-    return Presets[type].graphicsHint;
+from "./Entity.js";
+import {
+    NatureObjectPreset
 }
-
-void NatureObject.Draw(Coordinate upleft, TCODConsole * the_console) {
-    int screenx = (pos - upleft).X();
-    int screeny = (pos - upleft).Y();
-    if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
-        the_console.putCharEx(screenx, screeny, graphic, color, marked ? TCODColor.white : TCODColor.black);
-    }
+from "./NatureObjectPreset.js";
+import {
+    ItemType
 }
-
-void NatureObject.Update() {}
-
-class NatureObjectListener extends /*public*/ ITCODParserListener {
-    int natureIndex;
-
-    bool parserNewStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        bool foundInPreset = false;
-
-        for (size_t i = 0; i < NatureObject.Presets.size(); ++i) {
-            if (boost.iequals(NatureObject.Presets[i].name, name)) {
-                natureIndex = static_cast < int > (i);
-                NatureObject.Presets[i] = NatureObjectPreset();
-                foundInPreset = true;
-                break;
-            }
-        }
-
-        if (!foundInPreset) {
-            natureIndex = static_cast < int > (NatureObject.Presets.size());
-            NatureObject.Presets.push_back(NatureObjectPreset());
-        }
-
-        NatureObject.Presets[natureIndex].name = name;
-        return true;
-    }
-
-    bool parserFlag(TCODParser * parser,
-        const char * name) {
-        if (boost.iequals(name, "walkable")) {
-            NatureObject.Presets[natureIndex].walkable = true;
-        } else if (boost.iequals(name, "harvestable")) {
-            NatureObject.Presets[natureIndex].harvestable = true;
-        } else if (boost.iequals(name, "tree")) {
-            NatureObject.Presets[natureIndex].tree = true;
-        } else if (boost.iequals(name, "evil")) {
-            NatureObject.Presets[natureIndex].evil = true;
-        }
-        return true;
-    }
-
-    bool parserProperty(TCODParser * parser,
-        const char * name, TCOD_value_type_t type, TCOD_value_t value) {
-        if (boost.iequals(name, "graphic")) {
-            NatureObject.Presets[natureIndex].graphic = value.i;
-        } else if (boost.iequals(name, "components")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                NatureObject.Presets[natureIndex].components.push_back(Item.StringToItemType((char * ) TCOD_list_get(value.list, i)));
-            }
-        } else if (boost.iequals(name, "col")) {
-            NatureObject.Presets[natureIndex].color = value.col;
-        } else if (boost.iequals(name, "rarity")) {
-            NatureObject.Presets[natureIndex].rarity = value.i;
-        } else if (boost.iequals(name, "cluster")) {
-            NatureObject.Presets[natureIndex].cluster = value.i;
-        } else if (boost.iequals(name, "condition")) {
-            NatureObject.Presets[natureIndex].condition = value.i;
-        } else if (boost.iequals(name, "minheight")) {
-            NatureObject.Presets[natureIndex].minHeight = value.f;
-        } else if (boost.iequals(name, "maxheight")) {
-            NatureObject.Presets[natureIndex].maxHeight = value.f;
-        } else if (boost.iequals(name, "fallbackGraphicsSet")) {
-            NatureObject.Presets[natureIndex].fallbackGraphicsSet = value.s;
-        }
-        return true;
-    }
-
-    bool parserEndStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        return true;
-    }
-    void error(const char * msg) {
-        throw std.runtime_error(msg);
-    }
-};
-
-void NatureObject.LoadPresets(std.string filename) {
-    TCODParser parser = TCODParser();
-    TCODParserStruct * natureObjectTypeStruct = parser.newStructure("plant_type");
-    natureObjectTypeStruct.addProperty("graphic", TCOD_TYPE_INT, true);
-    natureObjectTypeStruct.addProperty("col", TCOD_TYPE_COLOR, true);
-    natureObjectTypeStruct.addListProperty("components", TCOD_TYPE_STRING, false);
-    natureObjectTypeStruct.addProperty("rarity", TCOD_TYPE_INT, false);
-    natureObjectTypeStruct.addProperty("condition", TCOD_TYPE_INT, false);
-    natureObjectTypeStruct.addProperty("cluster", TCOD_TYPE_INT, false);
-    natureObjectTypeStruct.addFlag("tree");
-    natureObjectTypeStruct.addFlag("harvestable");
-    natureObjectTypeStruct.addFlag("walkable");
-    natureObjectTypeStruct.addProperty("minheight", TCOD_TYPE_FLOAT, false);
-    natureObjectTypeStruct.addProperty("maxheight", TCOD_TYPE_FLOAT, false);
-    natureObjectTypeStruct.addProperty("fallbackGraphicsSet", TCOD_TYPE_STRING, false);
-    natureObjectTypeStruct.addFlag("evil");
-
-    NatureObjectListener listener = NatureObjectListener();
-    parser.run(filename.c_str(), & listener);
+from "./ItemType.js";
+import {
+    NatureObjectType
 }
+from "./NatureObjectType.js";
+import {
+    Color
+} from "./other/Color.js";
 
-
-void NatureObject.Mark() { marked = true; }
-void NatureObject.Unmark() { marked = false; }
-bool NatureObject.Marked() { return marked; }
-
-void NatureObject.CancelJob(int) {
+export class NatureObject extends Entity {
+    static CLASS_VERSION = 1;
+    static Presets = [];
+    type = 0;
+    graphic = 0;
+    condition = 0;
+    color = new Color();
     marked = false;
-}
+    tree = false;
+    harvestable = false;
+    ice = false;
 
-int NatureObject.Fell() { return --condition; }
-int NatureObject.Harvest() { return --condition; }
-
-int NatureObject.Type() { return type; }
-bool NatureObject.Tree() { return tree; }
-bool NatureObject.Harvestable() { return harvestable; }
-
-bool NatureObject.IsIce() { return ice; }
-
-void NatureObject.save(OutputArchive & ar,
-    const unsigned int version) const {
-    ar & boost.serialization.base_object < Entity > ( * this);
-    ar & NatureObject.Presets[type].name;
-    ar & graphic;
-    ar & color.r;
-    ar & color.g;
-    ar & color.b;
-    ar & marked;
-    ar & condition;
-    ar & tree;
-    ar & harvestable;
-    ar & ice;
-}
-
-void NatureObject.load(InputArchive & ar,
-    const unsigned int version) {
-    ar & boost.serialization.base_object < Entity > ( * this);
-    std.string typeName;
-    ar & typeName;
-    bool failedToFindType = true;
-    type = 0; //Default to whatever is the first wildplant
-    for (size_t i = 0; i < NatureObject.Presets.size(); ++i) {
-        if (boost.iequals(NatureObject.Presets[i].name, typeName)) {
-            type = static_cast < int > (i);
-            failedToFindType = false;
-            break;
+    constructor(pos = Coordinate.zero, typeVal = 0) {
+        super();
+        this.type = typeVal;
+        this.pos = pos;
+        this.name = NatureObject.Presets[this.type].name;
+        this.graphic = NatureObject.Presets[this.type].graphic;
+        this.color = NatureObject.Presets[this.type].color.clone();
+        this.condition = NatureObject.Presets[this.type].condition;
+        this.tree = NatureObject.Presets[this.type].tree;
+        this.harvestable = NatureObject.Presets[this.type].harvestable;
+    }
+    destructor() {
+        if (!NatureObject.Presets[this.type].walkable) {
+            Map.SetWalkable(this.pos, true);
+            Map.SetBlocksLight(this.pos, false);
+        }
+        Map.SetBuildable(this.pos, true);
+    }
+    Update() {}
+    GetGraphicsHint() {
+        return NatureObject.Presets[this.type].graphicsHint;
+    }
+    Mark() {
+        this.marked = true;
+    }
+    Unmark() {
+        this.marked = false;
+    }
+    Marked() {
+        return this.marked;
+    }
+    CancelJob(int) {
+        this.marked = false;
+    }
+    Fell() {
+        return --this.condition;
+    }
+    Harvest() {
+        return --this.condition;
+    }
+    Type() {
+        return this.type;
+    }
+    Tree() {
+        return this.tree;
+    }
+    Harvestable() {
+        return this.harvestable;
+    }
+    IsIce() {
+        return this.ice;
+    }
+    Draw(upleft, the_console) {
+        let screenx = (this.pos.minus(upleft)).X();
+        let screeny = (this.pos.minus(upleft)).Y();
+        if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
+            the_console.putCharEx(screenx, screeny, this.graphic, this.color, this.marked ? Color.white : Color.black);
         }
     }
-    ar & graphic;
-    ar & color.r;
-    ar & color.g;
-    ar & color.b;
-    ar & marked;
-    ar & condition;
-    ar & tree;
-    ar & harvestable;
-    if (failedToFindType) harvestable = true;
-    if (version >= 1) {
-        ar & ice;
-    }
-}
 
-Ice.Ice(Coordinate pos, NatureObjectType typeVal): NatureObject(pos, typeVal) {
-    ice = true;
-    Map.SetBlocksWater(pos, true);
-    boost.shared_ptr < WaterNode > water = Map.GetWater(pos).lock();
-    if (water) {
-        frozenWater = water;
-        Game.RemoveWater(pos);
+    serialize(ar, version) {
+        let result = super.serialize(ar, version);
+        result.name = NatureObject.Presets[this.type].name;
+        result.graphic = this.graphic;
+        result.color = ar.serialize(this.color);
+        result.marked = this.marked;
+        result.condition = this.condition;
+        result.tree = this.tree;
+        result.harvestable = this.harvestable;
+        result.ice = this.ice;
+        return result;
     }
-}
-
-Ice.~Ice() {
-    Map.SetBlocksWater(pos, false);
-    if (frozenWater) {
-        Game.CreateWaterFromNode(frozenWater);
-        if (Random.Generate(4) == 0) {
-            Game.CreateItem(Position(), Item.StringToItemType("ice"), false, -1);
+    static deserialize(data, version, deserializer) {
+        let EntityResult = Entity.deserialize(data, version, deserializer);
+        let result = new NatureObject(deserializer.deserialize(data.pos), deserializer.deserialize(data.type));
+        for (let key of Object.keys(EntityResult)) {
+            result[key] = EntityResult[key];
         }
+        result.graphic = data.graphic;
+        result.color = deserializer.deserialize(data.color);
+        result.graphic = data.graphic;
+        result.marked = data.marked;
+        result.condition = data.condition;
+        result.tree = data.tree;
+        result.harvestable = data.harvestable;
+        result.ice = data.ice;
+        result.tree = data.tree;
+        return result;
     }
-}
 
-void Ice.save(OutputArchive & ar,
-    const unsigned int version) const {
-    ar & boost.serialization.base_object < NatureObject > ( * this);
-    ar & frozenWater;
-}
-
-void Ice.load(InputArchive & ar,
-    const unsigned int version) {
-    ar & boost.serialization.base_object < NatureObject > ( * this);
-    ar & frozenWater;
+    static LoadPresets(filename) {
+        let listener = new NatureObjectListener(this);
+        listener.fetch(filename)
+            .then(function (data) {
+                listener.parse(data);
+            });
+    }
 }

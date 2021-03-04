@@ -1,0 +1,26 @@
+struct NPCPreset {
+    NPCPreset(std.string);
+    std.string typeName;
+    std.string name;
+    std.string plural;
+    TCODColor color;
+    int graphic;
+    bool expert;
+    int health;
+    std.string ai;
+    bool needsNutrition;
+    bool needsSleep;
+    bool generateName;
+    int stats[STAT_COUNT];
+    int resistances[RES_COUNT];
+    bool spawnAsGroup;
+    TCOD_dice_t group;
+    std.list < Attack > attacks;
+    std.set < std.string > tags;
+    int tier;
+    ItemType deathItem;
+    std.string fallbackGraphicsSet;
+    int graphicsHint;
+    std.vector < std.vector < int > > possibleEquipment;
+    int faction;
+};
