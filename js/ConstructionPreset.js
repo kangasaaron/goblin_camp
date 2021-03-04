@@ -7,6 +7,9 @@ import {
 import {
     OrderedSet
 } from "./other/OrderedSet.js";
+import {
+    Color
+} from "./other/Color.js";
 
 export class ConstructionPreset {
     maxCondition = 0;
@@ -26,7 +29,7 @@ export class ConstructionPreset {
     placementType = UIPLACEMENT;
     blocksLight = true;
     permanent = false;
-    color = [0, 0, 0];
+    color = new Color();
     tileReqs = new OrderedSet();
     tier = 0;
     description = "";

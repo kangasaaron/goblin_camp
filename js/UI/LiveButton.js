@@ -28,14 +28,14 @@ export class LiveButton extends Button {
     Draw(x, y, the_console) {
         super.Draw(x, y, the_console);
         if (this.selected) {
-            the_console.setDefaultForeground(TCODColor.black);
-            the_console.setDefaultBackground(TCODColor.white);
+            the_console.setDefaultForeground(Color.black);
+            the_console.setDefaultBackground(Color.white);
         } else {
-            the_console.setDefaultForeground(TCODColor.white);
-            the_console.setDefaultBackground(TCODColor.black);
+            the_console.setDefaultForeground(Color.white);
+            the_console.setDefaultBackground(Color.black);
         }
         the_console.print(x + this._x + this.width / 2, y + this._y + 1, this.textFunc());
-        the_console.setDefaultForeground(TCODColor.white);
-        the_console.setDefaultBackground(TCODColor.black);
+        the_console.setDefaultForeground(Color.white);
+        the_console.setDefaultBackground(Color.black);
     }
 }

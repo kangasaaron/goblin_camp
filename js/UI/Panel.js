@@ -25,13 +25,14 @@ export class Panel extends Drawable {
         let event;
 
         TCODMouse.showCursor(true);
-        while (this.PanelLoop(_x, _y, event, mouse, key)) {;
+        while (this.PanelLoop(_x, _y, event, mouse, key)) {
+            ;
         }
     }
     PanelLoop(_x, _y, event, mouse, key) {
         TCODConsole.root.clear();
-        TCODConsole.root.setDefaultForeground(TCODColor.white);
-        TCODConsole.root.setDefaultBackground(TCODColor.black);
+        TCODConsole.root.setDefaultForeground(Color.white);
+        TCODConsole.root.setDefaultBackground(Color.black);
         TCODConsole.blit(background, 0, 0, Game.ScreenWidth(), Game.ScreenHeight(),
             TCODConsole.root, 0, 0, 0.7, 1.0);
 

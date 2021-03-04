@@ -17,12 +17,18 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     CacheTile
 } from "./CacheTile.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
+import {
+    Color
+} from "./other/Color.js";
 
 import {
     TileType
 } from "./TileType.js";
 
-class Tile {
+export class Tile extends Serializable {
     static CLASS_VERSION = 0;
     type = null;
     /**
@@ -37,9 +43,9 @@ class Tile {
     blocksWater = false;
     water = null;
     graphic = '.';
-    foreColor = TCODColor.white;
-    originalForeColor = TCODColor.white;
-    backColor = TCODColor.black;
+    foreColor = Color.white;
+    originalForeColor = Color.white;
+    backColor = Color.black;
     natureObject = -1;
     /**
      * Set of NPC uid's
@@ -134,13 +140,13 @@ class Tile {
     }
     GetBackColor() {
         if (!this.blood && !this.marked) return this.backColor;
-        let result = this.backColor;
+        let result = this.backColor.clone();
         if (this.blood)
-            result[0] = Math.min(255, this.backColor[0] + this.blood.Depth());
+            result.r = Math.min(255, this.backColor.r + this.blood.Depth());
         if (this.marked) {
-            result[0] += TCODColor.darkGrey[0];
-            result[1] += TCODColor.darkGrey[1];
-            result[2] += TCODColor.darkGrey[2];
+            result.r += Color.darkGrey.r;
+            result.g += Color.darkGrey.g;
+            result.b += Color.darkGrey.b;
         }
         return result;
     }
@@ -178,11 +184,11 @@ class Tile {
         //Ground under a construction wont turn to mud
         if (this.walkedOver < 120 || this.construction < 0) ++this.walkedOver;
         if (this.type == TileType.TILEGRASS) {
-            this.foreColor = [
-                this.originalForeColor[0] + Math.min(255, walkedOver),
-                this.originalForeColor[1] + Math.min(255, corruption),
-                this.originalForeColor[2]
-            ];
+            this.foreColor = new Color(
+                this.originalForeColor.r + Math.min(255, walkedOver),
+                this.originalForeColor.g + Math.min(255, corruption),
+                this.originalForeColor.b
+            );
             if (this.burnt > 0) this.Burn(0); //Just to re-do the color
             if (this.walkedOver > 100 && this.graphic != '.' && this.graphic != ',') this.graphic = Random.GenerateBool() ? '.' : ',';
             if (this.walkedOver > 300 && Random.Generate(99) == 0) this.ChangeType(TileType.TILEMUD);
@@ -192,11 +198,11 @@ class Tile {
         this.corruption += magnitude;
         if (this.corruption < 0) this.corruption = 0;
         if (this.type == TileType.TILEGRASS) {
-            this.foreColor = [
-                originalForeColor[0] + Math.min(255, walkedOver),
-                originalForeColor[1] + Math.min(255, corruption),
-                originalForeColor[2]
-            ];
+            this.foreColor = new Color(
+                originalForeColor.r + Math.min(255, walkedOver),
+                originalForeColor.g + Math.min(255, corruption),
+                originalForeColor.b
+            );
             if (this.burnt > 0)
                 this.Burn(0); //Just to re-do the color
         }
@@ -263,13 +269,13 @@ class Tile {
         if (this.type != TileType.TILEGRASS) return;
 
         if (this.burnt < 5) {
-            foreColor[0] = 130 + ((5 - this.burnt) * 10);
-            foreColor[1] = 80 + ((5 - this.burnt) * 5);
-            foreColor[2] = 0;
+            this.foreColor.r = 130 + ((5 - this.burnt) * 10);
+            this.foreColor.g = 80 + ((5 - this.burnt) * 5);
+            this.foreColor.b = 0;
         } else {
-            foreColor[0] = 50 + ((10 - this.burnt) * 12);
-            foreColor[1] = 50 + ((10 - this.burnt) * 6);
-            foreColor[2] = (this.burnt - 5) * 10;
+            this.foreColor.r = 50 + ((10 - this.burnt) * 12);
+            this.foreColor.g = 50 + ((10 - this.burnt) * 6);
+            this.foreColor.b = (this.burnt - 5) * 10;
         }
     }
     ResetTypeToGrass(height) {
@@ -277,17 +283,17 @@ class Tile {
         this.walkable = true;
         this.buildable = true;
         this.low = false;
-        this.originalForeColor = [Random.Generate(49), 127, 0];
+        this.originalForeColor = new Color(Random.Generate(49), 127, 0);
         if (Random.Generate(9) < 9) {
             if (height < -0.01) {
-                this.originalForeColor = [Random.Generate(100, 192), 127, 0];
-            } else if (height < 0.0 f) {
-                this.originalForeColor = [Random.Generate(20, 170), 127, 0];
-            } else if (height > 4.0 f) {
-                this.originalForeColor = [90, Random.Generate(120, 150), 90];
+                this.originalForeColor = new Color(Random.Generate(100, 192), 127, 0);
+            } else if (height < 0.0) {
+                this.originalForeColor = new Color(Random.Generate(20, 170), 127, 0);
+            } else if (height > 4.0) {
+                this.originalForeColor = new Color(90, Random.Generate(120, 150), 90);
             }
         }
-        this.backColor = [0, 0, 0];
+        this.backColor = new Color();
         switch (Random.Generate(9)) {
             case 0:
             case 1:
@@ -315,7 +321,7 @@ class Tile {
         this.buildable = true;
         this.low = true;
         this.graphic = '_';
-        this.originalForeColor = [125, 50, 0];
+        this.originalForeColor = new Color(125, 50, 0);
         this.moveCost = Random.Generate(3, 5);
         this.flow = Direction.NODIRECTION; //Reset flow
     }
@@ -344,8 +350,8 @@ class Tile {
                 this.graphic = '\'';
                 break;
         }
-        this.originalForeColor = [Random.Generate(184), 127, 70];
-        this.backColor = [60, 30, 20];
+        this.originalForeColor = new Color(Random.Generate(184), 127, 70);
+        this.backColor = new Color(60, 30, 20);
         this.moveCost = Random.Generate(6, 10);
     }
     ResetTypeToRock(height) {
@@ -354,8 +360,8 @@ class Tile {
         this.buildable = true;
         this.low = false;
         this.graphic = (Random.GenerateBool() ? ',' : '.');
-        this.originalForeColor = [Random.Generate(182, 182 + 19), Random.Generate(182, 182 + 19), Random.Generate(182, 182 + 19)];
-        this.backColor = [0, 0, 0];
+        this.originalForeColor = new Color(Random.Generate(182, 182 + 19), Random.Generate(182, 182 + 19), Random.Generate(182, 182 + 19));
+        this.backColor = new Color();
     }
     ResetTypeToMud(height) {
         this.vis = true;
@@ -364,7 +370,7 @@ class Tile {
         this.low = false;
         this.graphic = Random.GenerateBool() ? '#' : '~';
         this.originalForeColor = [Random.Generate(120, 130), Random.Generate(80, 90), 0];
-        this.backColor = [0, 0, 0];
+        this.backColor = new Color();
         this.moveCost = 5;
     }
     ResetTypeToSnow(height) {
@@ -373,119 +379,121 @@ class Tile {
         this.buildable = true;
         this.low = false;
         let colorNum = Random.Generate(195, 250);
-        this.originalForeColor = [colorNum + Random.Generate(-5, 5), colorNum + Random.Generate(-5, 5),
-            colorNum + Random.Generate(-5, 5)
-        ];
-        this.backColor = [0, 0, 0];
-        switch (Random.Generate(9)) {
-            case 0:
-            case 1:
-            case 2:
-            case 3:
-                this.graphic = '.';
-                break;
-            case 4:
-            case 5:
-            case 6:
-            case 7:
-                this.graphic = ',';
-                break;
-            case 8:
-                this.graphic = ':';
-                break;
-            case 9:
-                this.graphic = '\'';
-                break;
-        }
+        this.originalForeColor = new Color(colorNum + Random.Generate(-5, 5), colorNum + Random.Generate(-5, 5),
+            colorNum + Random.Generate(-5, 5));
+    ];
+    this.backColor = [0, 0, 0];
+    switch (Random.Generate(9)) {
+        case 0:
+        case 1:
+        case 2:
+        case 3:
+            this.graphic = '.';
+            break;
+        case 4:
+        case 5:
+        case 6:
+        case 7:
+            this.graphic = ',';
+            break;
+        case 8:
+            this.graphic = ':';
+            break;
+        case 9:
+            this.graphic = '\'';
+            break;
     }
-    ResetType(newType, height = 0.0) {
-        this.type = newType;
-        if (type == TileType.TILEGRASS) {
-            this.ResetTypeToGrass(height);
-        } else if (type == TileType.TILEDITCH || type == TileType.TILERIVERBED) {
-            this.ResetTypeToDitchOrRiverbed(height);
-        } else if (type == TileType.TILEBOG) {
-            this.ResetTypeToBog(height);
-        } else if (type == TileType.TILEROCK) {
-            this.ResetTypeToRock(height);
-        } else if (type == TileType.TILEMUD) {
-            this.ResetTypeToMud(height);
-        } else if (type == TileType.TILESNOW) {
-            this.ResetTypeToSnow(height);
-        } else {
-            this.vis = false;
-            this.walkable = false;
-            this.buildable = false;
-        }
-        this.foreColor = this.originalForeColor;
+}
+ResetType(newType, height = 0.0) {
+    this.type = newType;
+    if (type == TileType.TILEGRASS) {
+        this.ResetTypeToGrass(height);
+    } else if (type == TileType.TILEDITCH || type == TileType.TILERIVERBED) {
+        this.ResetTypeToDitchOrRiverbed(height);
+    } else if (type == TileType.TILEBOG) {
+        this.ResetTypeToBog(height);
+    } else if (type == TileType.TILEROCK) {
+        this.ResetTypeToRock(height);
+    } else if (type == TileType.TILEMUD) {
+        this.ResetTypeToMud(height);
+    } else if (type == TileType.TILESNOW) {
+        this.ResetTypeToSnow(height);
+    } else {
+        this.vis = false;
+        this.walkable = false;
+        this.buildable = false;
     }
-    serialize(ar, version) {
-        ar.register_type(TileType);
-        ar.register_type(Direction);
-        ar.register_type(WaterNode);
-        ar.register_type(FireNode);
-        ar.register_type(BloodNode);
-        return {
-            "type": ar.serializable(this.type),
-            "vis": this.vis,
-            "walkable": this.walkable,
-            "buildable": this.buildable,
-            "moveCost": this.moveCost,
-            "construction": this.construction,
-            "low": this.low,
-            "blocksWater": this.blocksWater,
-            "water": ar.serializable(this.water),
-            "graphic": this.graphic,
-            "foreColor": this.foreColor,
-            "originalForeColor": this.originalForeColor,
-            "backColor": this.backColor,
-            "natureObject": this.natureObject,
-            "npcList": this.npcList,
-            "itemList": this.itemList,
-            "filth": ar.serializable(this.filth),
-            "blood": ar.serializable(this.blood),
-            "marked": this.marked,
-            "walkedOver": this.walkedOver,
-            "corruption": this.corruption,
-            "territory": this.territory,
-            "burnt": this.burnt,
-            "fire": ar.serializable(this.fire),
-            "flow": this.flow,
-        };
-    }
-    static deserialize(data, version, deserializer) {
-        ar.register_type(TileType);
-        ar.register_type(Direction);
-        ar.register_type(WaterNode);
-        ar.register_type(FireNode);
-        ar.register_type(BloodNode);
-        let result = new Tile(
-            deserializer.deserializable(data.type),
-            data.cost
-        );
-        result.vis = data.vis;
-        result.walkable = data.walkable;
-        result.buildable = data.buildable;
-        result.construction = data.construction;
-        result.low = data.low;
-        result.blocksWater = data.blocksWater;
-        result.water = deserialzier.deserializable(data.water);
-        result.graphic = data.graphic;
-        result.foreColor = data.foreColor;
-        result.originalForeColor = data.originalForeColor;
-        result.backColor = data.backColor;
-        result.natureObject = data.natureObject;
-        result.npcList = data.npcList;
-        result.itemList = data.itemList;
-        result.filth = deserialzier.deserializable(data.filth);
-        result.blood = deserialzier.deserializable(data.blood);
-        result.marked = data.marked;
-        result.walkedOver = data.walkedOver;
-        result.corruption = data.corruption;
-        result.territory = data.territory;
-        result.burnt = data.burnt;
-        result.fire = deserialzier.deserializable(data.fire);
-        result.flow = data.flow;
-        return result;
-    }
+    this.foreColor = this.originalForeColor.clone();
+}
+serialize(ar, version) {
+    ar.register_type(TileType);
+    ar.register_type(Color);
+    ar.register_type(Direction);
+    ar.register_type(WaterNode);
+    ar.register_type(FireNode);
+    ar.register_type(BloodNode);
+    return {
+        "type": ar.serialize(this.type),
+        "vis": this.vis,
+        "walkable": this.walkable,
+        "buildable": this.buildable,
+        "moveCost": this.moveCost,
+        "construction": this.construction,
+        "low": this.low,
+        "blocksWater": this.blocksWater,
+        "water": ar.serialize(this.water),
+        "graphic": this.graphic,
+        "foreColor": ar.serialize(this.foreColor),
+        "originalForeColor": this.ar.serialize(this.originalForeColor),
+        "backColor": ar.serialize(this.backColor),
+        "natureObject": this.natureObject,
+        "npcList": this.npcList,
+        "itemList": this.itemList,
+        "filth": ar.serialize(this.filth),
+        "blood": ar.serialize(this.blood),
+        "marked": this.marked,
+        "walkedOver": this.walkedOver,
+        "corruption": this.corruption,
+        "territory": this.territory,
+        "burnt": this.burnt,
+        "fire": ar.serialize(this.fire),
+        "flow": this.flow,
+    };
+}
+static deserialize(data, version, deserializer) {
+    ar.register_type(Color);
+    ar.register_type(TileType);
+    ar.register_type(Direction);
+    ar.register_type(WaterNode);
+    ar.register_type(FireNode);
+    ar.register_type(BloodNode);
+    let result = new Tile(
+        deserializer.deserialize(data.type),
+        data.cost
+    );
+    result.vis = data.vis;
+    result.walkable = data.walkable;
+    result.buildable = data.buildable;
+    result.construction = data.construction;
+    result.low = data.low;
+    result.blocksWater = data.blocksWater;
+    result.water = deserialzier.deserializable(data.water);
+    result.graphic = data.graphic;
+    result.foreColor = deserialzier.deserializable(data.foreColor);
+    result.originalForeColor = deserialzier.deserializable(data.originalForeColor);
+    result.backColor = deserialzier.deserializable(data.backColor);
+    result.natureObject = data.natureObject;
+    result.npcList = data.npcList;
+    result.itemList = data.itemList;
+    result.filth = deserialzier.deserializable(data.filth);
+    result.blood = deserialzier.deserializable(data.blood);
+    result.marked = data.marked;
+    result.walkedOver = data.walkedOver;
+    result.corruption = data.corruption;
+    result.territory = data.territory;
+    result.burnt = data.burnt;
+    result.fire = deserialzier.deserializable(data.fire);
+    result.flow = data.flow;
+    return result;
+}
 }

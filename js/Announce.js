@@ -21,6 +21,9 @@ const ANNOUNCE_HEIGHT = 10;
 import {
     AnnounceMessage
 } from "./AnnounceMessage.js";
+import {
+    Color
+} from "./other/Color.js";
 
 export class Announcer {
     messageQueue = [];
@@ -62,7 +65,7 @@ export class Announcer {
         }
         this.length = 0;
     }
-    AddMsg(msg, color = TCODColor.white, coordinate = Coordinate.undefinedCoordinate) {
+    AddMsg(msg, color = Color.white, coordinate = Coordinate.undefinedCoordinate) {
         msg = msg.substr(0, ANNOUNCE_MAX_LENGTH);
         if (this.messageQueue.length && this.messageQueue[this.messageQueue.length - 1].msg == msg && this.messageQueue[this.messageQueue.length - 1].target == coordinate) {
             this.this.messageQueue[this.messageQueue.length - 1].counter++;

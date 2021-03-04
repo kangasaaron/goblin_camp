@@ -28,7 +28,7 @@ class ContainerListener {
     ItemRemoved() {}
 }
 
-class Container extends Item {
+export class Container extends Item {
     static CLASS_VERSION = 0;
 
     items = [];
@@ -140,7 +140,7 @@ class Container extends Item {
                         capacityUsed) %
                     (this.capacity + capacityUsed)
                 ).str(),
-                TCODColor.white
+                Color.white
             )
         );
     }
@@ -245,10 +245,10 @@ class Container extends Item {
     serialize(ar, version) {
         ar.register_type(Item);
         let item = super.serialize(ar, version);
-        item.items = ar.serializable(this.items);
+        item.items = ar.serialize(this.items);
         item.capacity = this.capacity;
         item.reservedSpace = this.reservedSpace;
-        item.listenersAsUids = ar.serializable(this.listenersAsUids);
+        item.listenersAsUids = ar.serialize(this.listenersAsUids);
         item.water = this.water;
         item.filth = this.filth;
         return item;
@@ -262,9 +262,9 @@ class Container extends Item {
             data.capacity,
             itemResult.faction,
             itemResult.components,
-            deserializer.deserializable(data.listenersAsUids)
+            deserializer.deserialize(data.listenersAsUids)
         );
-        result.items = deserializer.deserializable(data.items);
+        result.items = deserializer.deserialize(data.items);
         result.reservedSpace = data.reservedSpace;
         result.water = data.water;
         result.filth = data.filth;

@@ -18,28 +18,34 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     Coordinate
 } from "Coordinate.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
+import {
+    Color
+} from "./other/Color.js";
 
 import {
     TileType
 } from "./TileType.js";
 
-export class FireNode {
+export class FireNode extends Serializable {
     static CLASS_VERSION = 1;
 
     pos = Coordinate.zero;
     graphic = 0;
-    color = [, , ];
+    color = new Color();
     temperature = null;
     waterJob = null;
 
     constructor(pos = Coordinate.zero, vtemp = 0) {
         this.pos = pos;
         this.temperature = vtemp;
-        this.color = [
+        this.color = new Color(
             Random.Generate(225, 255),
             Random.Generate(0, 250),
             0
-        ];
+        );
         this.graphic = Random.Generate(176, 178);
     }
 
@@ -70,7 +76,7 @@ export class FireNode {
 
         if (screenX >= 0 && screenX < the_console.getWidth() &&
             screenY >= 0 && screenY < the_console.getHeight()) {
-            the_console.putCharEx(screenX, screenY, this.graphic, this.color, TCODColor.black);
+            the_console.putCharEx(screenX, screenY, this.graphic, this.color, Color.black);
         }
     }
     steam(water) {
@@ -249,8 +255,8 @@ export class FireNode {
     }
     Update() {
         this.graphic = Random.Generate(176, 178);
-        this.color[0] = Random.Generate(225, 255);
-        this.color[1] = Random.Generate(0, 250);
+        this.color.r = Random.Generate(225, 255);
+        this.color.g = Random.Generate(0, 250);
 
         if (this.temperature > 800)
             this.temperature = 800;
@@ -267,22 +273,26 @@ export class FireNode {
     serialize(ar, version) {
         ar.register_type(Coordinate);
         ar.register_type(Job);
+        ar.register_type(Color);
         return {
-            pos: ar.serializable(this.pos),
-            color: this.color,
+            pos: ar.serialize(this.pos),
+            color: ar.serialize(this.color),
             temperature: this.temperature,
-            waterJob: ar.serializable(this.waterJob)
+            waterJob: ar.serialize(this.waterJob)
         };
     }
 
     static deserialize(data, version, deserialzier) {
+        ar.register_type(Coordinate);
+        ar.register_type(Job);
+        ar.register_type(Color);
         let result = new FireNode(
-            deserialzier.deserializeable(data.pos),
+            deserialzier.deserialize(data.pos),
             data.temperature
         );
-        result.color = data.color;
+        result.color = deserialzier.deserialize(data.color);
         if (version >= 1) {
-            result.waterJob = deserialzier.deserializeable(data.waterJob);
+            result.waterJob = deserialzier.deserialize(data.waterJob);
         }
     }
 }

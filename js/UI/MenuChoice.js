@@ -4,7 +4,7 @@ export class MenuChoice {
     enabled = false;
     tooltip = "";
 
-    MenuChoice.MenuChoice(ntext = "", cb = Game.DoNothing.bind(), nenabled = true, ntooltip = "") {
+    constructor(ntext = "", cb = Game.DoNothing.bind(), nenabled = true, ntooltip = "") {
         this.label = ntext;
         this.callback = cb;
         this.enabled = nenabled;

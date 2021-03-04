@@ -73,7 +73,7 @@ class Menu extends Panel {
         if (y >= this.choices.length || choices[y].tooltip === "") return;
         tooltip.OffsetPosition((this._x + this.width) - x - 1, 0);
         for (let i = 0; i < this.choices[y].tooltip.length; i += 25) {
-            tooltip.AddEntry(new TooltipEntry(this.choices[y].tooltip.substr(i, 25), TCODColor.white));
+            tooltip.AddEntry(new TooltipEntry(this.choices[y].tooltip.substr(i, 25), Color.white));
         }
     }
 
@@ -105,21 +105,21 @@ class Menu extends Panel {
         the_console.setBackgroundFlag(TCOD_BKGND_SET);
         //Draw the menu entries
         for (let i = 0; i < this.choices.length; ++i) {
-            the_console.setDefaultBackground(TCODColor.black);
+            the_console.setDefaultBackground(Color.black);
             if (UI.KeyHelpTextColor() > 0) {
-                the_console.setDefaultForeground(TCODColor(0, Math.min(255, UI.KeyHelpTextColor()), 0));
+                the_console.setDefaultForeground(new Color(0, Math.min(255, UI.KeyHelpTextColor()), 0));
                 the_console.print(x, y + 1 + (i * 2), `${i + 1}`);
             }
-            if (this.choices[i].enabled) the_console.setDefaultForeground(TCODColor.white);
-            else the_console.setDefaultForeground(TCODColor.grey);
+            if (this.choices[i].enabled) the_console.setDefaultForeground(Color.white);
+            else the_console.setDefaultForeground(Color.grey);
             if (this._selected == i) {
-                the_console.setDefaultBackground(TCODColor.white);
-                the_console.setDefaultForeground(TCODColor.darkerGrey);
+                the_console.setDefaultBackground(Color.white);
+                the_console.setDefaultForeground(Color.darkerGrey);
             }
             the_console.print(x + 1, y + 1 + (i * 2), this.choices[i].label);
         }
-        the_console.setDefaultForeground(TCODColor.white);
-        the_console.setDefaultBackground(TCODColor.black);
+        the_console.setDefaultForeground(Color.white);
+        the_console.setDefaultBackground(Color.black);
     }
 
     static mainMenu;

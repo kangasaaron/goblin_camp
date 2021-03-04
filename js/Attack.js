@@ -17,8 +17,11 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     DamageType
 } from "./DamageType.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
 
-class Attack {
+export class Attack extends Serializable {
     static CLASS_VERSION = 0;
 
     damageType = DamageType.DAMAGE_BLUNT;
@@ -139,8 +142,8 @@ class Attack {
         ar.register_type(DamageType);
         ar.register_type(Dice);
         return {
-            "damageType": ar.serializable(this.damageType),
-            "damageAmount": ar.serializable(this.damageAmount),
+            "damageType": ar.serialize(this.damageType),
+            "damageAmount": ar.serialize(this.damageAmount),
             "cooldown": this.cooldown,
             "cooldownMax": this.cooldownMax,
             "statusEffects": this.statusEffects,
@@ -153,8 +156,8 @@ class Attack {
         deserializer.register_type(DamageType);
         deserializer.register_type(Dice);
         let result = new Attack();
-        result.damageType = deserializer.deserializable(data.damageType);
-        result.damageAmount = deserializer.deserializable(data.damageAmount);
+        result.damageType = deserializer.deserialize(data.damageType);
+        result.damageAmount = deserializer.deserialize(data.damageAmount);
         result.cooldown = data.cooldown;
         result.cooldownMax = data.cooldownMax;
         result.statusEffects = data.statusEffects;

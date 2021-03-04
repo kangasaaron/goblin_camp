@@ -27,6 +27,22 @@ export class Enum extends Number {
             return super.toString(10);
         return this.value;
     }
+    serialize(ar, version) {
+        return {
+            name: this.description,
+            value: this.value
+        };
+    }
+    static deserialize(data, version, deserializer) {
+        return this.findByValue(data.value);
+    }
+    static findByValue(value) {
+        return this.values.find((en) => en.value == value);
+    }
+    hashCode() {
+        return this.description;
+    }
+    static CLASS_VERSION = 0;
 }
 
 export const defineEnumOpen = function defineEnumOpen(def, values) {

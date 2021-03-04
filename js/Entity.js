@@ -15,12 +15,18 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Serializable
+} from "./data/Serialization.js";
+import {
     FlightPath
 } from "./FlightPath.js";
+import {
+    Color
+} from "./other/Color.js";
 
 const ENTITYHEIGHT = 5;
 
-class Entity {
+export class Entity extends Serializable {
     static CLASS_VERSION = 0;
     static uids = 0;
     pos = null;
@@ -82,7 +88,7 @@ class Entity {
         return null;
     }
     GetTooltip(x, y, tooltip) {
-        tooltip.AddEntry(new TooltipEntry(this.name, TCODColor.white));
+        tooltip.AddEntry(new TooltipEntry(this.name, Color.white));
     }
     GetVelocity() {
         return this.velocity;
@@ -127,7 +133,7 @@ class Entity {
     serialize(ar, version) {
         ar.register_type(Coordinate);
         return {
-            "pos": ar.serializeable(this.pos),
+            "pos": ar.serialize(this.pos),
             "uid": this.uid,
             "zone": this.zone,
             "reserved": this.reserved,
@@ -135,13 +141,13 @@ class Entity {
             "factionName": Faction.FactionTypeToString(this.faction),
             "velocity": this.velocity,
             "nextVelocityMove": this.nextVelocityMove,
-            "velocityTarget": ar.serializeable(this.velocityTarget),
+            "velocityTarget": ar.serialize(this.velocityTarget),
             "bulk": this.bulk,
         }
     }
     static deserialize(data, version, deserializer) {
         let result = new Entity();
-        result.pos = deserializer.deserializable(data.pos);
+        result.pos = deserializer.deserialize(data.pos);
         result.uid = data.uid;
         result.zone = data.zone;
         result.reserved = data.reserved;
@@ -149,7 +155,7 @@ class Entity {
         result.faction = Faction.StringToFactionType(data.factionName);
         result.velocity = data.velocity;
         result.nextVelocityMove = data.nextVelocityMove;
-        result.velocityTarget = deserializer.deserializable(data.velocityTarget);
+        result.velocityTarget = deserializer.deserialize(data.velocityTarget);
         result.bulk = data.bulk;
         return result;
     }

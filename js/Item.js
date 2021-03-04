@@ -14,976 +14,427 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import {
+    ItemPreset
+} from "./ItemPreset.js";
+import {
+    ItemListener
+} from "./ItemListener.js";
+import {
+    ItemCategory
+} from "./ItemCategory.js";
+import {
+    ItemType
+} from "./ItemType.js";
 
-import "string"
-import "vector"
-import "list"
-import "map"
-import "boost/unordered_map.js"
-import "boost/shared_ptr.js"
-import "libtcod.js"
+class Item extends Entity {
+    static CLASS_VERSION = 0;
 
-import "Entity.js"
-import "Attack.js"
-import "Coordinate.js"
+    static Presets = [];
+    static Categories = [];
+    static ParentCategories = [];
+    static itemTypeNames = new Map();
+    static itemCategoryNames = new Map();
+    static EffectRemovers = new Map(); // multimap - i.e. a map of arrays
+    static GoodEffectAdders = new Map(); // multimap - i.e. a map of arrays
 
-import "data/Serialization.js"
+    resistances = new Array(Resistance.RES_COUNT).fill(0);
 
-typedef int ItemCategory;
-typedef int ItemType;
+    type = 0;
+    categories = new Set();
+    flammable = false;
+    decayCounter = -1;
 
-class ItemCat {
-    //public extends 
-    ItemCat();
-    bool flammable;
-    std.string name;
-    std.string GetName();
-    ItemCategory parent;
-    inline bool operator == (const ItemCat & other) const {
-        return (flammable == other.flammable &&
-            name == other.name &&
-            parent == other.parent);
-    }
-    inline bool operator != (const ItemCat & other) const {
-        return !(operator == (other));
-    }
-};
+    attemptedStore = false;
+    attack = null;
+    condition = 0;
+    color = new Color();
+    graphic = 0;
+    container = null;
+    internal = false;
 
-struct ItemPreset {
-    ItemPreset();
-    int graphic;
-    TCODColor color;
-    std.string name;
-    std.set < ItemCategory > specificCategories;
-    std.set < ItemCategory > categories;
-    std.vector < ItemCategory > components;
-    int nutrition;
-    ItemType growth;
-    std.list < ItemType > fruits;
-    bool organic;
-    int container;
-    int multiplier;
-    std.string fitsInRaw;
-    std.string containInRaw;
-    std.string constructedInRaw;
-    ItemCategory fitsin;
-    ItemCategory containIn;
-    bool decays;
-    int decaySpeed;
-    std.vector < ItemType > decayList;
-    Attack attack;
-    int resistances[RES_COUNT];
-    int bulk;
-    int condition;
-    std.string fallbackGraphicsSet;
-    int graphicsHint;
-    std.vector < std.pair < StatusEffectType, int > > addsEffects;
-    std.vector < std.pair < StatusEffectType, int > > removesEffects;
-};
+    constructor(startPos = zero, typeval = -1, owner = -1, components = []) {
+        super();
+        this.type = typeVal;
 
-class Item extends /*public*/ Entity {
-    GC_SERIALIZABLE_CLASS
-
-    friend class Game;
-    friend class ItemListener;
-
-    ItemType type;
-    std.set < ItemCategory > categories;
-    bool flammable;
-    int decayCounter;
-
-    static boost.unordered_map < std.string, ItemType > itemTypeNames;
-    static boost.unordered_map < std.string, ItemCategory > itemCategoryNames;
-
-    int resistances[RES_COUNT];
-
-    //protected:
-    bool attemptedStore;
-    Attack attack;
-    int condition;
-    TCODColor color;
-    int graphic;
-    Item(const Coordinate & = zero, ItemType = -1, int owner = -1,
-        std.vector < boost.weak_ptr < Item > > = std.vector < boost.weak_ptr < Item > > ());
-    boost.weak_ptr < Item > container;
-    bool internal;
-
-    //public:
-    static std.string ItemTypeToString(ItemType);
-    static ItemType StringToItemType(std.string);
-    static std.string ItemCategoryToString(ItemCategory);
-    static ItemCategory StringToItemCategory(std.string);
-
-    static std.vector < ItemCategory > Components(ItemType);
-    static ItemCategory Components(ItemType, int);
-
-    static void LoadPresets(std.string);
-    static void ResolveContainers();
-    static void UpdateEffectItems();
-
-    static std.vector < ItemCat > Categories;
-    static std.vector < ItemCat > ParentCategories;
-    static std.vector < ItemPreset > Presets;
-    static std.multimap < StatusEffectType, ItemType > EffectRemovers;
-    static std.multimap < StatusEffectType, ItemType > GoodEffectAdders;
-
-    virtual~Item();
-
-    virtual void Position(const Coordinate & );
-    virtual Coordinate Position();
-
-    int GetGraphicsHint() const;
-    virtual void Draw(Coordinate, TCODConsole * );
-    virtual void PutInContainer(boost.weak_ptr < Item > = boost.weak_ptr < Item > ());
-    boost.weak_ptr < Item > ContainedIn();
-    ItemType Type();
-    int GetGraphic();
-    TCODColor Color();
-    void Color(TCODColor);
-    bool IsCategory(ItemCategory);
-    virtual void Reserve(bool);
-    virtual void SetFaction(int);
-    virtual int GetFaction() const;
-    Attack GetAttack() const;
-    int RelativeValue();
-    int Resistance(int) const;
-    virtual void SetVelocity(int);
-    void UpdateVelocity();
-    void SetInternal();
-    int GetDecay() const;
-    void Impact(int speedChange);
-    bool IsFlammable();
-    int DecreaseCondition(); //Only decreases condition, does NOT handle item removal or debris creation!
-};
-
-BOOST_CLASS_VERSION(Item, 0)
-
-class OrganicItem extends /*public*/ Item {
-    GC_SERIALIZABLE_CLASS
-
-    friend class Game;
-
-    int nutrition;
-    ItemType growth;
-    //public:
-    OrganicItem(Coordinate = Coordinate(0, 0), ItemType = 0);
-    int Nutrition();
-    void Nutrition(int);
-    ItemType Growth();
-    void Growth(ItemType);
-};
-
-BOOST_CLASS_VERSION(OrganicItem, 0)
-
-class WaterItem extends /*public*/ OrganicItem {
-    GC_SERIALIZABLE_CLASS
-
-    friend class Game;
-
-    //public:
-    WaterItem(Coordinate = Coordinate(0, 0), ItemType = 0);
-    virtual void PutInContainer(boost.weak_ptr < Item > = boost.weak_ptr < Item > ());
-};
-
-BOOST_CLASS_VERSION(WaterItem, 0)
-    /* Copyright 2010-2011 Ilkka Halila
-    This file is part of Goblin Camp.
-
-    Goblin Camp is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Goblin Camp is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "libtcod.js"
-import "boost/shared_ptr.js"
-import "boost/algorithm/string.js"
-if /* if(def */ (DEBUG) {) {
-    import "iostream"
-    import "boost/format.js"
-} /*#endif*/
-
-import "boost/serialization/weak_ptr.js"
-
-import "Random.js"
-import "Item.js"
-import "Game.js"
-import "Map.js"
-import "Logger.js"
-import "StockManager.js"
-import "Attack.js"
-import "Faction.js"
-
-std.vector < ItemPreset > Item.Presets = std.vector < ItemPreset > ();
-std.vector < ItemCat > Item.Categories = std.vector < ItemCat > ();
-std.vector < ItemCat > Item.ParentCategories = std.vector < ItemCat > ();
-boost.unordered_map < std.string, ItemType > Item.itemTypeNames = boost.unordered_map < std.string, ItemType > ();
-boost.unordered_map < std.string, ItemType > Item.itemCategoryNames = boost.unordered_map < std.string, ItemType > ();
-std.multimap < StatusEffectType, ItemType > Item.EffectRemovers = std.multimap < StatusEffectType, ItemType > ();
-std.multimap < StatusEffectType, ItemType > Item.GoodEffectAdders = std.multimap < StatusEffectType, ItemType > ();
-
-Item.Item(const Coordinate & startPos, ItemType typeval, int owner, std.vector < boost.weak_ptr < Item > > components):
-    Entity(),
-
-    type(typeval),
-    flammable(false),
-    decayCounter(-1),
-
-    attemptedStore(false),
-    container(boost.weak_ptr < Item > ()),
-    internal(false) {
-        SetFaction(owner);
-        pos = startPos;
+        this.SetFaction(owner);
+        this.pos = startPos;
 
         //Remember that the components are destroyed after this constructor!
-        if (type >= 0 && type < static_cast < int > (Item.Presets.size())) {
-            name = Item.Presets[type].name;
-            categories = Item.Presets[type].categories;
-            graphic = Item.Presets[type].graphic;
-            color = Item.Presets[type].color;
-            if (Item.Presets[type].decays) decayCounter = Item.Presets[type].decaySpeed;
+        if (this.type < 0 || this.type >= (Item.Presets.length)) return;
 
-            attack = Item.Presets[type].attack;
+        this.name = Item.Presets[this.type].name;
+        this.categories = Item.Presets[this.type].categories;
+        this.graphic = Item.Presets[this.type].graphic;
+        this.color = Item.Presets[this.type].color;
+        if (Item.Presets[this.type].decays) this.decayCounter = Item.Presets[this.type].decaySpeed;
 
-            for (int i = 0; i < RES_COUNT; ++i) {
-                resistances[i] = Item.Presets[type].resistances[i];
-            }
+        this.attack = Item.Presets[this.type].attack;
 
-            bulk = Item.Presets[type].bulk;
-            condition = Item.Presets[type].condition;
+        for (let i = 0; i < Resistance.RES_COUNT; ++i) {
+            this.resistances[i] = Item.Presets[this.type].resistances[i];
+        }
 
-            //Calculate flammability based on categorical flammability, and then modify it based on components
-            int flame = 0;
-            for (std.set < ItemCategory > .iterator cati = categories.begin(); cati != categories.end(); ++cati) {
-                if (Item.Categories[ * cati].flammable) flame += 2;
-                else --flame;
-            }
+        this.bulk = Item.Presets[this.type].bulk;
+        this.condition = Item.Presets[this.type].condition;
+        this.calculateFlammability();
+    }
 
-            if (components.size() > 0) {
-                for (int i = 0; i < (signed int) components.size(); ++i) {
-                    if (components[i].lock()) {
-                        color = TCODColor.lerp(color, components[i].lock().Color(), 0.35 f);
-                        if (components[i].lock().IsFlammable()) flame += 2;
-                        else --flame;
-                    }
-                }
-            } else if (Item.Presets[type].components.size() > 0) {
-                /*This item was created without real components
-																ie. not in a workshop. We still should approximate
-																flammability so that it behaves like on built in a 
-																workshop would*/
-                for (int i = 0; i < (signed int) Item.Presets[type].components.size(); ++i) {
-                    if (Item.Categories[Item.Presets[type].components[i]].flammable) flame += 3;
+
+    /*
+    destructor() {
+        if (DEBUG) {
+            console.log(`${name} (${uid}) destroyed`);
+        }
+        if (this.faction == PLAYERFACTION) {
+            StockManager.UpdateQuantity(this.type, -1);
+        }
+    }
+    */
+
+    calculateFlammability() {
+        //Calculate flammability based on categorical flammability, and then modify it based on components
+        let flame = 0;
+        for (let cati of this.categories) {
+            if (cati.flammable) flame += 2;
+            else --flame;
+        }
+
+        if (this.components.length > 0) {
+            for (let i = 0; i < this.components.length; ++i) {
+                if (this.components[i].lock()) {
+                    this.color = Color.lerp(this.color, this.components[i].lock().Color(), 0.35);
+                    if (this.components[i].lock().IsFlammable()) flame += 2;
                     else --flame;
                 }
             }
-
-            if (flame > 0) {
-                flammable = true;
-                if /* if(def */ (DEBUG) {) {
-                    std.cout << "Created flammable object " << flame << "\n";
-                } /*#endif*/
-            } else {
-                if /* if(def */ (DEBUG) {) {
-                    std.cout << "Created not flammable object " << flame << "\n";
-                } /*#endif*/
+        } else if (Item.Presets[this.type].components.length > 0) {
+            /*This item was created without real components
+            ie. not in a workshop. We still should approximate
+            flammability so that it behaves like on built in a 
+            workshop would*/
+            for (let i = 0; i < Item.Presets[this.type].components.length; ++i) {
+                if (Item.Categories[Item.Presets[this.type].components[i]].flammable) flame += 3;
+                else --flame;
             }
         }
 
+        if (flame > 0) {
+            this.flammable = true;
+            if (DEBUG) {
+                console.log("Created flammable object " + flame);
+            }
+        } else {
+            if (DEBUG) {
+                console.log("Created not flammable object " + flame);
+            }
+        }
     }
-
-Item.~Item() {
-    if /* if(def */ (DEBUG) {) {
-        std.cout << name << "(" << uid << ") destroyed\n";
-    } /*#endif*/
-    if (faction == PLAYERFACTION) {
-        StockManager.UpdateQuantity(type, -1);
+    GetGraphicsHint() {
+        if (this.type > 0)
+            return Item.Presets[this.type].graphicsHint;
+        return 0;
     }
-}
-
-int Item.GetGraphicsHint() const {
-    if (type > 0)
-        return Presets[type].graphicsHint;
-    return 0;
-}
-
-void Item.Draw(Coordinate upleft, TCODConsole * the_console) {
-    int screenx = (pos - upleft).X();
-    int screeny = (pos - upleft).Y();
-    if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
-        the_console.putCharEx(screenx, screeny, graphic, color, map.GetBackColor(pos));
+    Draw(upleft, the_console) {
+        let screenx = (this.pos.minus(upleft)).X();
+        let screeny = (this.pos.minus(upleft)).Y();
+        if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
+            the_console.putCharEx(screenx, screeny, this.graphic, this.color, map.GetBackColor(this.pos));
+        }
     }
-}
-
-ItemType Item.Type() { return type; }
-bool Item.IsCategory(ItemCategory category) { return (categories.find(category) != categories.end()); }
-TCODColor Item.Color() { return color; }
-void Item.Color(TCODColor col) { color = col; }
-
-void Item.Position(const Coordinate & p) {
-    if (map.IsInside(p)) {
-        if (!internal && !container.lock()) map.ItemList(pos).erase(uid);
-        pos = p;
-        if (!internal && !container.lock()) map.ItemList(pos).insert(uid);
+    Type() {
+        return this.type;
     }
-}
-Coordinate Item.Position() {
-    if (container.lock()) return container.lock().Position();
-    return this.Entity.Position();
-}
-
-void Item.Reserve(bool value) {
-    reserved = value;
-    if (!reserved && !container.lock() && !attemptedStore) {
-        attemptedStore = true;
-        Game.StockpileItem(boost.static_pointer_cast < Item > (shared_from_this()));
+    IsCategory(category) {
+        return (this.categories.includes(category));
     }
-}
-
-void Item.PutInContainer(boost.weak_ptr < Item > con) {
-    container = con;
-    attemptedStore = false;
-
-    Game.ItemContained(boost.static_pointer_cast < Item > (shared_from_this()), !!container.lock());
-
-    if (!container.lock() && !reserved) {
-        Game.StockpileItem(boost.static_pointer_cast < Item > (shared_from_this()));
-        attemptedStore = true;
+    Color(col) {
+        if (typeof col !== "undefined")
+            this.color = col;
+        return this.color;
     }
-}
-boost.weak_ptr < Item > Item.ContainedIn() { return container; }
-
-int Item.GetGraphic() { return graphic; }
-
-Attack Item.GetAttack() const { return attack; }
-
-std.string Item.ItemTypeToString(ItemType type) {
-    if (type >= 0 && type < static_cast < int > (Item.Presets.size()))
-        return Item.Presets[type].name;
-    return "None";
-}
-
-ItemType Item.StringToItemType(std.string str) {
-    boost.to_upper(str);
-    if (itemTypeNames.find(str) == itemTypeNames.end()) {
-        return -1;
-    }
-    return itemTypeNames[str];
-}
-
-std.string Item.ItemCategoryToString(ItemCategory category) {
-    if (category >= 0 && category < static_cast < int > (Item.Categories.size()))
-        return Item.Categories[category].name;
-    return "None";
-}
-
-ItemCategory Item.StringToItemCategory(std.string str) {
-    boost.to_upper(str);
-    if (itemCategoryNames.find(str) == itemCategoryNames.end()) {
-        return -1;
-    }
-    return Item.itemCategoryNames[str];
-}
-
-std.vector < ItemCategory > Item.Components(ItemType type) {
-    if (type > 0)
-        return Item.Presets[type].components;
-    return std.vector < ItemCategory > ();
-}
-
-ItemCategory Item.Components(ItemType type, int index) {
-    if (type > 0)
-        return Item.Presets[type].components[index];
-    return 0;
-}
-
-class ItemListener extends /*public*/ ITCODParserListener {
-    /*preset[x] holds item names as strings untill all items have been
-    read, and then they are converted into ItemTypes */
-    std.map < int, std.string > presetGrowth;
-    std.map < int, std.vector < std.string > > presetFruits;
-    std.map < int, std.vector < std.string > > presetDecay;
-    std.map < int, std.string > presetProjectile;
-    std.map < int, std.string > presetCategoryParent;
-    int itemIndex, categoryIndex;
-
-    //public:
-    ItemListener(): ITCODParserListener() {}
-
-    void translateNames() {
-        //Translate category parents
-        for (std.map < int, std.string > .iterator pati = presetCategoryParent.begin(); pati != presetCategoryParent.end(); ++pati) {
-            if (pati.second != "") {
-                Item.Categories[pati.first].parent = Item.StringToItemCategory(pati.second);
+    Position(p) {
+        if (typeof p !== "undefined") {
+            if (!map.IsInside(p)) {
+                if (!this.internal && !this.container.lock()) map.ItemList(this.pos).erase(this.uid);
+                this.pos = p;
+                if (!this.internal && !this.container.lock()) map.ItemList(this.pos).insert(this.uid);
             }
         }
 
-        //Growth items
-        for (std.map < int, std.string > .iterator growthi = presetGrowth.begin(); growthi != presetGrowth.end(); ++growthi) {
-            if (growthi.second != "") Item.Presets[growthi.first].growth = Item.StringToItemType(growthi.second);
-            //We'll handle the items categories' parent categories while we're at it
-            for (std.set < ItemCategory > .iterator cati = Item.Presets[growthi.first].categories.begin(); cati != Item.Presets[growthi.first].categories.end(); ++cati) {
-                if (Item.Categories[ * cati].parent >= 0 &&
-                    Item.Presets[growthi.first].categories.find(Item.Categories[ * cati].parent) ==
-                    Item.Presets[growthi.first].categories.end()) {
-                    Item.Presets[growthi.first].categories.insert(Item.StringToItemCategory(Item.Categories[Item.Categories[ * cati].parent].name));
-                    cati = Item.Presets[growthi.first].categories.begin(); //Start from the beginning, inserting into a set invalidates the iterator
-                }
-            }
-        }
+        if (this.container.lock())
+            return this.container.lock().Position();
+        return this.Entity.Position();
+    }
 
-        //Fruits
-        for (std.map < int, std.vector < std.string > > .iterator itemi = presetFruits.begin(); itemi != presetFruits.end(); ++itemi) {
-            for (std.vector < std.string > .iterator fruiti = itemi.second.begin(); fruiti != itemi.second.end(); ++fruiti) {
-                Item.Presets[itemi.first].fruits.push_back(Item.StringToItemType( * fruiti));
-            }
-        }
-
-        //Decay
-        for (std.map < int, std.vector < std.string > > .iterator itemi = presetDecay.begin(); itemi != presetDecay.end(); ++itemi) {
-            for (std.vector < std.string > .iterator decayi = itemi.second.begin(); decayi != itemi.second.end(); ++decayi) {
-                if (boost.iequals( * decayi, "Filth"))
-                    Item.Presets[itemi.first].decayList.push_back(-1);
-                else
-                    Item.Presets[itemi.first].decayList.push_back(Item.StringToItemType( * decayi));
-            }
-        }
-
-        //Projectiles
-        for (std.map < int, std.string > .iterator proji = presetProjectile.begin(); proji != presetProjectile.end(); ++proji) {
-            Item.Presets[proji.first].attack.Projectile(Item.StringToItemCategory(proji.second));
+    Reserve(value) {
+        this.reserved = value;
+        if (!this.reserved && !this.container.lock() && !this.attemptedStore) {
+            this.attemptedStore = true;
+            Game.StockpileItem(this);
         }
     }
 
-    //private:
-    bool parserNewStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (name && boost.iequals(str.getName(), "category_type")) {
-            std.string strName(name);
-            boost.to_upper(strName);
-            if (Item.itemCategoryNames.find(strName) != Item.itemCategoryNames.end()) {
-                categoryIndex = Item.itemCategoryNames[strName];
-                Item.Categories[categoryIndex] = ItemCat();
-                Item.Categories[categoryIndex].name = name;
-                presetCategoryParent[categoryIndex] = "";
-            } else { //New category
-                Item.Categories.push_back(ItemCat());
-                categoryIndex = Item.Categories.size() - 1;
-                ++Game.ItemCatCount;
-                Item.Categories.back().name = name;
-                Item.itemCategoryNames.insert(std.make_pair(strName, Game.ItemCatCount - 1));
-                presetCategoryParent.insert(std.make_pair(categoryIndex, ""));
-            }
-        } else if (name && boost.iequals(str.getName(), "item_type")) {
-            std.string strName(name);
-            boost.to_upper(strName);
-            if (Item.itemTypeNames.find(strName) != Item.itemTypeNames.end()) {
-                itemIndex = Item.itemTypeNames[strName];
-                Item.Presets[itemIndex] = ItemPreset();
-                Item.Presets[itemIndex].name = name;
-                presetGrowth[itemIndex] = "";
-                presetFruits[itemIndex] = std.vector < std.string > ();
-                presetDecay[itemIndex] = std.vector < std.string > ();
-                presetProjectile[itemIndex] = "";
-            } else { //New item
-                Item.Presets.push_back(ItemPreset());
-                itemIndex = Item.Presets.size() - 1;
-                presetGrowth.insert(std.make_pair(itemIndex, ""));
-                presetFruits.insert(std.make_pair(itemIndex, std.vector < std.string > ()));
-                presetDecay.insert(std.make_pair(itemIndex, std.vector < std.string > ()));
-                ++Game.ItemTypeCount;
-                Item.Presets.back().name = name;
-                Item.itemTypeNames.insert(std.make_pair(strName, Game.ItemTypeCount - 1));
-                presetProjectile.insert(std.make_pair(itemIndex, ""));
-            }
-        } else if (boost.iequals(str.getName(), "attack")) {}
+    PutInContainer(con) {
+        this.container = con;
+        this.attemptedStore = false;
 
-        return true;
-    }
+        Game.ItemContained(this, !!this.container.lock());
 
-    bool parserFlag(TCODParser * parser,
-        const char * name) {
-        if (boost.iequals(name, "flammable")) {
-            Item.Categories[categoryIndex].flammable = true;
+        if (!this.container.lock() && !this.reserved) {
+            Game.StockpileItem(this);
+            this.attemptedStore = true;
         }
-        return true;
     }
-
-    bool parserProperty(TCODParser * parser,
-        const char * name, TCOD_value_type_t type, TCOD_value_t value) {
-        if (boost.iequals(name, "category")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                ItemCategory cat = Item.StringToItemCategory((char * ) TCOD_list_get(value.list, i));
-                Item.Presets[itemIndex].categories.insert(cat);
-                Item.Presets[itemIndex].specificCategories.insert(cat);
-            }
-        } else if (boost.iequals(name, "graphic")) {
-            Item.Presets[itemIndex].graphic = value.i;
-        } else if (boost.iequals(name, "col")) {
-            Item.Presets[itemIndex].color = value.col;
-        } else if (boost.iequals(name, "fallbackGraphicsSet")) {
-            Item.Presets[itemIndex].fallbackGraphicsSet = value.s;
-        } else if (boost.iequals(name, "components")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Item.Presets[itemIndex].components.push_back(Item.StringToItemCategory((char * ) TCOD_list_get(value.list, i)));
-            }
-        } else if (boost.iequals(name, "containin")) {
-            Item.Presets[itemIndex].containInRaw = value.s;
-        } else if (boost.iequals(name, "nutrition")) {
-            Item.Presets[itemIndex].nutrition = static_cast < int > (value.f * MONTH_LENGTH);
-            Item.Presets[itemIndex].organic = true;
-        } else if (boost.iequals(name, "growth")) {
-            presetGrowth[itemIndex] = value.s;
-            Item.Presets[itemIndex].organic = true;
-        } else if (boost.iequals(name, "fruits")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                presetFruits[itemIndex].push_back((char * ) TCOD_list_get(value.list, i));
-            }
-            Item.Presets[itemIndex].organic = true;
-        } else if (boost.iequals(name, "multiplier")) {
-            Item.Presets[itemIndex].multiplier = value.i;
-        } else if (boost.iequals(name, "containerSize")) {
-            Item.Presets[itemIndex].container = value.i;
-        } else if (boost.iequals(name, "fitsin")) {
-            Item.Presets[itemIndex].fitsInRaw = value.s;
-        } else if (boost.iequals(name, "constructedin")) {
-            Item.Presets[itemIndex].constructedInRaw = value.s;
-        } else if (boost.iequals(name, "decay")) {
-            Item.Presets[itemIndex].decays = true;
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                presetDecay[itemIndex].push_back((char * ) TCOD_list_get(value.list, i));
-            }
-        } else if (boost.iequals(name, "decaySpeed")) {
-            Item.Presets[itemIndex].decaySpeed = value.i;
-            Item.Presets[itemIndex].decays = true;
-        } else if (boost.iequals(name, "type")) {
-            Item.Presets[itemIndex].attack.Type(Attack.StringToDamageType(value.s));
-        } else if (boost.iequals(name, "damage")) {
-            Item.Presets[itemIndex].attack.Amount(value.dice);
-        } else if (boost.iequals(name, "cooldown")) {
-            Item.Presets[itemIndex].attack.CooldownMax(value.i);
-        } else if (boost.iequals(name, "statusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
-                if (StatusEffect.IsApplyableStatusEffect(type))
-                    Item.Presets[itemIndex].attack.StatusEffects().push_back(std.pair < StatusEffectType, int > (type, 100));
-            }
-        } else if (boost.iequals(name, "effectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Item.Presets[itemIndex].attack.StatusEffects().at(i).second = (intptr_t) TCOD_list_get(value.list, i);
-            }
-        } else if (boost.iequals(name, "ammo")) {
-            presetProjectile[itemIndex] = value.s;
-        } else if (boost.iequals(name, "parent")) {
-            presetCategoryParent[categoryIndex] = value.s;
-        } else if (boost.iequals(name, "physical")) {
-            Item.Presets[itemIndex].resistances[PHYSICAL_RES] = value.i;
-        } else if (boost.iequals(name, "magic")) {
-            Item.Presets[itemIndex].resistances[MAGIC_RES] = value.i;
-        } else if (boost.iequals(name, "cold")) {
-            Item.Presets[itemIndex].resistances[COLD_RES] = value.i;
-        } else if (boost.iequals(name, "fire")) {
-            Item.Presets[itemIndex].resistances[FIRE_RES] = value.i;
-        } else if (boost.iequals(name, "poison")) {
-            Item.Presets[itemIndex].resistances[POISON_RES] = value.i;
-        } else if (boost.iequals(name, "bleeding")) {
-            Item.Presets[itemIndex].resistances[BLEEDING_RES] = value.i;
-        } else if (boost.iequals(name, "bulk")) {
-            Item.Presets[itemIndex].bulk = value.i;
-        } else if (boost.iequals(name, "durability")) {
-            Item.Presets[itemIndex].condition = value.i;
-        } else if (boost.iequals(name, "addStatusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
-                if (StatusEffect.IsApplyableStatusEffect(type))
-                    Item.Presets[itemIndex].addsEffects.push_back(std.pair < StatusEffectType, int > (type, 100));
-            }
-        } else if (boost.iequals(name, "addEffectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Item.Presets[itemIndex].addsEffects.at(i).second = (intptr_t) TCOD_list_get(value.list, i);
-            }
-        } else if (boost.iequals(name, "removeStatusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
-                if (StatusEffect.IsApplyableStatusEffect(type))
-                    Item.Presets[itemIndex].removesEffects.push_back(std.pair < StatusEffectType, int > (type, 100));
-            }
-        } else if (boost.iequals(name, "removeEffectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Item.Presets[itemIndex].removesEffects.at(i).second = (intptr_t) TCOD_list_get(value.list, i);
-            }
+    ContainedIn() {
+        return this.container;
+    }
+    GetGraphic() {
+        return this.graphic;
+    }
+    GetAttack() {
+        return this.attack;
+    }
+    static ItemTypeToString(type) {
+        if (type >= 0 && type < Item.Presets.length)
+            return Item.Presets[this.type].name;
+        return "None";
+    }
+    static StringToItemType(str) {
+        str = str.toUpperCase();
+        if (!this.itemTypeNames.has(str)) {
+            return -1;
         }
-        return true;
+        return this.itemTypeNames.get(str);
     }
-
-    bool parserEndStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (boost.iequals(str.getName(), "category_type")) {
-            if (presetCategoryParent[categoryIndex] == "")
-                Item.ParentCategories.push_back(Item.Categories[categoryIndex]);
+    static ItemCategoryToString(category) {
+        if (category >= 0 && category < Item.Categories.length)
+            return Item.Categories[category].name;
+        return "None";
+    }
+    static StringToItemCategory(str) {
+        boost.to_upper(str);
+        if (!this.itemCategoryNames.has(str)) {
+            return -1;
         }
-        return true;
+        return Item.itemCategoryNames.get(str);
     }
-    void error(const char * msg) {
-        throw std.runtime_error(msg);
+    static Components(type, index) {
+        if (type > 0) {
+            if (typeof index === "undefined")
+                return Item.Presets[this.type].components;
+            return Item.Presets[this.type].components[index];
+        }
+        return [];
     }
-};
+    SetFaction(val) {
+        if (val == PLAYERFACTION && this.faction != PLAYERFACTION) { //Transferred to player
+            StockManager.UpdateQuantity(this.type, 1);
+        } else if (val != PLAYERFACTION && faction == PLAYERFACTION) { //Transferred from player
+            StockManager.UpdateQuantity(this.type, -1);
+        }
+        this.faction = val;
+    }
+    SetInternal() {
+        this.internal = true;
+    }
+    GetDecay() {
+        return this.decayCounter;
+    }
+    IsFlammable() {
+        return this.flammable;
+    }
+    DecreaseCondition() { //Only decreases condition, does NOT handle item removal or debris creation!
+        if (this.condition > 0) --this.condition;
+        return this.condition;
+    }
+    GetFaction() {
+        return this.faction;
+    }
+    RelativeValue() {
+        let amount = this.attack.Amount();
+        let minDamage = (amount.nb_rolls + amount.addsub);
+        let maxDamage = ((amount.nb_rolls * amount.nb_faces) + amount.addsub);
+        return (minDamage + maxDamage) / 2;
+    }
+    Resistance(i) {
+        return this.resistances[i];
+    }
 
-void Item.LoadPresets(std.string filename) {
-    TCODParser parser = TCODParser();
-    TCODParserStruct * categoryTypeStruct = parser.newStructure("category_type");
-    categoryTypeStruct.addProperty("parent", TCOD_TYPE_STRING, false);
-    categoryTypeStruct.addFlag("flammable");
-
-    TCODParserStruct * itemTypeStruct = parser.newStructure("item_type");
-    itemTypeStruct.addListProperty("category", TCOD_TYPE_STRING, true);
-    itemTypeStruct.addProperty("graphic", TCOD_TYPE_INT, true);
-    itemTypeStruct.addProperty("col", TCOD_TYPE_COLOR, true);
-    itemTypeStruct.addListProperty("components", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addProperty("containIn", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addProperty("nutrition", TCOD_TYPE_FLOAT, false);
-    itemTypeStruct.addProperty("growth", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addListProperty("fruits", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addProperty("multiplier", TCOD_TYPE_INT, false);
-    itemTypeStruct.addProperty("containerSize", TCOD_TYPE_INT, false);
-    itemTypeStruct.addProperty("fitsin", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addListProperty("decay", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addProperty("decaySpeed", TCOD_TYPE_INT, false);
-    itemTypeStruct.addProperty("constructedin", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addProperty("bulk", TCOD_TYPE_INT, false);
-    itemTypeStruct.addProperty("durability", TCOD_TYPE_INT, false);
-    itemTypeStruct.addProperty("fallbackGraphicsSet", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addListProperty("addStatusEffects", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addListProperty("addEffectChances", TCOD_TYPE_INT, false);
-    itemTypeStruct.addListProperty("removeStatusEffects", TCOD_TYPE_STRING, false);
-    itemTypeStruct.addListProperty("removeEffectChances", TCOD_TYPE_INT, false);
-
-    TCODParserStruct * attackTypeStruct = parser.newStructure("attack");
-    const char * damageTypes[] = { "slashing", "piercing", "blunt", "magic", "fire", "cold", "poison", "wielded", "ranged", null };
-    attackTypeStruct.addValueList("type", damageTypes, true);
-    attackTypeStruct.addProperty("damage", TCOD_TYPE_DICE, false);
-    attackTypeStruct.addProperty("cooldown", TCOD_TYPE_INT, false);
-    attackTypeStruct.addListProperty("statusEffects", TCOD_TYPE_STRING, false);
-    attackTypeStruct.addListProperty("effectChances", TCOD_TYPE_INT, false);
-    attackTypeStruct.addProperty("ammo", TCOD_TYPE_STRING, false);
-
-    itemTypeStruct.addStructure(attackTypeStruct);
-
-    TCODParserStruct * resistancesStruct = parser.newStructure("resistances");
-    resistancesStruct.addProperty("physical", TCOD_TYPE_INT, false);
-    resistancesStruct.addProperty("magic", TCOD_TYPE_INT, false);
-    resistancesStruct.addProperty("cold", TCOD_TYPE_INT, false);
-    resistancesStruct.addProperty("fire", TCOD_TYPE_INT, false);
-    resistancesStruct.addProperty("poison", TCOD_TYPE_INT, false);
-    resistancesStruct.addProperty("bleeding", TCOD_TYPE_INT, false);
-    itemTypeStruct.addStructure(resistancesStruct);
-
-    ItemListener itemListener = ItemListener();
-    parser.run(filename.c_str(), & itemListener);
-    itemListener.translateNames();
-    UpdateEffectItems();
-}
-
-void Item.ResolveContainers() {
-    for (std.vector < ItemPreset > .iterator it = Item.Presets.begin(); it != Item.Presets.end(); ++it) {
-        ItemPreset & preset = * it;
-
-        if (!preset.fitsInRaw.empty()) {
-            preset.fitsin = Item.StringToItemCategory(preset.fitsInRaw);
+    static ResolveContainers() {
+        for (let it of Item.Presets) {
+            let preset = it;
+            if (preset.fitsInRaw) {
+                preset.fitsin = Item.StringToItemCategory(preset.fitsInRaw);
+            }
+            if (preset.containInRaw) {
+                preset.containIn = Item.StringToItemCategory(preset.containInRaw);
+                preset.components.push(preset.containIn);
+            }
+            preset.fitsInRaw = "";
+            preset.containInRaw = "";
+        }
+    }
+    SetVelocity(speed) {
+        this.velocity = speed;
+        if (speed > 0) {
+            Game.flyingItems.push(this);
+            return;
         }
 
-        if (!preset.containInRaw.empty()) {
-            preset.containIn = Item.StringToItemCategory(preset.containInRaw);
-            preset.components.push_back(preset.containIn);
-        }
-
-        preset.fitsInRaw.clear();
-        preset.containInRaw.clear();
-    }
-}
-
-void Item.SetFaction(int val) {
-    if (val == PLAYERFACTION && faction != PLAYERFACTION) { //Transferred to player
-        StockManager.UpdateQuantity(type, 1);
-    } else if (val != PLAYERFACTION && faction == PLAYERFACTION) { //Transferred from player
-        StockManager.UpdateQuantity(type, -1);
-    }
-    faction = val;
-}
-
-int Item.GetFaction() const { return faction; }
-
-int Item.RelativeValue() {
-    TCOD_dice_t amount = attack.Amount();
-    int minDamage = (int)(amount.nb_rolls + amount.addsub);
-    int maxDamage = (int)((amount.nb_rolls * amount.nb_faces) + amount.addsub);
-    return (minDamage + maxDamage) / 2;
-}
-
-int Item.Resistance(int i) const { return resistances[i]; }
-
-void Item.SetVelocity(int speed) {
-    velocity = speed;
-    if (speed > 0) {
-        Game.flyingItems.insert(boost.static_pointer_cast < Item > (shared_from_this()));
-    } else {
         //The item has moved before but has now stopped
-        Game.stoppedItems.push_back(boost.static_pointer_cast < Item > (shared_from_this()));
-        if (!map.IsWalkable(pos)) {
-            for (int radius = 1; radius < 10; ++radius) {
-                //TODO consider using something more believable here; the item would jump over 9 walls?
-                for (int ix = pos.X() - radius; ix <= pos.X() + radius; ++ix) {
-                    for (int iy = pos.Y() - radius; iy <= pos.Y() + radius; ++iy) {
-                        Coordinate p(ix, iy);
-                        if (map.IsWalkable(p)) {
-                            Position(p);
-                            return;
-                        }
-                    }
-                }
-            }
-        }
-    }
-}
+        Game.stoppedItems.push(this);
 
-void Item.UpdateVelocity() {
-    if (velocity > 0) {
-        nextVelocityMove += velocity;
-        while (nextVelocityMove > 100) {
-            nextVelocityMove -= 100;
-            if (flightPath.size() > 0) {
+        if (map.IsWalkable(this.pos)) return;
 
-                if (flightPath.back().height < ENTITYHEIGHT) { //We're flying low enough to hit things
-                    Coordinate t = flightPath.back().coord;
-
-                    if (map.BlocksWater(t) || !map.IsWalkable(t)) { //We've hit an obstacle
-                        Attack attack = GetAttack();
-                        if (map.GetConstruction(t) > -1) {
-                            if (boost.shared_ptr < Construction > construct = Game.GetConstruction(map.GetConstruction(t)).lock()) {
-                                construct.Damage( & attack);
-                            }
-                        }
-                        Impact(velocity);
-                        return;
-                    }
-                    if (map.NPCList(t).size() > 0) { //Hit a creature
-                        if (Random.Generate(Math.max(1, flightPath.back().height) - 1) < (signed int)(2 + map.NPCList(t).size())) {
-                            Attack attack = GetAttack();
-                            boost.shared_ptr < NPC > npc = Game.GetNPC( * map.NPCList(t).begin());
-                            npc.Damage( & attack);
-
-                            Position(flightPath.back().coord);
-                            Impact(velocity);
-                            return;
-                        }
-                    }
-                }
-
-                Position(flightPath.back().coord);
-
-                if (flightPath.back().height <= 0) { //Hit the ground early
-                    Impact(velocity);
+        for (let radius = 1; radius < 10; ++radius) {
+            //TODO consider using something more believable here; the item would jump over 9 walls?
+            for (let ix = this.pos.X() - radius; ix <= this.pos.X() + radius; ++ix) {
+                for (let iy = this.pos.Y() - radius; iy <= this.pos.Y() + radius; ++iy) {
+                    let p = new Coordinate(ix, iy);
+                    if (!map.IsWalkable(p)) continue;
+                    this.Position(p);
                     return;
                 }
-
-                flightPath.pop_back();
-            } else { Impact(velocity); return; } //No more flightpath
-        }
-    }
-}
-
-void Item.SetInternal() { internal = true; }
-
-int Item.GetDecay() const { return decayCounter; }
-
-void Item.Impact(int speedChange) {
-    SetVelocity(0);
-    flightPath.clear();
-
-    if (speedChange >= 10 && Random.Generate(9) < 7) DecreaseCondition(); //A sudden impact will damage the item
-    if (condition == 0) { //Note that condition < 0 means that it is not damaged by impacts
-        //The item has impacted and broken. Create debris owned by no one
-        std.vector < boost.weak_ptr < Item > > component(1, boost.static_pointer_cast < Item > (shared_from_this()));
-        Game.CreateItem(Position(), Item.StringToItemType("debris"), false, -1, component);
-        //Game.Update removes all condition==0 items in the stopped items list, which is where this item will be
-    }
-}
-
-bool Item.IsFlammable() { return flammable; }
-
-void Item.UpdateEffectItems() {
-    int index = -1;
-    for (std.vector < ItemPreset > .iterator itemi = Presets.begin(); itemi != Presets.end(); ++itemi) {
-        ++index;
-        for (std.vector < std.pair < StatusEffectType, int > > .iterator remEffi = itemi.removesEffects.begin(); remEffi != itemi.removesEffects.end(); ++remEffi) {
-            EffectRemovers.insert(std.make_pair(remEffi.first, (ItemType) index));
-        }
-        for (std.vector < std.pair < StatusEffectType, int > > .iterator addEffi = itemi.addsEffects.begin(); addEffi != itemi.addsEffects.end(); ++addEffi) {
-            StatusEffect effect(addEffi.first);
-            if (!effect.negative) {
-                GoodEffectAdders.insert(std.make_pair(addEffi.first, (ItemType) index));
             }
         }
     }
-}
+    Impact(speedChange) {
+        this.SetVelocity(0);
+        this.flightPath = [];
 
-int Item.DecreaseCondition() {
-    if (condition > 0) --condition;
-    return condition;
-}
+        if (speedChange >= 10 && Random.Generate(9) < 7) this.DecreaseCondition(); //A sudden impact will damage the item
+        if (this.condition == 0) { //Note that condition < 0 means that it is not damaged by impacts
+            //The item has impacted and broken. Create debris owned by no one
+            let component = [1, this];
 
-void Item.save(OutputArchive & ar,
-    const unsigned int version) const {
-    ar & boost.serialization.base_object < Entity > ( * this);
-    ar & graphic;
-    std.string itemType(Item.ItemTypeToString(type));
-    ar & itemType;
-    ar & color.r;
-    ar & color.g;
-    ar & color.b;
-    int categoryCount = (int) categories.size();
-    ar & categoryCount;
-    for (std.set < ItemCategory > .iterator cati = categories.begin(); cati != categories.end(); ++cati) {
-        std.string itemCat(Item.ItemCategoryToString( * cati));
-        ar & itemCat;
+            Game.CreateItem(this.Position(), Item.StringToItemType("debris"), false, -1, component);
+            //Game.Update removes all condition==0 items in the stopped items list, which is where this item will be
+        }
     }
-    ar & flammable;
-    ar & attemptedStore;
-    ar & decayCounter;
-    ar & attack;
-    ar & resistances;
-    ar & condition;
-    ar & container;
-    ar & internal;
-}
+    CollisionDetection() {
+        let t = this.flightPath[this.flightPath.length - 1].coord;
 
-void Item.load(InputArchive & ar,
-    const unsigned int version) {
-    ar & boost.serialization.base_object < Entity > ( * this);
-    ar & graphic;
-    bool failedToFindType = false;
-    std.string typeName;
-    ar & typeName;
-    type = Item.StringToItemType(typeName);
-    if (type == -1) {
-        type = Item.StringToItemType("debris");
-        failedToFindType = true;
+        if (map.BlocksWater(t) || !map.IsWalkable(t)) { //We've hit an obstacle
+            let attack = this.GetAttack();
+            if (map.GetConstruction(t) > -1) {
+                let construct;
+                if (construct = Game.GetConstruction(map.GetConstruction(t)).lock()) {
+                    construct.Damage(attack);
+                }
+            }
+            this.Impact(velocity);
+            return true;
+        }
+        if (map.NPCList(t).length > 0) { //Hit a creature
+            if (Random.Generate(Math.max(1, this.flightPath[this.flightPath - 1].height) - 1) < (2 + map.NPCList(t).length)) {
+                let attack = this.GetAttack();
+                let npc = Game.GetNPC(map.NPCList(t)[0]);
+                npc.Damage(attack);
+
+                this.Position(this.flightPath[this.flightPath - 1].coord);
+                this.Impact(this.velocity);
+                return true;
+            }
+        }
+        return false;
     }
-    ar & color.r;
-    ar & color.g;
-    ar & color.b;
-    int categoryCount = 0;
-    ar & categoryCount;
-    categories.clear();
-    for (int i = 0; i < categoryCount; ++i) {
-        std.string categoryName;
-        ar & categoryName;
-        int categoryType = Item.StringToItemCategory(categoryName);
-        if (categoryType >= 0 && categoryType < static_cast < int > (Item.Categories.size()))
-            categories.insert(categoryType);
-    }
-    if (categories.empty())
-        categories.insert(Item.StringToItemCategory("garbage"));
-    ar & flammable;
-    if (failedToFindType)
-        flammable = true; //Just so you can get rid of it
-    ar & attemptedStore;
-    ar & decayCounter;
-    ar & attack;
-    ar & resistances;
-    ar & condition;
-    ar & container;
-    ar & internal;
-}
+    UpdateVelocity() {
+        if (this.velocity <= 0) return;
 
-ItemCat.ItemCat(): flammable(false),
-    name("Category schmategory"),
-    parent(-1) {}
+        this.nextVelocityMove += this.velocity;
+        while (this.nextVelocityMove > 100) {
+            this.nextVelocityMove -= 100;
+            if (this.flightPath.length <= 0) {
+                this.Impact(this.velocity);
+                return;
+            } //No more flightpath
 
-std.string ItemCat.GetName() {
-    return name;
-}
+            if (flightPath.back().height < ENTITYHEIGHT) { //We're flying low enough to hit things
+                let impacted = this.CollisionDetection();
+                if (impacted) return;
+            }
 
-ItemPreset.ItemPreset(): graphic('?'),
-    color(TCODColor.pink),
-    name("Preset default"),
-    categories(std.set < ItemCategory > ()),
-    nutrition(-1),
-    growth(-1),
-    fruits(std.list < ItemType > ()),
-    organic(false),
-    container(0),
-    multiplier(1),
-    fitsin(-1),
-    containIn(-1),
-    decays(false),
-    decaySpeed(0),
-    decayList(std.vector < ItemType > ()),
-    attack(Attack()),
-    bulk(1),
-    condition(1),
-    fallbackGraphicsSet(),
-    graphicsHint(-1) {
-        for (int i = 0; i < RES_COUNT; ++i) {
-            resistances[i] = 0;
+            this.Position(this.flightPath[this.flightPath.length - 1].coord);
+
+            if (this.flightPath.back().height <= 0) { //Hit the ground early
+                this.Impact(this.velocity);
+                return;
+            }
+            this.flightPath.pop();
         }
     }
 
-OrganicItem.OrganicItem(Coordinate pos, ItemType typeVal): Item(pos, typeVal),
-    nutrition(-1),
-    growth(-1) {}
 
-int OrganicItem.Nutrition() { return nutrition; }
-void OrganicItem.Nutrition(int val) { nutrition = val; }
 
-ItemType OrganicItem.Growth() { return growth; }
-void OrganicItem.Growth(ItemType val) { growth = val; }
-
-void OrganicItem.save(OutputArchive & ar,
-    const unsigned int version) const {
-    ar & boost.serialization.base_object < Item > ( * this);
-    ar & nutrition;
-    ar & growth;
-}
-
-void OrganicItem.load(InputArchive & ar,
-    const unsigned int version) {
-    ar & boost.serialization.base_object < Item > ( * this);
-    ar & nutrition;
-    ar & growth;
-}
-
-WaterItem.WaterItem(Coordinate pos, ItemType typeVal): OrganicItem(pos, typeVal) {}
-
-void WaterItem.PutInContainer(boost.weak_ptr < Item > con) {
-    container = con;
-    attemptedStore = false;
-
-    Game.ItemContained(boost.static_pointer_cast < Item > (shared_from_this()), !!container.lock());
-
-    if (!container.lock() && !reserved) {
-        //WaterItems transform into an actual waternode if not contained
-        Game.CreateWater(Position(), 1);
-        Game.RemoveItem(boost.static_pointer_cast < Item > (shared_from_this()));
+    static UpdateEffectItems() {
+        int index = -1;
+        for (std.vector < ItemPreset > .iterator itemi = Presets.begin(); itemi != Presets.end(); ++itemi) {
+            ++index;
+            for (std.vector < std.pair < StatusEffectType, int > > .iterator remEffi = itemi.removesEffects.begin(); remEffi != itemi.removesEffects.end(); ++remEffi) {
+                EffectRemovers.insert(std.make_pair(remEffi.first, (ItemType) index));
+            }
+            for (std.vector < std.pair < StatusEffectType, int > > .iterator addEffi = itemi.addsEffects.begin(); addEffi != itemi.addsEffects.end(); ++addEffi) {
+                StatusEffect effect(addEffi.first);
+                if (!effect.negative) {
+                    GoodEffectAdders.insert(std.make_pair(addEffi.first, (ItemType) index));
+                }
+            }
+        }
     }
-}
 
-void WaterItem.save(OutputArchive & ar,
-    const unsigned int version) const {
-    ar & boost.serialization.base_object < OrganicItem > ( * this);
-}
+    static LoadPresets(filename) {
+        let itemListener = new ItemListener(Item);
+        itemListener.fetch(filename)
+            .then(function (data) {
+                itemListener.parse(data);
+                itemListener.translateNames();
+                Item.UpdateEffectItems();
+            });
+    }
 
-void WaterItem.load(InputArchive & ar,
-    const unsigned int version) {
-    ar & boost.serialization.base_object < OrganicItem > ( * this);
-}
+    serialize(ar, version) {
+        ar.register_type(Entity);
+        ar.register_type(Color);
+        let result = super.serialize(ar, version);
+        result.graphic = this.graphic;
+        result.type = this.type;
+        result.itemType = Item.ItemTypeToString(this.type);
+        result.color = ar.serialize(this.color);
+        result.categories = ar.serialize(this.categories.map(c => Item.ItemCategoryToString(c)));
+        result.flammable = this.flammable;
+        result.faction = this.faction;
+        result.components = ar.serialize(this.components);
+        result.attemptedStore = this.attemptedStore;
+        result.decayCounter = this.decayCounter;
+        result.attack = this.attack;
+        result.resistances = this.resistances;
+        result.condition = this.condition;
+        result.container = this.container;
+        result.internal = this.internal;
+    }
+    static deserialize(data, version, deserializer) {
+        let result = new Item(deserializer.deserialize(data.pos), data.type, data.faction, deserializer.deserialize(data.components));
+        result.graphic = data.graphic;
+        result.type = Item.StringToItemType(data.itemType)
+        let failedToFindType = false;
+        if (result.type == -1) {
+            result.type = Item.StringToItemType("debris");
+            failedToFindType = true;
+        }
+        result.color = deserializer.deserialize(data.color);
+        result.categories = deserializer.deserialize(data.categories);
+        if (!result.categories.length)
+            result.categories.push(Item.StringToItemCategory("garbage"));
+        result.flammable = data.flammable;
+        if (failedToFindType)
+            result.flammable = true; //Just so you can get rid of it
+        result.attemptedStore = data.attemptedStore;
+        result.decayCounter = data.decayCounter;
+        result.attack = data.attack;
+        result.resistances = data.resistances;
+        result.condition = data.condition;
+        result.container = data.container;
+        result.internal = data.internal;
+    }
+};

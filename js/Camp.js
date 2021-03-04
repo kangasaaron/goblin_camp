@@ -16,8 +16,14 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     Coordinate
 } from "./Coordinate.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
+import {
+    Color
+} from "./other/Color.js";
 
-class Encampment {
+class Encampment extends Serializable {
     //Version 2 = 0.2 - diseaseChance
     static CLASS_VERSION = 2;
 
@@ -83,7 +89,7 @@ class Encampment {
     }
     ToggleAutoTerritory() {
         this.autoTerritory = !this.autoTerritory;
-        Announce.AddMsg((boost.format("Automatic territory handling %s") % (this.autoTerritory ? "enabled" : "disabled")).str(), TCODColor.cyan);
+        Announce.AddMsg((boost.format("Automatic territory handling %s") % (this.autoTerritory ? "enabled" : "disabled")).str(), Color.cyan);
     }
     static Reset() {
         Camp = new Encampment();
@@ -101,13 +107,13 @@ class Encampment {
             centerY: this.centerY,
             buildingCount: this.buildingCount,
             locked: this.locked,
-            lockedCenter: ar.serializable(this.lockedCenter),
+            lockedCenter: ar.serialize(this.lockedCenter),
             tier: this.tier,
             name: this.name,
             workshops: this.workshops,
             farmplots: this.farmplots,
-            upperCorner: ar.serializable(this.upperCorner),
-            lowerCorner: ar.serializable(this.lowerCorner),
+            upperCorner: ar.serialize(this.upperCorner),
+            lowerCorner: ar.serialize(this.lowerCorner),
             autoTerritory: this.autoTerritory,
             article: this.article,
             waterZones: this.waterZones,
@@ -279,7 +285,7 @@ class Encampment {
                 break;
         }
         Announce.AddMsg(`Your ${oldName} is now ${article} ${name}!`,
-            positive ? TCODColor.lightGreen : TCODColor.yellow);
+            positive ? Color.lightGreen : Color.yellow);
         Script.Event.TierChanged(this.tier, this.name);
     }
     UpdateWaterJobs() {

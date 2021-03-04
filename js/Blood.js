@@ -17,14 +17,20 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     Coordinate
 } from "./Coordinate.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
+import {
+    Color
+} from "./other/Color.js";
 
-export class BloodNode {
+export class BloodNode extends Serializable {
     static CLASS_VERSION = 0;
     static __instance_id = 0;
     pos = Coordinate.zero;
     depth = 0;
     graphic = null;
-    color = [, , , ];
+    color = new Color();
     constructor(pos = Coordinate.zero, depth = 0) {
         this.__id = BloodNode.__instance_id++;
         this.pos = pos;
@@ -45,21 +51,23 @@ export class BloodNode {
     }
     serialize(ar, version) {
         ar.register_type(Coordinate);
+        ar.register_type(Color);
         return {
-            "pos": ar.serializable(this.pos),
+            "pos": ar.serialize(this.pos),
             "depth": this.depth,
             "graphic": this.graphic,
-            "color": ar.serializable(this.color),
+            "color": ar.serialize(this.color),
             "__id": this.__id
         };
     }
     static deserialize(data, version, deserializer) {
         ar.register_type(Coordinate);
+        ar.register_type(Color);
         let result = new BloodNode(
-            deserializer.deserializable(data.pos),
+            deserializer.deserialize(data.pos),
             data.depth)
         result.graphic = data.graphic;
-        result.color = data.color;
+        result.color = deserializer.deserialize(data.color);
         result.__id = data.__id;
         return result;
     }

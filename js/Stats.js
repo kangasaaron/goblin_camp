@@ -14,8 +14,12 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import {
+	Serializable
+} from "./data/Serialization.js";
 
-class Statistics {
+
+class Statistics extends Serializable {
 	static CLASS_VERSION = 0;
 	points = 0;
 	itemsBurned = 0;
@@ -69,55 +73,35 @@ class Statistics {
 	GetItemsBurned() {
 		return this.itemBurned;
 	}
-
 	static Reset() {
 		Stats = new Statistics();
 	}
-
-	save(ar, version) {
-		ar.save(this, "points");
-
-		SerializeUnorderedMap(this.deaths, ar);
-		SerializeUnorderedMap(this.constructionsBuilt, ar);
-		SerializeUnorderedMap(this.itemsBuilt, ar);
-
-		ar.save(this, "itemsBurned");
-		ar.save(this, "filthCreated");
-		ar.save(this, "filthOutsideMap");
-		ar.save(this, "constructions");
-		ar.save(this, "production");
+	serialize(ar, version) {
+		return {
+			points: this.points,
+			deaths: ar.serialize(this.deaths),
+			constructionsBuilt: ar.serialize(this.constructionsBuilt),
+			itemsBuilt: ar.serialize(this.itemsBuilt),
+			itemsBurned: this.itemsBurned,
+			filthCreated: this.filthCreated,
+			filthOutsideMap: this.filthOutsideMap,
+			constructions: this.constructions,
+			production: this.production
+		}
 	}
-
-	load(ar, version) {
-		this.points = ar.points;
-
-		UnserializeUnorderedMap(this.deaths, ar);
-		UnserializeUnorderedMap(this.constructionsBuilt, ar);
-		UnserializeUnorderedMap(this.itemsBuilt, ar);
-
-		this.itemsBurned = ar.itemsBurned;
-		this.filthCreated = ar.filthCreated;
-		this.filthOutsideMap = ar.filthOutsideMap;
-		this.constructions = ar.constructions;
-		this.production = ar.production;
+	deserialize(data, version, deserializer) {
+		let result = new Statistics();
+		result.points = data.points;
+		result.deaths = deserializer.deserialize(data.deaths);
+		result.constructionsBuilt = deserializer.deserialize(data.constructionsBuilt);
+		result.itemsBuilt = deserializer.deserialize(data.itemsBuilt);
+		result.itemsBurned = data.itemsBurned;
+		result.filthCreated = data.filthCreated;
+		result.filthOutsideMap = data.filthOutsideMap;
+		result.constructions = data.constructions;
+		result.production = data.production;
+		return result;
 	}
 }
 
 export let Stats = new Statistics();
-
-function SerializeUnorderedMap(map, ar) {
-	ar.save(map, "size");
-	let i = 0;
-	for (let iter of map.entries()) {
-		ar.save(map, `key_${i}`, iter[0])
-		ar.save(map, iter[0], iter[1]);
-	}
-}
-
-function UnserializeUnorderedMap(map, ar) {
-	let size = ar.get();
-	for (let i = 0; i < size; ++i) {
-		let key = ar[`key_${i}`];
-		map.set(key, ar[key]);
-	}
-}

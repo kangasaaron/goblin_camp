@@ -38,17 +38,17 @@ export class Button extends Drawable {
 	Draw(x, y, the_console) {
 		the_console.setBackgroundFlag(TCOD_BKGND_SET);
 		if (this.selected) {
-			the_console.setDefaultForeground(TCODColor.black);
-			the_console.setDefaultBackground(TCODColor.white);
+			the_console.setDefaultForeground(Color.black);
+			the_console.setDefaultBackground(Color.white);
 		} else {
-			the_console.setDefaultForeground(TCODColor.white);
-			the_console.setDefaultBackground(TCODColor.black);
+			the_console.setDefaultForeground(Color.white);
+			the_console.setDefaultBackground(Color.black);
 		}
 		the_console.setAlignment(TCOD_CENTER);
 		the_console.printFrame(x + this._x, y + this._y, this.width, 3);
 		the_console.print(x + this._x + this.width / 2, y + this._y + 1, this.text);
-		the_console.setDefaultForeground(TCODColor.white);
-		the_console.setDefaultBackground(TCODColor.black);
+		the_console.setDefaultForeground(Color.white);
+		the_console.setDefaultBackground(Color.black);
 	}
 
 	Update(x, y, clicked, key) {

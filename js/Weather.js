@@ -15,11 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "vector.js";
-
-import "Coordinate.js"
-import "data/Serialization.js"
-
+import {
+    Serializeable
+} from "data/Serialization.js";
 import {
     WeatherType
 } from "./WeatherType.js";
@@ -27,7 +25,7 @@ import {
     Direction
 } from "./Direction.js";
 
-class Weather {
+export class Weather extends Serializeable {
     static CLASS_VERSION = 0;
 
     map = null;
@@ -42,6 +40,7 @@ class Weather {
     currentSeason = -1;
 
     constructor(vmap = null) {
+        super();
         this.map = vmap;
     }
     GetWindDirection() {
@@ -160,10 +159,10 @@ class Weather {
         ar.register_type(Direction);
         ar.register_type(WeatherType);
         return {
-            map: ar.serializable(this.map),
-            windDirection: ar.serializable(this.windDirection),
-            prevailingWindDirection: ar.serializable(this.prevailingWindDirection),
-            currentWeather: ar.serializable(this.currentWeather),
+            map: ar.serialize(this.map),
+            windDirection: ar.serialize(this.windDirection),
+            prevailingWindDirection: ar.serialize(this.prevailingWindDirection),
+            currentWeather: ar.serialize(this.currentWeather),
             tileChange: this.tileChange,
             changeAll: this.changeAll,
             tileChangeRate: this.tileChangeRate,
@@ -175,9 +174,9 @@ class Weather {
         deserializer.register_type(Map);
         deserializer.register_type(Direction);
         deserializer.register_type(WeatherType);
-        let result = new Weather(deserializer.deserializable(data.map));
-        result.windDirection = deserializer.deserializable(data.windDirection);
-        result.prevailingWindDirection = deserializer.deserializable(data.prevailingWindDirection);
+        let result = new Weather(deserializer.deserialize(data.map));
+        result.windDirection = deserializer.deserialize(data.windDirection);
+        result.prevailingWindDirection = deserializer.deserialize(data.prevailingWindDirection);
         result.currentWeather = eserializer.deserializable(data.currentWeather);
         result.tileChange = data.tileChange;
         result.changeAll = data.changeAll;

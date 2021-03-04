@@ -37,9 +37,9 @@ export class TextBox extends Drawable {
 
 	Draw(x, y, the_console) {
 		the_console.setAlignment(TCOD_CENTER);
-		the_console.setDefaultBackground(TCODColor.darkGrey);
+		the_console.setDefaultBackground(Color.darkGrey);
 		the_console.rect(x + this._x, y + this._y, this.width, 1, true, TCOD_BKGND_SET);
-		the_console.setDefaultBackground(TCODColor.black);
+		the_console.setDefaultBackground(Color.black);
 		if (this.value) {
 			the_console.print(x + this._x + this.width / 2, y + this._y, this.value);
 		} else {

@@ -43,7 +43,6 @@ const TCOD_key_t NO_KEY = {
 };
 
 class UI {
-    //private extends 
     UI();
     static UI * instance;
     bool menuOpen;
@@ -669,7 +668,7 @@ void UI.Draw(TCODConsole * the_console) {
     Tooltip * tooltip = Tooltip.Inst();
     tooltip.Clear();
 
-    if (extraTooltip != "") tooltip.AddEntry(TooltipEntry(extraTooltip, TCODColor.white));
+    if (extraTooltip != "") tooltip.AddEntry(TooltipEntry(extraTooltip, Color.white));
     if (menuOpen) {
         currentMenu.GetTooltip(mouseInput.cx, mouseInput.cy, tooltip);
     }
@@ -739,7 +738,7 @@ int UI.DrawShortcutHelp(TCODConsole * the_console, int x, int y, std.string shor
 
 void UI.DrawTopBar(TCODConsole * the_console) {
     the_console.setAlignment(TCOD_CENTER);
-    the_console.setDefaultForeground(TCODColor.white);
+    the_console.setDefaultForeground(Color.white);
     the_console.print(the_console.getWidth() / 2, 0, "w(%s)  -  %s  -  Orcs: %d   Goblins: %d  -  Year %d, %s  FPS: %d", Map.GetWindAbbreviation().c_str(),
         Camp.GetName().c_str(),
         Game.OrcCount(), Game.GoblinCount(),
@@ -748,14 +747,14 @@ void UI.DrawTopBar(TCODConsole * the_console) {
         TCODSystem.getFps());
 
     if (Game.Paused()) {
-        the_console.setDefaultForeground(TCODColor.red);
+        the_console.setDefaultForeground(Color.red);
         the_console.print(Game.ScreenWidth() / 2, 1, "- - - - PAUSED - - - -");
     }
     the_console.setAlignment(TCOD_LEFT);
 
     if (keyHelpTextColor > 0) {
-        the_console.setDefaultForeground(TCODColor(Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor)));
-        the_console.setColorControl(TCOD_COLCTRL_1, TCODColor(0, Math.min(255, keyHelpTextColor), 0), TCODColor.black);
+        the_console.setDefaultForeground(new Color(Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor)));
+        the_console.setColorControl(TCOD_COLCTRL_1, new Color(0, Math.min(255, keyHelpTextColor), 0), TCODColor.black);
         int x = 10;
         x += DrawShortcutHelp(the_console, x, 3, "Exit");
         x += DrawShortcutHelp(the_console, x, 3, "Basics");
@@ -775,7 +774,7 @@ void UI.DrawTopBar(TCODConsole * the_console) {
         x += DrawShortcutHelp(the_console, x, 7, "Pause");
     }
 
-    the_console.setDefaultForeground(TCODColor.white);
+    the_console.setDefaultForeground(Color.white);
 }
 
 void UI.blueprint(const Coordinate & newBlue) {

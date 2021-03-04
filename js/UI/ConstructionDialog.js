@@ -140,9 +140,9 @@ export class ConstructionDialog extends UIContainer {
     }
 
     DrawJob(category, i, x, y, width, selected, the_console) {
-        the_console.setDefaultForeground(i == 0 ? TCODColor.white : TCODColor.grey);
+        the_console.setDefaultForeground(i == 0 ? Color.white : Color.grey);
         the_console.print(x, y, Item.ItemTypeToString(category));
-        the_console.setDefaultForeground(TCODColor.white);
+        the_console.setDefaultForeground(Color.white);
     }
 }
 
@@ -161,15 +161,15 @@ ConstructionDialog.ProductList = class ProductList extends Scrollable {
             let y = 0;
             for (let prodi = 0; prodi < cons.Products().length && y < scroll + _height; ++prodi) {
                 if (y >= scroll) {
-                    the_console.setDefaultForeground(TCODColor.white);
+                    the_console.setDefaultForeground(Color.white);
                     the_console.print(x, _y + y - scroll, "%s x%d", Item.ItemTypeToString(cons.Products(prodi)), Item.Presets[cons.Products(prodi)].multiplier);
                 }
                 ++y;
                 for (let compi = 0; compi < Item.Components(cons.Products(prodi)).length && y < scroll + _height; ++compi) {
                     if (y >= scroll) {
-                        the_console.setDefaultForeground(TCODColor.white);
+                        the_console.setDefaultForeground(Color.white);
                         the_console.putChar(x + 1, _y + y - scroll, compi + 1 < Item.Components(cons.Products(prodi)).length ? TCOD_CHAR_TEEE : TCOD_CHAR_SW, TCOD_BKGND_SET);
-                        the_console.setDefaultForeground(TCODColor.grey);
+                        the_console.setDefaultForeground(Color.grey);
                         the_console.print(x + 2, _y + y - scroll, Item.ItemCategoryToString(Item.Components(cons.Products(prodi), compi)));
                     }
                     ++y;
@@ -177,7 +177,7 @@ ConstructionDialog.ProductList = class ProductList extends Scrollable {
                 ++y;
             }
         }
-        the_console.setDefaultForeground(TCODColor.white);
+        the_console.setDefaultForeground(Color.white);
     }
 
     TotalHeight() {

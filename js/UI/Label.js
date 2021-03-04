@@ -31,7 +31,7 @@ export class Label extends Drawable {
 	}
 	Draw(x, y, the_console) {
 		the_console.setAlignment(this.align);
-		the_console.setDefaultForeground(TCODColor.white);
+		the_console.setDefaultForeground(Color.white);
 		the_console.print(x + this._x, y + this._y, this.text);
 	}
 }

@@ -14,23 +14,11 @@
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-class TooltipEntry {
-	text = "";
-	color = null;
-	constructor(ntext, ncolor) {
-		this.text = ntext;
-		this.color = ncolor;
-	}
-};
+import {
+	Color
+} from "../other/Color";
 
-class Tooltip {
-	static instance = null;
-	static Inst() {
-		if (!this.instance) {
-			this.instance = new Tooltip();
-		}
-		return this.instance;
-	}
+class Tooltips {
 	entries = [];
 	offsetX = 0;
 	offsetY = 0;
@@ -46,11 +34,10 @@ class Tooltip {
 		this.offsetX = x;
 		this.offsetY = y;
 	}
-
 	Draw(x, y, the_console) {
 		x += offsetX;
 		y += offsetY;
-		the_console.setDefaultBackground(TCODColor.darkestYellow);
+		the_console.setDefaultBackground(Color.darkestYellow);
 		let width = 0;
 		for (let it of this.entries) {
 			width = Math.max(width, it.text.length);
@@ -66,8 +53,9 @@ class Tooltip {
 				y++;
 			}
 		}
-		the_console.setDefaultBackground(TCODColor.black);
-		the_console.setDefaultForeground(TCODColor.white);
+		the_console.setDefaultBackground(Color.black);
+		the_console.setDefaultForeground(Color.white);
 	}
-
 }
+
+export let Tooltip = new Tooltips();

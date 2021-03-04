@@ -1,17 +1,20 @@
 import {
+    Serializable
+} from "./data/Serialization.js";
+import {
     Skill
 } from "./Skill.js";
 
 let skillSetHandlers = {
-    set: function(obj, prop, value) {
+    set: function (obj, prop, value) {
         obj[Number(prop)] = value;
     },
-    get: function(obj, prop, receiver) {
+    get: function (obj, prop, receiver) {
         return obj[Number(prop)];
     }
 }
 
-export class SkillSet {
+export class SkillSet extends Serializable {
     static CLASS_VERSION = 0;
 
     skills = new Array(Skill.SKILLAMOUNT).fill(0);

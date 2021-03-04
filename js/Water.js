@@ -16,17 +16,23 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 import {
+    Serializable
+} from "data/Serialization.js"
+import {
     Coordinate
 } from "Coordinate.js"
+import {
+    Color
+} from "./other/Color";
 
 const RIVERDEPTH = 5000;
 
-class WaterNode {
+export class WaterNode extends Serializable {
     static CLASS_VERSION = 0;
     pos = new Coordinate();
     depth = 0;
     graphic = '?';
-    color = [, , ];
+    color = new Color();
     inertCounter = 0;
     inert = false;
     timeFromRiverBed = 0;
@@ -36,7 +42,7 @@ class WaterNode {
     constructor(pos = Coordinate.undefinedCoordinate, vdepth = 0, time = 0) {
         this.pos = pos;
         this.depth = vdepth;
-        this.color = [0, 128, 255];
+        this.color = new Color(0, 128, 255);
         this.timeFromRiverBed = time;
         this.UpdateGraphic();
     }
@@ -98,17 +104,17 @@ class WaterNode {
         }
 
         let col = Math.max(255 - Math.round(this.depth / 25), 140);
-        if (this.color[2] < Math.max(col - (this.filth * 20), 0)) ++this.color[2];
-        if (this.color[2] > Math.max(col - (this.filth * 20), 0)) --this.color[2];
+        if (this.color.b < Math.max(col - (this.filth * 20), 0)) ++this.color.b;
+        if (this.color.b > Math.max(col - (this.filth * 20), 0)) --this.color.b;
 
-        if (this.color[1] < Math.max(col / 4, Math.min(this.filth * 10, 150))) ++this.color[1];
-        if (this.color[1] > Math.max(col / 4, Math.min(this.filth * 10, 150))) --this.color[1];
+        if (this.color.g < Math.max(col / 4, Math.min(this.filth * 10, 150))) ++this.color.g;
+        if (this.color.g > Math.max(col / 4, Math.min(this.filth * 10, 150))) --this.color.g;
 
-        if (this.color[1] < Math.min(this.filth * 10, 190)) this.color[1] += 10;
-        if (this.color[1] > Math.min(this.filth * 10, 190)) this.color[1] -= 10;
+        if (this.color.g < Math.min(this.filth * 10, 190)) this.color.g += 10;
+        if (this.color.g > Math.min(this.filth * 10, 190)) this.color.g -= 10;
 
-        if (Random.Generate(39) == 0 && this.color[2] < 200) this.color[2] += 20;
-        if (Random.Generate(9999) == 0 && this.color[1] < 225) this.color[1] += Random.Generate(24);
+        if (Random.Generate(39) == 0 && this.color.b < 200) this.color.b += 20;
+        if (Random.Generate(9999) == 0 && this.color.g < 225) this.color.g += Random.Generate(24);
     }
 
     //Returns true if this WaterNode should be destroyed
@@ -297,27 +303,30 @@ class WaterNode {
         return false;
     }
 
-    save(ar, version) {
-        ar.save(this, 'X', this.pos.X());
-        ar.save(this, 'Y', this.pos.Y());
-        ar.save(this, 'depth');
-        ar.save(this, 'graphic');
-        ar.save(this, 'r', this.color[0]);
-        ar.save(this, 'g', this.color[1]);
-        ar.save(this, 'b', this.color[2]);
-        ar.save(this, 'inertCounter');
-        ar.save(this, 'inert');
-        ar.save(this, 'timeFromRiverBed');
-        ar.save(this, 'filth');
+    serialize(ar, version) {
+        ar.register_type(Coordinate);
+        return {
+            'pos': ar.serialize(this.pos),
+            'depth': this.depth,
+            'graphic': this.graphic,
+            'color': ar.serialize(this.color),
+            'inertCounter': this.inertCounter,
+            'inert': this.inert,
+            'filth': this.filth
+        };
     }
-    load(ar, version) {
-        this.pos = new Coordinate(ar.x, ar.y);
-        this.depth = ar.depth;
-        this.graphic = ar.graphic;
-        this.color = [ar.r, ar.g, ar.b];
-        this.inertCounter = ar.inertCounter;
-        this.inert = ar.inert;
-        this.timeFromRiverBed = ar.timeFromRiverBed;
-        this.filth = ar.filth;
+    static deserialize(data, version, deserializer) {
+        ar.register_type(Coordinate);
+        let result = new WaterNode(
+            deserializer.deserialize(data.pos),
+            data.depth,
+            data.timeFromRiverBed
+        );
+        result.graphic = data.graphic;
+        result.color = deserializer.deserialize(data.color);
+        result.inertCounter = data.inertCounter;
+        result.inert = data.inert;
+        result.filth = data.filth;
+        return result;
     }
 }

@@ -15,12 +15,13 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Serializable
+} from "./Serialization.js";
+import {
     Order
 } from "./Order.js";
 
-class ItemCategory extends Number {};
-
-class Squad {
+export class Squad extends Serializable {
     CLASS_VERSION = 0;
 
     name = "";
@@ -181,28 +182,31 @@ class Squad {
             return true;
         return false;
     }
-    save(ar, version) {
-        ar.save(this, "name");
-        ar.save(this, "memberReq");
-        ar.save(this, "members");
-        ar.save(this, "generalOrder");
-        ar.save(this, "orders");
-        ar.save(this, "targetCoordinates");
-        ar.save(this, "targetEntities");
-        ar.save(this, "priority");
-        ar.save(this, "weapon");
-        ar.save(this, "armor");
+    serialize(ar, version) {
+        ar.register_type(Order);
+        ar.register_type(Coordinate);
+        return {
+            name: this.name,
+            memberReq: this.memberReq,
+            members: this.members,
+            generalOrder: ar.serialize(this.generalOrder),
+            orders: ar.serialize(this.orders),
+            targetCoordinates: ar.serialize(this.targetCoordinates),
+            targetEntities: ar.serialize(this.targetEntities),
+            priority: this.priority,
+            weapon: this.weapon,
+            armor: this.armor
+        };
     }
-    load(ar, version) {
-        this.name = ar.name;
-        this.memberReq = ar.memberReq;
-        this.members = ar.members;
-        this.generalOrder = ar.generalOrder;
-        this.orders = ar.orders;
-        this.targetCoordinates = ar.targetCoordinates;
-        this.targetEntities = ar.targetEntities;
-        this.priority = ar.priority;
-        this.weapon = ar.weapon;
-        this.armor = ar.armor;
+    static deserialize(data, version, deserializer) {
+        let result = new Squad(data.name, data.memberReq, data.priority);
+        result.members = data.members;
+        result.generalOrder = deserializer.deserialize(data.generalOrder);
+        result.orders = deserializer.deserialize(data.orders);
+        result.targetCoordinates = deserializer.deserialize(data.targetCoordinates);
+        result.targetEntities = deserializer.deserialize(data.targetEntities);
+        result.weapon = data.weapon;
+        result.armor = data.armor;
+        return result;
     }
 }

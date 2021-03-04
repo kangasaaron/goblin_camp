@@ -14,6 +14,9 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import {
+    FactionGoal
+} from "./FactionGoal.js";
 
 import "list"
 import "map"
@@ -34,15 +37,8 @@ const PLAYERFACTION = 0;
 
 typedef int FactionType;
 
-const FactionGoal = { //enum
-    FACTIONDESTROY: Symbol('FactionGoal.FACTIONDESTROY'), //Destroy buildings
-    FACTIONKILL: Symbol('FactionGoal.FACTIONKILL'), //Kill hostiles
-    FACTIONSTEAL: Symbol('FactionGoal.FACTIONSTEAL'), //Steal items valuable to the faction
-    FACTIONPATROL: Symbol('FactionGoal.FACTIONPATROL'), //Patrol area
-    FACTIONIDLE: Symbol('FactionGoal.FACTIONIDLE') //Idle
-};
 
-class Faction {
+export class Faction {
     GC_SERIALIZABLE_CLASS
 
     friend class FactionListener;
@@ -105,21 +101,21 @@ class Faction {
 };
 
 BOOST_CLASS_VERSION(Faction, 1)
-    /* Copyright 2010-2011 Ilkka Halila
-    This file is part of Goblin Camp.
+/* Copyright 2010-2011 Ilkka Halila
+This file is part of Goblin Camp.
 
-    Goblin Camp is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
+Goblin Camp is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
 
-    Goblin Camp is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
+Goblin Camp is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+GNU General Public License for more details.
 
-    You should have received a copy of the GNU General Public License 
-    along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
+You should have received a copy of the GNU General Public License 
+along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import "stdafx.js"
 
 import "boost/serialization/list.js"
@@ -302,70 +298,66 @@ bool Faction.FindJob(boost.shared_ptr < NPC > npc) {
         if (currentGoal < 0 || currentGoal >= static_cast < int > (goals.size()))
             currentGoal = 0;
         switch (goals[currentGoal]) {
-            case FACTIONDESTROY:
-                {
-                    boost.shared_ptr < Job > destroyJob(new Job("Destroy building"));
-                    if (GenerateDestroyJob(npc.map, destroyJob, npc) || GenerateKillJob(destroyJob)) {
-                        npc.StartJob(destroyJob);
+            case FACTIONDESTROY: {
+                boost.shared_ptr < Job > destroyJob(new Job("Destroy building"));
+                if (GenerateDestroyJob(npc.map, destroyJob, npc) || GenerateKillJob(destroyJob)) {
+                    npc.StartJob(destroyJob);
+                    return true;
+                }
+            }
+            break;
+
+        case FACTIONKILL: {
+            boost.shared_ptr < Job > attackJob(new Job("Attack settlement"));
+            if (GenerateKillJob(attackJob)) {
+                npc.StartJob(attackJob);
+                return true;
+            }
+        }
+        break;
+
+        case FACTIONSTEAL:
+            if (currentGoal < static_cast < int > (goalSpecifiers.size()) && goalSpecifiers[currentGoal] >= 0) {
+                boost.shared_ptr < Job > stealJob(new Job("Steal " + Item.ItemCategoryToString(goalSpecifiers[currentGoal])));
+                boost.weak_ptr < Item > item = Game.FindItemByCategoryFromStockpiles(goalSpecifiers[currentGoal], npc.Position());
+                if (item.lock()) {
+                    if (GenerateStealJob(stealJob, item.lock())) {
+                        npc.StartJob(stealJob);
                         return true;
                     }
+                } else {
+                    ++currentGoal;
                 }
-                break;
+            }
+            break;
 
-            case FACTIONKILL:
-                {
-                    boost.shared_ptr < Job > attackJob(new Job("Attack settlement"));
-                    if (GenerateKillJob(attackJob)) {
-                        npc.StartJob(attackJob);
-                        return true;
-                    }
+        case FACTIONPATROL: {
+            boost.shared_ptr < Job > patrolJob(new Job("Patrol"));
+            patrolJob.internal = true;
+            Coordinate location = undefined;
+            if (IsFriendsWith(PLAYERFACTION)) {
+                location = Camp.GetRandomSpot();
+            } else {
+                for (int limit = 0; limit < 100 && location == undefined; ++limit) {
+                    Coordinate candidate = Random.ChooseInExtent(npc.map.Extent());
+                    if (!npc.map.IsTerritory(candidate))
+                        location = candidate;
                 }
-                break;
+            }
+            if (location != undefined) {
+                patrolJob.tasks.push_back(Task(MOVENEAR, location));
+                patrolJob.tasks.push_back(Task(WAIT, Coordinate(Random.Generate(5, 20), 0)));
+                npc.StartJob(patrolJob);
+                return true;
+            }
+        }
+        break;
 
-            case FACTIONSTEAL:
-                if (currentGoal < static_cast < int > (goalSpecifiers.size()) && goalSpecifiers[currentGoal] >= 0) {
-                    boost.shared_ptr < Job > stealJob(new Job("Steal " + Item.ItemCategoryToString(goalSpecifiers[currentGoal])));
-                    boost.weak_ptr < Item > item = Game.FindItemByCategoryFromStockpiles(goalSpecifiers[currentGoal], npc.Position());
-                    if (item.lock()) {
-                        if (GenerateStealJob(stealJob, item.lock())) {
-                            npc.StartJob(stealJob);
-                            return true;
-                        }
-                    } else {
-                        ++currentGoal;
-                    }
-                }
-                break;
+        case FACTIONIDLE: {}
+        break;
 
-            case FACTIONPATROL:
-                {
-                    boost.shared_ptr < Job > patrolJob(new Job("Patrol"));
-                    patrolJob.internal = true;
-                    Coordinate location = undefined;
-                    if (IsFriendsWith(PLAYERFACTION)) {
-                        location = Camp.GetRandomSpot();
-                    } else {
-                        for (int limit = 0; limit < 100 && location == undefined; ++limit) {
-                            Coordinate candidate = Random.ChooseInExtent(npc.map.Extent());
-                            if (!npc.map.IsTerritory(candidate))
-                                location = candidate;
-                        }
-                    }
-                    if (location != undefined) {
-                        patrolJob.tasks.push_back(Task(MOVENEAR, location));
-                        patrolJob.tasks.push_back(Task(WAIT, Coordinate(Random.Generate(5, 20), 0)));
-                        npc.StartJob(patrolJob);
-                        return true;
-                    }
-                }
-                break;
-
-            case FACTIONIDLE:
-                {}
-                break;
-
-            default:
-                break;
+        default:
+            break;
         }
     }
     return false;
@@ -522,9 +514,13 @@ std.string Faction.FactionGoalToString(FactionGoal goal) {
     return "idle";
 }
 
-bool Faction.IsCoward() { return coward; }
+bool Faction.IsCoward() {
+    return coward;
+}
 
-bool Faction.IsAggressive() { return aggressive; }
+bool Faction.IsAggressive() {
+    return aggressive;
+}
 
 void Faction.save(OutputArchive & ar,
     const unsigned int version) const {

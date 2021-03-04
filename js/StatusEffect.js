@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+	Serializable
+} from "./data/Serialization.js";
+import {
 	NPCStat
 } from "./NPCStat.js";
 
@@ -25,8 +28,11 @@ import {
 import {
 	StatusEffectType
 } from "./StatusEffectType.js";
+import {
+	Color
+} from "./other/Color.js";
 
-class StatusEffect {
+export class StatusEffect extends Serializable {
 	static CLASS_VERSION = 1;
 	graphic = '';
 	color = [, , ];
@@ -66,26 +72,26 @@ class StatusEffect {
 			case StatusEffectType.HUNGER:
 				this.name = "Hungry";
 				this.graphic = TCOD_CHAR_ARROW_S;
-				this.color = TCODColor.orange;
+				this.color = Color.orange;
 				this.cooldown = -1;
 				break;
 			case StatusEffectType.THIRST:
 				this.name = "Thirsty";
 				this.graphic = TCOD_CHAR_ARROW_S;
-				this.color = TCODColor.blue;
+				this.color = Color.blue;
 				this.cooldown = -1;
 				break;
 			case StatusEffectType.PANIC:
 				this.name = "Panicking";
 				this.graphic = '!';
-				this.color = TCODColor.white;
+				this.color = Color.white;
 				this.cooldown = UPDATES_PER_SECOND * 5;
 				this.contagionChance = 75;
 				break;
 			case StatusEffectType.CONCUSSION:
 				this.name = "Concussed";
 				this.graphic = '?';
-				this.color = TCODColor.grey;
+				this.color = Color.grey;
 				this.cooldown = UPDATES_PER_SECOND * 5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.5;
 				this.statChanges[NPCStat.DODGE] = 0.5;
@@ -93,7 +99,7 @@ class StatusEffect {
 			case StatusEffectType.DROWSY:
 				this.name = "Drowsy";
 				this.graphic = 'z';
-				this.color = TCODColor.lightGrey;
+				this.color = Color.lightGrey;
 				this.cooldown = -1;
 				this.statChanges[NPCStat.MOVESPEED] = 0.8;
 				this.statChanges[NPCStat.DODGE] = 0.8;
@@ -101,13 +107,13 @@ class StatusEffect {
 			case StatusEffectType.SLEEPING:
 				this.name = "Sleeping";
 				this.graphic = 'Z';
-				this.color = TCODColor.lightGrey;
+				this.color = Color.lightGrey;
 				this.cooldown = UPDATES_PER_SECOND;
 				break;
 			case StatusEffectType.POISON:
 				this.name = "Poisoned";
 				this.graphic = '#';
-				this.color = TCODColor.green;
+				this.color = Color.green;
 				this.cooldown = (MONTH_LENGTH * 2);
 				this.statChanges[NPCStat.STRENGTH] = 0.5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.8;
@@ -117,7 +123,7 @@ class StatusEffect {
 			case StatusEffectType.BLEEDING:
 				this.name = "Bleeding";
 				this.graphic = '#';
-				this.color = TCODColor.red;
+				this.color = Color.red;
 				this.cooldown = UPDATES_PER_SECOND * 4;
 				this.damage.second = 4;
 				this.damageType = DAMAGE_SLASH;
@@ -127,14 +133,14 @@ class StatusEffect {
 			case StatusEffectType.FLYING:
 				this.name = "Flying";
 				this.graphic = '"';
-				this.color = TCODColor.lightBlue;
+				this.color = Color.lightBlue;
 				this.cooldown = -1;
 				this.negative = false;
 				break;
 			case StatusEffectType.BADSLEEP:
 				this.name = "Sluggish";
 				this.graphic = '-';
-				this.color = TCODColor.grey;
+				this.color = Color.grey;
 				this.cooldown = MONTH_LENGTH * 3;
 				this.statChanges[NPCStat.MOVESPEED] = 0.75;
 				this.statChanges[NPCStat.DODGE] = 0.75;
@@ -144,7 +150,7 @@ class StatusEffect {
 			case StatusEffectType.RAGE:
 				this.name = "Enraged";
 				this.graphic = '!';
-				this.color = TCODColor.red;
+				this.color = Color.red;
 				this.cooldown = UPDATES_PER_SECOND * 7;
 				this.statChanges[NPCStat.STRENGTH] = 2;
 				this.statChanges[NPCStat.DODGE] = 0.5;
@@ -154,7 +160,7 @@ class StatusEffect {
 			case StatusEffectType.SWIM:
 				this.name = "Swimming";
 				this.graphic = '~';
-				this.color = TCODColor.lightBlue;
+				this.color = Color.lightBlue;
 				this.cooldown = -1;
 				this.statChanges[NPCStat.DODGE] = 0.0;
 				this.statChanges[NPCStat.STRENGTH] = 0.75;
@@ -164,14 +170,14 @@ class StatusEffect {
 			case StatusEffectType.EATING:
 				this.name = "Eating";
 				this.graphic = TCOD_CHAR_ARROW_N;
-				this.color = TCODColor.orange;
+				this.color = Color.orange;
 				this.cooldown = -1;
 				this.negative = false;
 				break;
 			case StatusEffectType.DRINKING:
 				this.name = "Drinking";
 				this.graphic = TCOD_CHAR_ARROW_N;
-				this.color = TCODColor.blue;
+				this.color = Color.blue;
 				this.cooldown = -1;
 				this.negative = false;
 				break;
@@ -184,14 +190,14 @@ class StatusEffect {
 				this.name = "Working";
 				this.cooldown = -1;
 				this.graphic = '+';
-				this.color = TCODColor.grey;
+				this.color = Color.grey;
 				this.negative = false;
 				break;
 			case StatusEffectType.BURNING:
 				this.name = "On fire!";
 				this.cooldown = UPDATES_PER_SECOND * 10;
 				this.graphic = '!';
-				this.color = TCODColor.red;
+				this.color = Color.red;
 				this.damage.second = 7;
 				this.damageType = DAMAGE_FIRE;
 				break;
@@ -199,14 +205,14 @@ class StatusEffect {
 				this.name = "Cracked skull";
 				this.cooldown = -1;
 				this.graphic = 168;
-				this.color = TCODColor.grey;
+				this.color = Color.grey;
 				this.visible = false;
 				break;
 			case StatusEffectType.INVIGORATED:
 				this.name = "Invigorated";
 				this.cooldown = MONTH_LENGTH * 3;
 				this.graphic = 11;
-				this.color = TCODColor(127, 255, 255);
+				this.color = Color(127, 255, 255);
 				this.visible = false;
 				this.statChanges[NPCStat.STRENGTH] = 1.25;
 				this.statChanges[NPCStat.MOVESPEED] = 1.25;
@@ -218,13 +224,13 @@ class StatusEffect {
 				this.name = "Drunk";
 				this.cooldown = MONTH_LENGTH;
 				this.graphic = 63;
-				this.color = TCODColor(218, 255, 127);
+				this.color = Color(218, 255, 127);
 				break;
 			case StatusEffectType.HEALING:
 				this.name = "Healing";
 				this.cooldown = MONTH_LENGTH;
 				this.graphic = 241;
-				this.color = TCODColor(0, 255, 0);
+				this.color = Color(0, 255, 0);
 				this.damage.second = -10;
 				this.damageType = DAMAGE_MAGIC;
 				this.negative = false;
@@ -234,7 +240,7 @@ class StatusEffect {
 				this.name = "Helpless";
 				this.cooldown = UPDATES_PER_SECOND * 10;
 				this.graphic = 168;
-				this.color = TCODColor(130, 240, 255);
+				this.color = Color(130, 240, 255);
 				this.statChanges[NPCStat.MOVESPEED] = 0;
 				this.statChanges[NPCStat.DODGE] = 0;
 				break;
@@ -242,7 +248,7 @@ class StatusEffect {
 				this.name = "Higher ground";
 				this.cooldown = UPDATES_PER_SECOND / 2;
 				this.graphic = 23;
-				this.color = TCODColor(100, 255, 255);
+				this.color = Color(100, 255, 255);
 				this.visible = false;
 				this.negative = false;
 				break;
@@ -250,7 +256,7 @@ class StatusEffect {
 				this.name = "Tripped";
 				this.cooldown = UPDATES_PER_SECOND * 2;
 				this.graphic = 31;
-				this.color = TCODColor.white;
+				this.color = Color.white;
 				this.statChanges[NPCStat.MOVESPEED] = 0.2;
 				this.statChanges[NPCStat.DODGE] = 0.2;
 				break;
@@ -258,7 +264,7 @@ class StatusEffect {
 				this.name = "Brave";
 				this.cooldown = UPDATES_PER_SECOND;
 				this.graphic = 30;
-				this.color = TCODColor(0, 255, 255);
+				this.color = Color(0, 255, 255);
 				this.negative = false;
 				this.visible = false;
 				break;
@@ -266,7 +272,7 @@ class StatusEffect {
 				this.name = "Collywobbles";
 				this.cooldown = MONTH_LENGTH * 3;
 				this.graphic = 207;
-				this.color = TCODColor(127, 106, 0);
+				this.color = Color(127, 106, 0);
 				this.statChanges[NPCStat.STRENGTH] = 0.5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.75;
 				this.contagionChance = 50;
@@ -277,7 +283,7 @@ class StatusEffect {
 				this.name = "Droops";
 				this.cooldown = MONTH_LENGTH * 3;
 				this.graphic = 207;
-				this.color = TCODColor(127, 106, 0);
+				this.color = Color(127, 106, 0);
 				this.statChanges[NPCStat.STRENGTH] = 0.5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.75;
 				this.contagionChance = 50;
@@ -288,7 +294,7 @@ class StatusEffect {
 				this.name = "Rattles";
 				this.cooldown = MONTH_LENGTH * 3;
 				this.graphic = 207;
-				this.color = TCODColor(127, 106, 0);
+				this.color = Color(127, 106, 0);
 				this.statChanges[NPCStat.STRENGTH] = 0.5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.75;
 				this.contagionChance = 50;
@@ -299,7 +305,7 @@ class StatusEffect {
 				this.name = "Chills";
 				this.cooldown = MONTH_LENGTH * 3;
 				this.graphic = 207;
-				this.color = TCODColor(127, 106, 0);
+				this.color = Color(127, 106, 0);
 				this.statChanges[NPCStat.STRENGTH] = 0.5;
 				this.statChanges[NPCStat.MOVESPEED] = 0.75;
 				this.contagionChance = 50;
@@ -467,41 +473,49 @@ class StatusEffect {
 				return "";
 		}
 	}
-	save(ar, version) {
-		ar.save(this, "graphic");
-		ar.save(this, "r", this.color[0]);
-		ar.save(this, "g", this.color[1]);
-		ar.save(this, "b", this.color[2]);
-		ar.save(this, "name");
-		ar.save(this, "type");
-		ar.save(this, "cooldown");
-		ar.save(this, "cooldownDefault");
-		ar.save(this, "statChanges");
-		ar.save(this, "resistanceChanges");
-		ar.save(this, "damage");
-		ar.save(this, "damageType");
-		ar.save(this, "visible");
-		ar.save(this, "negative");
-		ar.save(this, "contagionChance");
-		ar.save(this, "applicableResistance");
+	serialize(ar, version) {
+		ar.register_type(StatusEffectType);
+		ar.register_type(DamageType);
+		ar.register_type(Resistance);
+		return {
+			graphic: this.graphic,
+			color: ar.serialize(this.color),
+			name: this.name,
+			type: ar.serialize(this.type),
+			cooldown: this.cooldown,
+			cooldownDefault: this.cooldownDefault,
+			statChanges: this.statChanges,
+			resistanceChanges: this.resistanceChanges,
+			damage: this.damage,
+			damageType: ar.serialize(this.damageType),
+			visible: this.visible,
+			negative: this.negative,
+			contagionChance: this.contagionChance,
+			applicableResistance: ar.serialize(this.applicableResistance),
+		};
 	}
-	load(ar, version) {
-		this.graphic = ar.graphic;
-		this.color = [ar.r, ar.g, ar.b];
-		this.name = ar.name;
-		this.type = ar.type;
-		this.cooldown = ar.cooldown;
-		this.cooldownDefault = ar.cooldownDefault;
-		this.statChanges = ar.statChanges;
-		this.resistanceChanges = ar.resistanceChanges;
-		this.damage = ar.damage;
-		this.damageType = ar.damageType;
-		this.visible = ar.visible;
-		this.negative = ar.negative;
+	static deserialize(data, version, deserializer) {
+		deserializer.register_type(StatusEffectType);
+		deserializer.register_type(DamageType);
+		deserializer.register_type(Resistance);
+		let result = new StatusEffect(
+			deserializer.deserialize(data.type),
+			data.graphic,
+			deserializer.deserialize(data.color));
+		result.name = data.name;
+		result.cooldown = data.cooldown;
+		result.cooldownDefault = data.cooldownDefault;
+		result.statChanges = data.statChanges;
+		result.resistanceChanges = data.resistanceChanges;
+		result.damage = data.damage;
+		result.damageType = deserializer.deserialize(data.damageType);
+		result.visible = data.visible;
+		result.negative = data.negative;
 		if (version >= 1) {
-			this.contagionChance = ar.contagionChance;
-			this.applicableResistance = ar.applicableResistance;
+			result.contagionChance = data.contagionChance;
+			result.applicableResistance = deserializer.deserialize(data.applicableResistance);
 		}
+		return result;
 	}
 }
 //Version 1 = v0.2 - contagionChance

@@ -37,6 +37,9 @@ function validCoordinate(coordinate, functionName, parameterName) {
 
 export class Coordinate extends Array {
     static CLASS_VERSION = 0;
+    hashCode() {
+        return `Coordinate(${this.x},${this.y})`;
+    }
     constructor(x = 0, y = 0) {
         super(2);
         if (!Number.isFinite(x))

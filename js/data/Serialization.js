@@ -312,7 +312,7 @@ export class Serialization {
     }
 }
 
-class Serializable {
+export class Serializable {
     static CLASS_VERSION = 0;
     static __SerializableType__ = "default";
     static __instance_id = 0;
@@ -320,11 +320,11 @@ class Serializable {
         this.__id = this.constructor.__instance_id++;
         this.data = baseValue;
     }
-    save(ar, version) {
-
+    serialize() {
+        return this.data;
     }
-    load(ar, version) {
-
+    static deserialize(data, version, deserializer) {
+        return data;
     }
     get hashCode() {
         return this.constructor.name + "_" + this.__id;
@@ -341,10 +341,10 @@ class SerializablePrimative extends Serializable {
     serialize() {
         return this.data;
     }
-    static deserialize(data) {
+    static deserialize(data, version, deserializer) {
         return data;
     }
-};
+}
 
 class SerializableSymbol extends SerializablePrimative {
     serialize() {
@@ -353,10 +353,11 @@ class SerializableSymbol extends SerializablePrimative {
             "description": this.data.description
         };
     }
-    static deserialize(data) {
+    static deserialize(data, version, deserializer) {
         return Symbol.for(data.description);
     }
 }
+
 class SerializableNumber extends SerializablePrimative {
     serialize() {
         if (isNaN(this.data)) return "__NaN__";
@@ -364,7 +365,7 @@ class SerializableNumber extends SerializablePrimative {
         if (this.data === Infinity) return "__Infinity__";
         return super.serialize();
     }
-    static deserialize(data) {
+    static deserialize(data, version, deserializer) {
         if (data === "__Infinity__")
             return Infinity;
         else if (data === "__-Infinity__")
@@ -372,6 +373,7 @@ class SerializableNumber extends SerializablePrimative {
         return super.deserialize(data);
     }
 }
+
 class SerializableBigInt extends SerializablePrimative {
     serialize() {
         return {
@@ -379,10 +381,11 @@ class SerializableBigInt extends SerializablePrimative {
             "value": this.data.toString()
         };
     }
-    static deserialize(data) {
+    static deserialize(data, version, deserializer) {
         return BigInt(data.value);
     }
 }
+
 class SerializableFunction extends SerializablePrimative {
     serialize() {
         return {
@@ -391,19 +394,21 @@ class SerializableFunction extends SerializablePrimative {
         }
     }
 }
+
 class SerializableNull extends SerializablePrimative {
     serialize() {
         return "__null__";
     }
-    static deserialize() {
+    static deserialize(data, version, deserializer) {
         return null;
     }
 }
+
 class SerializableUndefined extends SerializablePrimative {
     serialize() {
         return "__undefined__";
     }
-    static deserialize() {
+    static deserialize(data, version, deserializer) {
         return;
     }
 }
@@ -428,7 +433,7 @@ class SerializableObject extends SerializablePrimative {
         let result = {};
         let ks = Array.from(Object.keys(data));
         if (ks.length == 0) return result;
-        ks.map(key => result[deserializer.deserializable(key)] = deserializer.deserializable(data[key]));
+        ks.map(key => result[deserializer.deserialize(key)] = deserializer.deserialize(data[key]));
         return result;
     }
 }
@@ -472,7 +477,7 @@ class SerializableError extends SerializableObject {
     }
     static deserialize(data, version, deserializer) {
         if (data.errorType === "AggregateError") {
-            let errors = data.value.map(item => deserializer.deserializable(item));
+            let errors = data.value.map(item => deserializer.deserialize(item));
             return new AggregateError(errors);
         }
         return new globalThis[data.errorType](data.message);
@@ -486,10 +491,10 @@ class SerializableMap extends SerializableObject {
         };
     }
     static deserialize(data, version, deserializer) {
-        let values = data.values.map(function(kv) {
+        let values = data.values.map(function (kv) {
             return [
-                deserializer.deserializable(kv[0]),
-                deserializer.deserializable(kv[1])
+                deserializer.deserialize(kv[0]),
+                deserializer.deserialize(kv[1])
             ];
         });
         return new Map(values);
@@ -503,8 +508,8 @@ class SerializableSet extends SerializableObject {
         };
     }
     static deserialize(data, version, deserializer) {
-        let values = data.values.map(function(v) {
-            return deserializer.deserializable(v)
+        let values = data.values.map(function (v) {
+            return deserializer.deserialize(v)
         });
         return new Set(values);
     }
@@ -516,14 +521,14 @@ class SerializableArray extends SerializableObject {
         return this.data.map(item => serializer.serializable(item));
     }
     static deserialize(data, version, deserializer) {
-        return data.map(item => deserializer.deserializable(item));
+        return data.map(item => deserializer.deserialize(item));
     }
 }
 class SerializableTypedArray extends SerializableArray {
     serialize(serializer) {
         return {
             "__type__": this.typeName,
-            "values": this.data.reduce(function(regularArray, item) {
+            "values": this.data.reduce(function (regularArray, item) {
                 regularArray.push(item)
                 return regularArray;
             }, [])
@@ -546,7 +551,7 @@ class SerializableBigIntArray extends SerializableTypedArray {
     serialize(serializer) {
         return {
             "__type__": this.typeName,
-            "values": this.data.reduce(function(regularArray, item) {
+            "values": this.data.reduce(function (regularArray, item) {
                 regularArray.push(item.toString());
                 return regularArray;
             }, [])
@@ -601,9 +606,9 @@ export class JSONSerializer extends Serializable {
     register_type(klass) {
         if (!this.registered_types.includes(klass)) {
             if (!"CLASS_VERSION" in klass) console.error("JSONSerializer register_type klass does not have CLASS_VERSION");
-            if (!"save" in klass) console.error("JSONSerializer register_type klass does not have save");
-            if (!"load" in klass) console.error("JSONSerializer register_type klass does not have load");
-            if (!"hashCode" in klass) console.error("JSONSerializer register_type klass does not have hashCode");
+            if (!"serialize" in klass.prototype) console.error("JSONSerializer register_type klass does not have serialize");
+            if (!"deserialize" in klass) console.error("JSONSerializer register_type klass does not have deserialize");
+            if (!"hashCode" in klass.prototype) console.error("JSONSerializer register_type klass does not have hashCode");
             this.registered_types.push(klass);
         }
     }
@@ -681,7 +686,7 @@ export class JSONSerializer extends Serializable {
                 //Error, Regexp, Date, Map, Set, WeakMap, WeakSet, Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array,Float32Array,Float64Array, BigInt64Array, BigUint64Array, ArrayBuffer, 
         }
     }
-    serializable(object) {
+    serialize(object) {
         let type = this.determine_type(object);
         let needsClassAndVersion = false;
         if (type.__SerializableType__ === "primative" || type.__SerializableType__ === "object")
@@ -697,10 +702,10 @@ export class JSONSerializer extends Serializable {
         }
         return result;
     }
-    serialize(object) {
-        return JSON.stringify(this.serializable(object));
+    save(object) {
+        return JSON.stringify(this.serialize(object));
     }
-    deserializable(object) {
+    deserialize(object) {
         let type = this.determine_type(object);
         let version = 0;
         if (object && typeof object === "object" && "__version__" in object) {
@@ -708,8 +713,7 @@ export class JSONSerializer extends Serializable {
         }
         return type.deserialize(object, version, this);
     }
-    deserialize(str) {
-        let object = JSON.parse(str);
-        return this.deserializable(object);
+    load(str) {
+        return this.deserialize(JSON.parse(str));
     }
 }

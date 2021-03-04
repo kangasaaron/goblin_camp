@@ -18,22 +18,26 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     Coordinate
 } from "./Coordinate.js";
-import "./other/rot.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
+import {
+    Color
+} from "./other/Color.js";
 import {
     Random
 } from "./Random.js";
 
-export class FilthNode {
+export class FilthNode extends Serializable {
     static CLASS_VERSION = 0;
     pos = Coordinate.zero;
     depth = 0;
     graphic = 0;
-    color = null;
+    color = new Color();
     graphic = null;
     constructor(pos = Coordinate.zero, depth = 0) {
         this.pos = pos;
         this.depth = depth;
-        this.color = [, , 0];
     }
     Update() {}
     GetGraphic() {
@@ -57,16 +61,16 @@ export class FilthNode {
     serialize(ar, version) {
         ar.register_type(Coordinate);
         return {
-            'pos': ar.serializable(this.pos),
+            'pos': ar.serialize(this.pos),
             'depth': this.depth,
             'graphic': this.graphic,
-            'color': this.color
+            'color': ar.serialize(this.color)
         }
     }
     static deserialize(data, version, deserializer) {
-        let result = new FilthNode(deserializer.deserializable(data.pos), data.depth);
+        let result = new FilthNode(deserializer.deserialize(data.pos), data.depth);
         result.graphic = ar.graphic;
-        result.color = ar.color;
+        result.color = deserializer.deserialize(ar.color);
         return result;
     }
 }

@@ -20,7 +20,7 @@ import {
 }
 from './Drawable.js';
 
-export class Grid extends Drawable { //, public Scrollable {
+export class Grid extends Drawable {
 	cols = 0;
 	contents = [];
 

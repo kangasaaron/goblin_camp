@@ -1,10 +1,14 @@
+import {
+    Color
+} from "./other/Color.js";
+
 export class AnnounceMessage {
     result = "";
     msg = "";
     counter = 1;
-    color = [, , ];
+    color = new Color();
     target = new Coordinate();
-    constructor(nmsg, col = TCODColor.white, pos = Coordinate(-1, -1)) {
+    constructor(nmsg, col = Color.white, pos = Coordinate(-1, -1)) {
         this.msg = nmsg;
         this.color = col;
         this.target = pos;

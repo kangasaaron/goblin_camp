@@ -1,8 +1,11 @@
 import {
     Coordinate
 } from "./Coordinate.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
 
-export class Task {
+export class Task extends Serializable {
     static CLASS_VERSION = 0;
     target = new Coordinate(-1, -1);
     entity = null;
@@ -29,11 +32,11 @@ export class Task {
     static deserialize(data, version, deserializer) {
         ar.register_type(Coordinate);
         return new Task(
-            deserializer.deserializable(data.action),
-            deserializer.deserializable(data.target),
-            deserializer.deserializable(data.entity),
-            deserializer.deserializable(data.item),
-            deserializer.deserializable(data.flags)
+            deserializer.deserialize(data.action),
+            deserializer.deserialize(data.target),
+            deserializer.deserialize(data.entity),
+            deserializer.deserialize(data.item),
+            deserializer.deserialize(data.flags)
         );
     }
 }

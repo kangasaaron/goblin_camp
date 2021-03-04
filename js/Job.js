@@ -60,8 +60,11 @@ import "Farmplot.js"
 import {
     Coordinate
 } from "./Coordinate.js";
+import {
+    Serializable
+} from "./data/Serialization.js";
 
-export class Job {
+export class Job extends Serializable {
     static CLASS_VERSION = 1;
 
     _priority = null;
@@ -412,29 +415,29 @@ export class Job {
         ar.register_type(JobPriority);
         ar.register_type(JobCompletion);
         return {
-            _priority: ar.serializable(this._priority),
-            completion: ar.serializable(this.completion),
-            preReqs: ar.serializable(this.preReqs),
-            parent: ar.serializable(this.parent),
+            _priority: ar.serialize(this._priority),
+            completion: ar.serialize(this.completion),
+            preReqs: ar.serialize(this.preReqs),
+            parent: ar.serialize(this.parent),
             npcUid: this.npcUid,
             _zone: this._zone,
             menial: this.menial,
             paused: this.paused,
             waitingForRemoval: this.waitingForRemoval,
-            reservedEntities: ar.serializable(this.reservedEntities),
-            reservedSpot: ar.serializable(this.reservedSpot),
+            reservedEntities: ar.serialize(this.reservedEntities),
+            reservedSpot: ar.serialize(this.reservedSpot),
             attempts: this.attempts,
             attemptMax: this.attemptMax,
-            connectedEntity: ar.serializable(this.connectedEntity),
-            reservedContainer: ar.serializable(this.reservedContainer),
+            connectedEntity: ar.serialize(this.connectedEntity),
+            reservedContainer: ar.serialize(this.reservedContainer),
             reservedSpace: this.reservedSpace,
             tool: this.tool,
             name: this.name,
-            tasks: ar.serializable(this.tasks),
+            tasks: ar.serialize(this.tasks),
             internal: this.internal,
-            markedGround: ar.serializable(this.markedGround),
+            markedGround: ar.serialize(this.markedGround),
             obeyTerritory: this.obeyTerritory,
-            statusEffects: ar.serializable(this.statusEffects)
+            statusEffects: ar.serialize(this.statusEffects)
         }
     }
 
@@ -449,27 +452,27 @@ export class Job {
         deserializer.register_type(StockPile);
         deserializer.register_type(JobPriority);
         deserializer.register_type(JobCompletion);
-        let result = new Job(data.name, deserializer.deserializable(data._priority), data._zone, data.menial);
-        result.completion = deserializer.deserializable(data.completion);
-        result.preReqs = deserializer.deserializable(data.preReqs);
-        result.parent = deserializer.deserializable(data.parent);
+        let result = new Job(data.name, deserializer.deserialize(data._priority), data._zone, data.menial);
+        result.completion = deserializer.deserialize(data.completion);
+        result.preReqs = deserializer.deserialize(data.preReqs);
+        result.parent = deserializer.deserialize(data.parent);
         result.npcUid = data.npcUid;
         result.paused = data.paused;
         result.waitingForRemoval = data.waitingForRemoval;
-        result.reservedEntities = deserializer.deserializable(data.reservedEntities);
-        result.reservedSpot = deserializer.deserializable(data.reservedSpot);
+        result.reservedEntities = deserializer.deserialize(data.reservedEntities);
+        result.reservedSpot = deserializer.deserialize(data.reservedSpot);
         result.attempts = data.attempts;
         result.attemptMax = data.attemptMax;
-        result.connectedEntity = deserializer.deserializable(data.connectedEntity);
-        result.reservedContainer = deserializer.deserializable(data.reservedContainer);
+        result.connectedEntity = deserializer.deserialize(data.connectedEntity);
+        result.reservedContainer = deserializer.deserialize(data.reservedContainer);
         result.reservedSpace = data.reservedSpace;
         result.tool = data.tool;
-        result.tasks = deserializer.deserializable(data.tasks);
+        result.tasks = deserializer.deserialize(data.tasks);
         result.internal = data.internal;
-        result.markedGround = deserializer.deserializable(data.markedGround);
+        result.markedGround = deserializer.deserialize(data.markedGround);
         result.obeyTerritory = data.obeyTerritory;
         if (version >= 1) {
-            result.statusEffects = deserializer.deserializable(data.statusEffects);
+            result.statusEffects = deserializer.deserialize(data.statusEffects);
         }
         return result;
     }
