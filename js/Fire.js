@@ -49,12 +49,12 @@ export class FireNode extends Serializable {
         this.graphic = Random.Generate(176, 178);
     }
 
-    /*
-    destructor(){
-    	if(this.waterJob.lock())
-    		JobManager.RemoveJob(waterJob);
+
+    destructor() {
+        if (this.waterJob.lock())
+            JobManager.RemoveJob(this.waterJob);
     }
-    */
+
 
     Position() {
         return this.pos;

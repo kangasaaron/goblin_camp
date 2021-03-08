@@ -44,12 +44,12 @@ export class Squad extends Serializable {
         this.priority = pri;
     }
 
-    /*
+
     destructor() {
-    	if (DEBUG) {
-    		std.cout << "Squad " << name << " destructed.\n";
-    	}
-    */
+        if (DEBUG) {
+            console.log("Squad ", this.name, " destructed.");
+        }
+    }
 
     /**
      * Used to highlight correct SquadsDialog button

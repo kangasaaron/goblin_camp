@@ -1,3 +1,3 @@
-export class ItemType extends Number {
+export class FactionType extends Number {
 
 }

@@ -27,11 +27,20 @@ import {
     ItemType
 } from "./ItemType.js";
 
-class Item extends Entity {
+export class Item extends Entity {
     static CLASS_VERSION = 0;
 
+    /**
+     * @type {ItemPreset}[]
+     */
     static Presets = [];
+    /**
+     * @type {ItemCategory}[]
+     */
     static Categories = [];
+    /**
+     * @type {ItemCategory}[]
+     */
     static ParentCategories = [];
     static itemTypeNames = new Map();
     static itemCategoryNames = new Map();
@@ -81,16 +90,16 @@ class Item extends Entity {
     }
 
 
-    /*
+
     destructor() {
         if (DEBUG) {
-            console.log(`${name} (${uid}) destroyed`);
+            console.log(`${this.name} (${this.uid}) destroyed`);
         }
         if (this.faction == PLAYERFACTION) {
             StockManager.UpdateQuantity(this.type, -1);
         }
     }
-    */
+
 
     calculateFlammability() {
         //Calculate flammability based on categorical flammability, and then modify it based on components
@@ -195,11 +204,21 @@ class Item extends Entity {
     GetAttack() {
         return this.attack;
     }
+    /**
+     * 
+     * @param {ItemType} type 
+     * @returns {string} name of Item type
+     */
     static ItemTypeToString(type) {
         if (type >= 0 && type < Item.Presets.length)
             return Item.Presets[this.type].name;
         return "None";
     }
+    /**
+     * 
+     * @param {string} str name of Item type
+     * @returns {ItemType}
+     */
     static StringToItemType(str) {
         str = str.toUpperCase();
         if (!this.itemTypeNames.has(str)) {
@@ -207,11 +226,21 @@ class Item extends Entity {
         }
         return this.itemTypeNames.get(str);
     }
+    /**
+     * 
+     * @param {ItemCategory} category 
+     * @returns {string} name of category
+     */
     static ItemCategoryToString(category) {
         if (category >= 0 && category < Item.Categories.length)
             return Item.Categories[category].name;
         return "None";
     }
+    /**
+     * 
+     * @param {string} str name of Item Category
+     * @returns {ItemCategory}
+     */
     static StringToItemCategory(str) {
         boost.to_upper(str);
         if (!this.itemCategoryNames.has(str)) {
@@ -303,7 +332,8 @@ class Item extends Entity {
         this.SetVelocity(0);
         this.flightPath = [];
 
-        if (speedChange >= 10 && Random.Generate(9) < 7) this.DecreaseCondition(); //A sudden impact will damage the item
+        if (speedChange >= 10 && Random.Generate(9) < 7)
+            this.DecreaseCondition(); //A sudden impact will damage the item
         if (this.condition == 0) { //Note that condition < 0 means that it is not damaged by impacts
             //The item has impacted and broken. Create debris owned by no one
             let component = [1, this];
@@ -350,34 +380,31 @@ class Item extends Entity {
                 return;
             } //No more flightpath
 
-            if (flightPath.back().height < ENTITYHEIGHT) { //We're flying low enough to hit things
+            if (this.flightPath[this.flightPath.length - 1].height < ENTITYHEIGHT) { //We're flying low enough to hit things
                 let impacted = this.CollisionDetection();
                 if (impacted) return;
             }
 
             this.Position(this.flightPath[this.flightPath.length - 1].coord);
 
-            if (this.flightPath.back().height <= 0) { //Hit the ground early
+            if (this.flightPath[this.flightPath.length - 1].height <= 0) { //Hit the ground early
                 this.Impact(this.velocity);
                 return;
             }
             this.flightPath.pop();
         }
     }
-
-
-
     static UpdateEffectItems() {
-        int index = -1;
-        for (std.vector < ItemPreset > .iterator itemi = Presets.begin(); itemi != Presets.end(); ++itemi) {
+        let index = -1;
+        for (let itemi of this.Presets) {
             ++index;
-            for (std.vector < std.pair < StatusEffectType, int > > .iterator remEffi = itemi.removesEffects.begin(); remEffi != itemi.removesEffects.end(); ++remEffi) {
-                EffectRemovers.insert(std.make_pair(remEffi.first, (ItemType) index));
+            for (let remEffi of itemi.removesEffects) {
+                this.EffectRemovers.set(remEffi[0], new ItemType(index));
             }
-            for (std.vector < std.pair < StatusEffectType, int > > .iterator addEffi = itemi.addsEffects.begin(); addEffi != itemi.addsEffects.end(); ++addEffi) {
-                StatusEffect effect(addEffi.first);
+            for (let addEffi of itemi.addsEffects) {
+                let effect = new StatusEffect(addEffi[0]);
                 if (!effect.negative) {
-                    GoodEffectAdders.insert(std.make_pair(addEffi.first, (ItemType) index));
+                    this.GoodEffectAdders.set(addEffi[0], new ItemType(index));
                 }
             }
         }

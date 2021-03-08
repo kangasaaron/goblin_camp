@@ -23,24 +23,24 @@ import {
 	fs
 } from "../other/fakefs.js";
 
-export class Tilesets {
+class TilesetsData {
 	/**
 	 * Reads in the metadata for the given tileset.
 	 * @param[in] dir      Tileset's directory.
 	 * @param[in] metadataList The metadata list to populate on a successful read
 	 */
-	static LoadMetadata(dir, metadataList) {
+	LoadMetadata(dir, metadataList) {
 		console.log(`Trying to load tileset metadata from ${dir}`);
 
-		//	let metadata = TileSetLoader.LoadTileSetMetadata(dir); // TODO waiting on TileSetLoader
-		// if (metadata.valid && metadata.width > 0 && metadata.height > 0) {
-		// 	metadataList.push(metadata);
-		// }
+		let metadata = TileSetLoader.LoadTileSetMetadata(dir);
+		if (metadata.valid && metadata.width > 0 && metadata.height > 0) {
+			metadataList.push(metadata);
+		}
 	}
 	/**
 	 * Loads default tileset and then tries to load user tilesets.
 	 */
-	static LoadTilesetMetadata() {
+	LoadTilesetMetadata() {
 		let metadata = [];
 		this.loadCoreTilesets(metadata);
 		this.loadUserTilesets(metadata);
@@ -50,21 +50,21 @@ export class Tilesets {
 	/**
 	 * load core tilesets
 	 * */
-	static loadCoreTilesets(metadata) {
+	loadCoreTilesets(metadata) {
 		this.loadDirectoryTilesets(Paths.Get(Path.CoreTilesets), metadata);
 	}
 
 	/** 
 	 * load user tilesets
 	 * */
-	static loadUserTilesets(metadata) {
+	loadUserTilesets(metadata) {
 		this.loadDirectoryTilesets(Paths.Get(Path.Tilesets), metadata);
 	}
 
 	/**
 	 * load a directory of tilesets
 	 */
-	static loadDirectoryTilesets(path, metadata) {
+	loadDirectoryTilesets(path, metadata) {
 		for (let it of fs.readDirectory(path)) {
 			if (!fs.isDirectory(it))
 				continue;
@@ -72,3 +72,5 @@ export class Tilesets {
 		}
 	}
 }
+
+export let Tilesets = new TilesetsData();

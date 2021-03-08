@@ -102,23 +102,21 @@ export class Job extends Serializable {
     }
 
     destructor() {
-        /*	
-        preReqs.clear();
-        UnreserveEntities();
-        UnreserveSpot();
-        if (connectedEntity.lock()) connectedEntity.lock().CancelJob();
-        if (reservedContainer.lock()) {
-        	reservedContainer.lock().ReserveSpace(false, reservedSpace);
+        this.preReqs = [];
+        this.UnreserveEntities();
+        this.UnreserveSpot();
+        if (this.connectedEntity.lock())
+            this.connectedEntity.lock().CancelJob();
+        if (this.reservedContainer.lock()) {
+            this.reservedContainer.lock().ReserveSpace(false, this.reservedSpace);
         }
-        if (Map.IsInside(markedGround)) {
-        	Map.Unmark(markedGround);
+        if (Map.IsInside(this.markedGround)) {
+            Map.Unmark(this.markedGround);
         }
-        for (std.list < int > .iterator marki = mapMarkers.begin(); marki != mapMarkers.end(); ++marki) {
-        	Map.RemoveMarker( * marki);
+        for (let marki of this.mapMarkers) {
+            Map.RemoveMarker(marki);
         }
-        mapMarkers.clear();
-
-        */
+        this.mapMarkers = [];
     }
 
 

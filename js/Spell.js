@@ -36,9 +36,15 @@ import {
     Coordinate
 } from "./Coordinate.js";
 
-class Spell extends Entity {
+export class Spell extends Entity {
     static CLASS_VERSION = 0;
+    /**
+     * @type{Map<string,SpellType>}
+     */
     static spellTypeNames = new Map();
+    /**
+     * @type{Array<SpellPreset>}
+     */
     static Presets = [];
 
     color = new Color();

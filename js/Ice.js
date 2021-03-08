@@ -29,6 +29,7 @@ export class Ice extends NatureObject {
         if (Random.Generate(4) == 0) {
             Game.CreateItem(this.Position, Item.StringToItemType("ice"), false, -1);
         }
+        super.destructor();
     }
     serialize(ar, version) {
         ar.register_type(WaterNode);

@@ -38,6 +38,9 @@ const PLAYERFACTION = 0;
 export class Faction extends Serializable {
     static CLASS_VERSION = 1;
 
+    /**
+     * @type {Map<string,number>}
+     */
     static factionNames = new Map(); // name => index (of factions, below)
     static factions = [];
 
@@ -116,13 +119,13 @@ export class Faction extends Serializable {
         this.trapVisible.set(trapLocation.hashCode(), visible);
     }
     Update() {
-        if (this.active && this.maxActiveTime >= 0) {
-            ++this.activeTime;
+            if (this.active && this.maxActiveTime >= 0) {
+                ++this.activeTime;
+            }
         }
-    }
-    /**
-     * Reset() does not erase names or goals because these are defined at startup and remain constant
-     */
+        /**
+         * Reset() does not erase names or goals because these are defined at startup and remain constant
+         */
     Reset() {
         this.members.clear();
         this.membersAsUids = [];
@@ -133,13 +136,13 @@ export class Faction extends Serializable {
         this.active = false;
     }
     GetCurrentGoal() {
-        let i = this.currentGoal;
-        if (i < this.goals.length) return this.goals[i];
-        return FactionGoal.FACTIONIDLE;
-    }
-    /**
-     * One way transfer, not used for sharing trap data between friendly factions
-     */
+            let i = this.currentGoal;
+            if (i < this.goals.length) return this.goals[i];
+            return FactionGoal.FACTIONIDLE;
+        }
+        /**
+         * One way transfer, not used for sharing trap data between friendly factions
+         */
     TransferTrapInfo(otherFaction) {
         for (let entry of this.trapVisible) {
             otherFaction.trapVisible.set(entry[0], entry[1]);
@@ -233,12 +236,12 @@ export class Faction extends Serializable {
         if ("friends" in preset)
             result.friendNames.push(...preset.friends);
         if ("goals" in preset) {
-            preset.goals.map(function (goal) {
+            preset.goals.map(function(goal) {
                 result.goals.push(Faction.StringToFactionGoal(goal));
             });
         }
         if ("goalSpecifiers" in preset) {
-            preset.goalSpecifiers.map(function (spec) {
+            preset.goalSpecifiers.map(function(spec) {
                 result.goalSpecifiers.push(Item.StringToItemCategory(spec));
             });
         }
@@ -297,28 +300,28 @@ export class Faction extends Serializable {
         return "idle";
     }
     static FactionTypeToString(faction) {
-        if (faction >= 0 && faction < this.factions.length) {
-            return this.factions[faction].name;
+            if (faction >= 0 && faction < this.factions.length) {
+                return this.factions[faction].name;
+            }
+            return "Faction name not found";
         }
-        return "Faction name not found";
-    }
-    /**
-     * Initialize faction names, required before loading npcs from a save file
-     */
+        /**
+         * Initialize faction names, required before loading npcs from a save file
+         */
     static InitAfterLoad() {
-        this.factionNames.clear();
-        for (let i = 0; i < this.factions.length; ++i)
-            this.factionNames.set(this.factions[i].name, i);
+            this.factionNames.clear();
+            for (let i = 0; i < this.factions.length; ++i)
+                this.factionNames.set(this.factions[i].name, i);
 
-        for (let i = 0; i < this.factions.length; ++i) {
-            this.factions[i].index = i;
-            this.factions[i].MakeFriendsWith(i);
-            this.factions[i].TranslateFriends();
+            for (let i = 0; i < this.factions.length; ++i) {
+                this.factions[i].index = i;
+                this.factions[i].MakeFriendsWith(i);
+                this.factions[i].TranslateFriends();
+            }
         }
-    }
-    /**
-     * Translate member uids into pointers _after_ loading npcs from a save
-     */
+        /**
+         * Translate member uids into pointers _after_ loading npcs from a save
+         */
     static TranslateMembers() {
         for (let faction of this.factions) {
             for (let uidi of faction.membersAsUids) {
@@ -331,7 +334,7 @@ export class Faction extends Serializable {
     static LoadPresets(filename) {
         let listener = new FactionListener(this);
         listener.fetch(filename)
-            .then(function (data) {
+            .then(function(data) {
                 listener.parse(data);
 
                 for (let faction of Faction.factions) {
@@ -357,7 +360,7 @@ export class Faction extends Serializable {
             coward: this.coward,
             aggressive: this.aggressive,
             friends: this.friends.map(factionIter => Faction.FactionTypeToString(factionIter)),
-            members: this.members.map(function (membi) {
+            members: this.members.map(function(membi) {
                 let uid = -1;
                 if (membi.lock()) uid = membi.lock().Uid()
                 return uid;

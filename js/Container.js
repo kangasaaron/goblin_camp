@@ -54,15 +54,17 @@ export class Container extends Item {
         this.listeners = nlisteners;
     }
 
-    /*
-      destructor() {
-      	while (!items.empty()) {
-      		boost.weak_ptr < Item > item = GetFirstItem();
-      		RemoveItem(item);
-      		if (item.lock()) item.lock().PutInContainer();
-      	}
-      }
-      */
+
+    destructor() {
+        while (this.items.length) {
+            let item = this.GetFirstItem();
+            this.RemoveItem(item);
+            if (item.lock())
+                item.lock().PutInContainer();
+        }
+        super.destructor();
+    }
+
 
     AddItem(witem) {
         let item = witem.lock();

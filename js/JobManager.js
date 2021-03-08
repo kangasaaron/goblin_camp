@@ -15,28 +15,152 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "Job.js"
-import "data/Serialization.js"
+import { Job } from "./Job.js"
+import { Serializable } from "./data/Serialization.js"
 
-class JobManager {
-    GC_SERIALIZABLE_CLASS
+export class JobManagerClass extends Serializable {
+    static CLASS_VERSION = 1;
 
-    JobManager();
-    static JobManager * instance;
-    std.list < boost.shared_ptr < Job > > availableList[PRIORITY_COUNT];
-    std.list < boost.shared_ptr < Job > > waitingList;
-    std.vector < int > menialNPCsWaiting;
-    std.vector < int > expertNPCsWaiting;
-    std.vector < std.vector < boost.weak_ptr < Job > > > toolJobs;
-    std.list < boost.shared_ptr < Job > > failList;
-    //public extends 
-    static JobManager * Inst();
-    static void Reset();
-    void AddJob(boost.shared_ptr < Job > );
-    void Draw(Coordinate, int from = 0, int width = 40, int height = 40, TCODConsole * = TCODConsole.root);
-    void CancelJob(boost.weak_ptr < Job > , std.string, TaskResult);
-    boost.weak_ptr < Job > GetJob(int);
-    boost.weak_ptr < Job > GetJobByListIndex(int);
+    /** @type {Array<Job>} */
+    availableList = new Array(JobPriority.PRIORITY_COUNT);
+    /** @type {Array<Job>} */
+    waitingList = [];
+    /** @type {Array<number>} */
+    menialNPCsWaiting = []
+        /** @type {Array<number>} */
+    expertNPCsWaiting = [];
+    /** @type {Array<Array<Job>>} */
+    toolJobs = [];
+    /** @type {Array<Job>} */
+    failList = [];
+
+    static Reset() {
+        delete JobManager;
+        JobManager = new JobManagerClass();
+    }
+
+    constructor() {
+        for (let i of Item.Categories) {
+            this.toolJobs.push([]);
+        }
+    }
+    AddJob(newJob) {
+        if (!newJob.Attempt() || newJob.OutsideTerritory() || newJob.InvalidFireAllowance()) {
+            this.failList.push(newJob);
+            return;
+        }
+
+        if (newJob.PreReqsCompleted()) {
+            this.availableList[newJob.priority()].push(newJob);
+            return;
+        } else {
+            newJob.Paused(true);
+            this.waitingList.push(newJob);
+        }
+    }
+    Draw(pos, from = 0, width = 40, height = 40, the_console = TCODConsole.root) {
+        let skip = 0;
+        let y = pos.Y();
+        let npc;
+        let color_mappings = [Color.green, new Color(0, 160, 60), new Color(175, 150, 50), new Color(165, 95, 0), Color.grey];
+
+        for (let i = 0; i <= JobPriority.PRIORITY_COUNT; i++) {
+            the_console.setDefaultForeground(color_mappings[i]);
+            for (let jobi of(i < JobPriority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
+                if (skip < from) {
+                    ++skip;
+                    continue;
+                }
+
+                npc = Game.GetNPC(jobi.Assigned());
+                if (npc) {
+                    the_console.print(pos.X(), y, "%c", npc.GetNPCSymbol());
+                }
+                the_console.print(pos.X() + 2, y, "%s", jobi.name);
+
+                if (DEBUG) {
+                    if (npc) {
+                        if (npc.currentTask() != 0) {
+                            the_console.print(pos.X() + 45, y, "%s", jobi.ActionToString(npc.currentTask().action));
+                        }
+                    }
+                    the_console.print(pos.X() + width - 11, y, "A. %d", jobi.Assigned());
+                }
+                if (++y - pos.Y() >= height) {
+                    the_console.setDefaultForeground(Color.white);
+                    return;
+                }
+
+            }
+        }
+        the_console.setDefaultForeground(Color.white);
+    }
+    CancelJob(oldJob, msg, result) {
+        let job;
+        if (!(job = oldJob.lock())) return;
+
+        job.Assign(-1);
+        job.Paused(true);
+
+        //Push job onto waiting list
+        this.waitingList.push(job);
+
+        //Remove job from availabe list
+        for (let jobi of this.availableList[job.priority()]) {
+            if (jobi == job) {
+                this.availableList[job.priority()].splice(this.availableList[job.priority()].indexOf(jobi), 1);
+                break;
+            }
+        }
+
+        //If the job requires a tool, remove it from the toolJobs list
+        if (job.RequiresTool()) {
+            for (let jobi of this.toolJobs[job.GetRequiredTool()]) {
+                if (jobi.lock() == job) {
+                    this.toolJobs[job.GetRequiredTool()].erase(jobi);
+                    break;
+                }
+            }
+        }
+    }
+    GetJob(uid) {
+        let job;
+
+        outer:
+            for (let i = 0; i < JobPriority.PRIORITY_COUNT; ++i) {
+                for (let jobi of this.availableList[i]) {
+                    let npc = Game.GetNPC(uid);
+                    if (npc && jobi.Menial() != npc.Expert()) {
+                        if (jobi.Assigned() == -1 && !jobi.Removable()) {
+                            job = jobi;
+                            //goto FoundJob;
+                            break outer;
+                        }
+                    }
+                }
+            }
+
+        FoundJob:
+            if (job.lock()) job.lock().Assign(uid);
+
+        return job;
+    }
+    GetJobByListIndex(index) {
+        let count = 0;
+
+        for (let i = 0; i < JobPriority.PRIORITY_COUNT; ++i) {
+            for (let jobi of this.availableList[i]) {
+                if (count++ == index) return jobi;
+            }
+        }
+
+        for (let waitingIter of this.waitingList) {
+            if (count++ == index) return waitingIter;
+        }
+
+        return null;
+    }
+
     void RemoveJob(boost.weak_ptr < Job > );
     void RemoveJob(Action, Coordinate); //Can remove more than was intended, use with caution
     void Update();
@@ -45,145 +169,9 @@ class JobManager {
     void NPCNotWaiting(int);
     void ClearWaitingNpcs();
     void AssignJobs();
-};
-
-BOOST_CLASS_VERSION(JobManager, 1)
-    /* Copyright 2010-2011 Ilkka Halila
-    This file is part of Goblin Camp.
-
-    Goblin Camp is free software: you can redistribute it and/or modify
-    it under the terms of the GNU General Public License as published by
-    the Free Software Foundation, either version 3 of the License, or
-    (at your option) any later version.
-
-    Goblin Camp is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-    GNU General Public License for more details.
-
-    You should have received a copy of the GNU General Public License 
-    along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "boost/serialization/list.js"
-import "boost/serialization/vector.js"
-import "boost/serialization/shared_ptr.js"
-import "boost/serialization/weak_ptr.js"
-
-import "JobManager.js"
-import "Game.js"
-import "KuhnMunkres.js"
-import "StockManager.js"
-
-JobManager.JobManager() {
-    for (std.vector < ItemCat > .iterator i = Item.Categories.begin(); i != Item.Categories.end(); ++i) {
-        toolJobs.push_back(std.vector < boost.weak_ptr < Job > > ());
-    }
-}
-JobManager * JobManager.instance = 0;
-
-JobManager * JobManager.Inst() {
-    if (!instance) instance = new JobManager();
-    return instance;
 }
 
-void JobManager.AddJob(boost.shared_ptr < Job > newJob) {
-    if (!newJob.Attempt() || newJob.OutsideTerritory() || newJob.InvalidFireAllowance()) {
-        failList.push_back(newJob);
-        return;
-    }
 
-    if (newJob.PreReqsCompleted()) {
-        availableList[newJob.priority()].push_back(newJob);
-        return;
-    } else {
-        newJob.Paused(true);
-        waitingList.push_back(newJob);
-    }
-}
-
-void JobManager.CancelJob(boost.weak_ptr < Job > oldJob, std.string msg, TaskResult result) {
-    if (boost.shared_ptr < Job > job = oldJob.lock()) {
-        job.Assign(-1);
-        job.Paused(true);
-
-        //Push job onto waiting list
-        waitingList.push_back(job);
-
-        //Remove job from availabe list
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[job.priority()].begin(); jobi != availableList[job.priority()].end(); ++jobi) {
-            if (( * jobi) == job) {
-                availableList[job.priority()].erase(jobi);
-                break;
-            }
-        }
-
-        //If the job requires a tool, remove it from the toolJobs list
-        if (job.RequiresTool()) {
-            for (std.vector < boost.weak_ptr < Job > > .iterator jobi = toolJobs[job.GetRequiredTool()].begin(); jobi != toolJobs[job.GetRequiredTool()].end(); ++jobi) {
-                if (jobi.lock() == job) {
-                    toolJobs[job.GetRequiredTool()].erase(jobi);
-                    break;
-                }
-            }
-        }
-    }
-}
-
-void JobManager.Draw(Coordinate pos, int from, int width, int height, TCODConsole * the_console) {
-    int skip = 0;
-    int y = pos.Y();
-    boost.shared_ptr < NPC > npc;
-    TCODColor color_mappings[] = { TCODColor.green, TCODColor(0, 160, 60), TCODColor(175, 150, 50), TCODColor(165, 95, 0), TCODColor.grey };
-
-    for (int i = 0; i <= PRIORITY_COUNT; i++) {
-        the_console.setDefaultForeground(color_mappings[i]);
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = (i < PRIORITY_COUNT ? availableList[i].begin() : waitingList.begin()); jobi != (i < PRIORITY_COUNT ? availableList[i].end() : waitingList.end()); ++jobi) {
-            if (skip < from) ++skip;
-            else {
-                npc = Game.GetNPC(( * jobi).Assigned());
-                if (npc) {
-                    the_console.print(pos.X(), y, "%c", npc.GetNPCSymbol());
-                }
-                the_console.print(pos.X() + 2, y, "%s", ( * jobi).name.c_str());
-
-                if (DEBUG) {
-                    if (npc) {
-                        if (npc.currentTask() != 0) {
-                            the_console.print(pos.X() + 45, y, "%s", ( * jobi).ActionToString(npc.currentTask().action).c_str());
-                        }
-                    }
-                    the_console.print(pos.X() + width - 11, y, "A. %d", ( * jobi).Assigned());
-                } /*#endif*/
-                if (++y - pos.Y() >= height) {
-                    the_console.setDefaultForeground(TCODColor.white);
-                    return;
-                }
-            }
-        }
-    }
-    the_console.setDefaultForeground(TCODColor.white);
-}
-
-boost.weak_ptr < Job > JobManager.GetJob(int uid) {
-    boost.weak_ptr < Job > job;
-
-    for (int i = 0; i < PRIORITY_COUNT; ++i) {
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[i].begin(); jobi != availableList[i].end(); ++jobi) {
-            boost.shared_ptr < NPC > npc = Game.GetNPC(uid);
-            if (npc && ( * jobi).Menial() != npc.Expert()) {
-                if (( * jobi).Assigned() == -1 && !( * jobi).Removable()) {
-                    job = ( * jobi);
-                    goto FoundJob;
-                }
-            }
-        }
-    }
-    FoundJob:
-        if (job.lock()) job.lock().Assign(uid);
-
-    return job;
-}
 
 void JobManager.Update() {
 
@@ -253,22 +241,6 @@ int JobManager.JobAmount() {
     return count;
 }
 
-boost.weak_ptr < Job > JobManager.GetJobByListIndex(int index) {
-    int count = 0;
-
-    for (int i = 0; i < PRIORITY_COUNT; ++i) {
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[i].begin(); jobi != availableList[i].end(); ++jobi) {
-            if (count++ == index) return ( * jobi);
-        }
-    }
-
-    for (std.list < boost.shared_ptr < Job > > .iterator waitingIter = waitingList.begin(); waitingIter != waitingList.end(); ++waitingIter) {
-        if (count++ == index) return ( * waitingIter);
-    }
-
-    return boost.weak_ptr < Job > ();
-}
-
 void JobManager.RemoveJob(boost.weak_ptr < Job > wjob) {
     if (boost.shared_ptr < Job > job = wjob.lock()) {
         for (int i = 0; i < PRIORITY_COUNT; ++i) {
@@ -288,11 +260,6 @@ void JobManager.RemoveJob(boost.weak_ptr < Job > wjob) {
     }
 }
 
-void JobManager.Reset() {
-    delete instance;
-    instance = 0;
-}
-
 void JobManager.NPCWaiting(int uid) {
     boost.shared_ptr < NPC > npc = Game.GetNPC(uid);
     if (npc) {
@@ -302,14 +269,14 @@ void JobManager.NPCWaiting(int uid) {
                     return;
                 }
             }
-            expertNPCsWaiting.push_back(uid);
+            expertNPCsWaiting.push(uid);
         } else {
             for (std.vector < int > .iterator it = menialNPCsWaiting.begin(); it != menialNPCsWaiting.end(); it++) {
                 if ( * it == uid) {
                     return;
                 }
             }
-            menialNPCsWaiting.push_back(uid);
+            menialNPCsWaiting.push(uid);
         }
     }
 }
@@ -359,8 +326,8 @@ void JobManager.AssignJobs() {
                     if (!( * jobi).RequiresTool() ||
                         (( * jobi).RequiresTool() && maxToolJobs[( * jobi).GetRequiredTool()] > 0)) {
                         if (( * jobi).RequiresTool()) --maxToolJobs[( * jobi).GetRequiredTool()];
-                        if (( * jobi).Menial() && menialJobsToAssign.size() < 20) menialJobsToAssign.push_back( * jobi);
-                        else if (!( * jobi).Menial() && expertJobsToAssign.size() < 20) expertJobsToAssign.push_back( * jobi);
+                        if (( * jobi).Menial() && menialJobsToAssign.size() < 20) menialJobsToAssign.push( * jobi);
+                        else if (!( * jobi).Menial() && expertJobsToAssign.size() < 20) expertJobsToAssign.push( * jobi);
                     }
                 }
             }
@@ -428,7 +395,7 @@ void JobManager.AssignJobs() {
                             menialNPCsWaiting.erase(menialNPCsWaiting.begin() + n);
                             n--;
                             if (job.RequiresTool())
-                                toolJobs[job.GetRequiredTool()].push_back(job);
+                                toolJobs[job.GetRequiredTool()].push(job);
                             npc.StartJob(job);
                         }
                     }
@@ -445,7 +412,7 @@ void JobManager.AssignJobs() {
                             expertNPCsWaiting.erase(expertNPCsWaiting.begin() + n);
                             n--;
                             if (job.RequiresTool())
-                                toolJobs[job.GetRequiredTool()].push_back(job);
+                                toolJobs[job.GetRequiredTool()].push(job);
                             npc.StartJob(job);
                         }
                     }
@@ -518,3 +485,5 @@ void JobManager.load(InputArchive & ar,
     ar & toolJobs;
     ar & failList;
 }
+
+export let JobManager = new JobManagerClass();

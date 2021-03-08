@@ -1,140 +1,143 @@
-class NPCListener extends /*public*/ ITCODParserListener {
+import { PreserParser } from "./PresetParser.js";
 
-    int npcIndex;
-
-    bool parserNewStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (boost.iequals(str.getName(), "npc_type")) {
-            if (NPC.NPCTypeNames.find(name) != NPC.NPCTypeNames.end()) {
-                npcIndex = NPC.NPCTypeNames[name];
-                NPC.Presets[npcIndex] = NPCPreset(name);
+export class NPCListener extends PreserParser {
+    npcIndex = 0;
+    constructor(NPC) {
+        this.NPC = NPC;
+    }
+    parserNewStruct(str, name) {
+        let lower = name.toLowerCase();
+        if (lower === "npc_type") {
+            if (this.NPC.NPCTypeNames.has(name)) {
+                this.npcIndex = this.NPC.NPCTypeNames[name];
+                this.NPC.Presets[this.npcIndex] = new NPCPreset(name);
             } else {
-                NPC.Presets.push_back(NPCPreset(name));
-                NPC.NPCTypeNames[name] = NPC.Presets.size() - 1;
-                npcIndex = NPC.Presets.size() - 1;
+                this.NPC.Presets.push(new NPCPreset(name));
+                this.npcIndex = this.NPC.Presets.size() - 1;
+                this.NPC.NPCTypeNames.set(name, this.npcIndex);
             }
-        } else if (boost.iequals(str.getName(), "attack")) {
-            NPC.Presets[npcIndex].attacks.push_back(Attack());
-        } else if (boost.iequals(str.getName(), "resistances")) {}
+        } else if (lower === "attack") {
+            this.NPC.Presets[this.npcIndex].attacks.push(new Attack());
+        } else
+        if (lower === "resistances") {}
         return true;
     }
-    bool parserFlag(TCODParser * parser,
-        const char * name) {
-        if (boost.iequals(name, "generateName")) {
-            NPC.Presets[npcIndex].generateName = true;
-        } else if (boost.iequals(name, "needsNutrition")) {
-            NPC.Presets[npcIndex].needsNutrition = true;
-        } else if (boost.iequals(name, "needsSleep")) {
-            NPC.Presets[npcIndex].needsSleep = true;
-        } else if (boost.iequals(name, "expert")) {
-            NPC.Presets[npcIndex].expert = true;
+    parserFlag(name, value = true) {
+        let lower = name.toLowerCase();
+        if (lower == "generateName") {
+            this.NPC.Presets[this.npcIndex].generateName = value;
+        } else if (lower == "needsNutrition") {
+            this.NPC.Presets[this.npcIndex].needsNutrition = value;
+        } else if (lower == "needsSleep") {
+            this.NPC.Presets[this.npcIndex].needsSleep = value;
+        } else if (lower == "expert") {
+            this.NPC.Presets[this.npcIndex].expert = value;
         }
         return true;
     }
-    bool parserProperty(TCODParser * parser,
-        const char * name, TCOD_value_type_t type, TCOD_value_t value) {
-        if (boost.iequals(name, "name")) {
-            NPC.Presets[npcIndex].name = value.s;
-        } else if (boost.iequals(name, "plural")) {
-            NPC.Presets[npcIndex].plural = value.s;
-        } else if (boost.iequals(name, "speed")) {
-            NPC.Presets[npcIndex].stats[MOVESPEED] = value.i;
-        } else if (boost.iequals(name, "col")) {
-            NPC.Presets[npcIndex].color = value.col;
-        } else if (boost.iequals(name, "graphic")) {
-            NPC.Presets[npcIndex].graphic = value.c;
-        } else if (boost.iequals(name, "fallbackGraphicsSet")) {
-            NPC.Presets[npcIndex].fallbackGraphicsSet = value.s;
-        } else if (boost.iequals(name, "health")) {
-            NPC.Presets[npcIndex].health = value.i;
-        } else if (boost.iequals(name, "AI")) {
-            NPC.Presets[npcIndex].ai = value.s;
-        } else if (boost.iequals(name, "dodge")) {
-            NPC.Presets[npcIndex].stats[DODGE] = value.i;
-        } else if (boost.iequals(name, "spawnAsGroup")) {
-            NPC.Presets[npcIndex].spawnAsGroup = true;
-            NPC.Presets[npcIndex].group = value.dice;
-        } else if (boost.iequals(name, "type")) {
-            NPC.Presets[npcIndex].attacks.back().Type(Attack.StringToDamageType(value.s));
-        } else if (boost.iequals(name, "damage")) {
-            NPC.Presets[npcIndex].attacks.back().Amount(value.dice);
-        } else if (boost.iequals(name, "cooldown")) {
-            NPC.Presets[npcIndex].attacks.back().CooldownMax(value.i);
-        } else if (boost.iequals(name, "statusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
+    parserProperty(name, value) {
+        let lower = name.toLowerCase();
+        let currentPreset = this.NPC.Presets[this.npcIndex];
+        if (lower === "name") {
+            currentPreset.name = value;
+        } else if (lower === "plural") {
+            currentPreset.plural = value;
+        } else if (lower === "speed") {
+            currentPreset.stats[NPCStat.MOVESPEED] = value;
+        } else if (lower === "col") {
+            currentPreset.color = new Color(...value.col);
+        } else if (lower === "graphic") {
+            currentPreset.graphic = value;
+        } else if (lower === "fallbackGraphicsSet") {
+            currentPreset.fallbackGraphicsSet = value;
+        } else if (lower === "health") {
+            currentPreset.health = value;
+        } else if (lower === "AI") {
+            currentPreset.ai = value;
+        } else if (lower === "dodge") {
+            currentPreset.stats[NPCStat.DODGE] = value;
+        } else if (lower === "spawnAsGroup") {
+            currentPreset.spawnAsGroup = true;
+            currentPreset.group = new Dice(value);
+        } else if (lower === "type") {
+            currentPreset.attacks[currentPreset.attacks.length - 1].Type(Attack.StringToDamageType(value));
+        } else if (lower === "damage") {
+            currentPreset.attacks[currentPreset.attacks.length - 1].Amount(new Dice(value));
+        } else if (lower === "cooldown") {
+            currentPreset.attacks[currentPreset.attacks.length - 1].CooldownMax(value);
+        } else if (lower === "statusEffects") {
+            for (let i = 0; i < value.length; ++i) {
+                let type = StatusEffect.StringToStatusEffectType(value[i]);
                 if (StatusEffect.IsApplyableStatusEffect(type))
-                    NPC.Presets[npcIndex].attacks.back().StatusEffects().push_back(std.pair < StatusEffectType, int > (type, 100));
+                    currentPreset.attacks[currentPreset.attacks.length - 1].StatusEffects().push([type, 100]);
             }
-        } else if (boost.iequals(name, "effectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                NPC.Presets[npcIndex].attacks.back().StatusEffects().at(i).second = (intptr_t) TCOD_list_get(value.list, i);
+        } else if (lower === "effectChances") {
+            for (let i = 0; i < value.length; ++i) {
+                currentPreset.attacks[currentPreset.attacks.length - 1].StatusEffects()[i][1] = value[i];
             }
-        } else if (boost.iequals(name, "projectile")) {
-            NPC.Presets[npcIndex].attacks.back().Projectile(Item.StringToItemType(value.s));
-            if (NPC.Presets[npcIndex].attacks.back().Projectile() == -1) {
+        } else if (lower === "projectile") {
+            currentPreset.attacks[currentPreset.attacks.length - 1].Projectile(Item.StringToItemType(value));
+            if (currentPreset.attacks[currentPreset.attacks.length - 1].Projectile() == -1) {
                 //No item found, probably a spell then
-                NPC.Presets[npcIndex].attacks.back().Projectile(Spell.StringToSpellType(value.s));
-                if (NPC.Presets[npcIndex].attacks.back().Projectile() >= 0)
-                    NPC.Presets[npcIndex].attacks.back().SetMagicProjectile();
+                currentPreset.attacks[currentPreset.attacks.length - 1].Projectile(Spell.StringToSpellType(value));
+                if (currentPreset.attacks[currentPreset.attacks.length - 1].Projectile() >= 0)
+                    currentPreset.attacks[currentPreset.attacks.length - 1].SetMagicProjectile();
             }
-        } else if (boost.iequals(name, "physical")) {
-            NPC.Presets[npcIndex].resistances[PHYSICAL_RES] = value.i;
-        } else if (boost.iequals(name, "magic")) {
-            NPC.Presets[npcIndex].resistances[MAGIC_RES] = value.i;
-        } else if (boost.iequals(name, "cold")) {
-            NPC.Presets[npcIndex].resistances[COLD_RES] = value.i;
-        } else if (boost.iequals(name, "fire")) {
-            NPC.Presets[npcIndex].resistances[FIRE_RES] = value.i;
-        } else if (boost.iequals(name, "poison")) {
-            NPC.Presets[npcIndex].resistances[POISON_RES] = value.i;
-        } else if (boost.iequals(name, "bleeding")) {
-            NPC.Presets[npcIndex].resistances[BLEEDING_RES] = value.i;
-        } else if (boost.iequals(name, "tags")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                std.string tag = (char * ) TCOD_list_get(value.list, i);
-                NPC.Presets[npcIndex].tags.insert(boost.to_lower_copy(tag));
+        } else if (lower === "physical") {
+            currentPreset.resistances[Resistance.PHYSICAL_RES] = value;
+        } else if (lower === "magic") {
+            currentPreset.resistances[Resistance.MAGIC_RES] = value;
+        } else if (lower === "cold") {
+            currentPreset.resistances[Resistance.COLD_RES] = value;
+        } else if (lower === "fire") {
+            currentPreset.resistances[Resistance.FIRE_RES] = value;
+        } else if (lower === "poison") {
+            currentPreset.resistances[Resistance.POISON_RES] = value;
+        } else if (lower === "bleeding") {
+            currentPreset.resistances[Resistance.BLEEDING_RES] = value;
+        } else if (lower === "tags") {
+            for (let i = 0; i < value.length; ++i) {
+                let tag = value[i];
+                currentPreset.tags.add(tag.toLowerCase());
             }
-        } else if (boost.iequals(name, "strength")) {
-            NPC.Presets[npcIndex].stats[STRENGTH] = value.i;
-        } else if (boost.iequals(name, "size")) {
-            NPC.Presets[npcIndex].stats[NPCSIZE] = value.i;
-            if (NPC.Presets[npcIndex].stats[STRENGTH] == 1) NPC.Presets[npcIndex].stats[STRENGTH] = value.i;
-        } else if (boost.iequals(name, "tier")) {
-            NPC.Presets[npcIndex].tier = value.i;
-        } else if (boost.iequals(name, "death")) {
-            if (boost.iequals(value.s, "filth")) NPC.Presets[npcIndex].deathItem = -1;
-            else NPC.Presets[npcIndex].deathItem = Item.StringToItemType(value.s);
-        } else if (boost.iequals(name, "equipOneOf")) {
-            NPC.Presets[npcIndex].possibleEquipment.push_back(std.vector < int > ());
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                std.string item = (char * ) TCOD_list_get(value.list, i);
-                NPC.Presets[npcIndex].possibleEquipment.back().push_back(Item.StringToItemType(item));
+        } else if (lower === "strength") {
+            currentPreset.stats[NPCStat.STRENGTH] = value;
+        } else if (lower === "size") {
+            currentPreset.stats[NPCStat.NPCSIZE] = value;
+            if (currentPreset.stats[NPCStat.STRENGTH] == 1) currentPreset.stats[NPCStat.STRENGTH] = value;
+        } else if (lower === "tier") {
+            currentPreset.tier = value;
+        } else if (lower === "death") {
+            if (value === "filth") currentPreset.deathItem = -1;
+            else currentPreset.deathItem = Item.StringToItemType(value);
+        } else if (lower === "equipOneOf") {
+            currentPreset.possibleEquipment.push([]);
+            for (let i = 0; i < value.length; ++i) {
+                let item = value[i];
+                currentPreset.possibleEquipment[currentPreset.possibleEquipment.length - 1].push(Item.StringToItemType(item));
             }
-        } else if (boost.iequals(name, "faction")) {
-            NPC.Presets[npcIndex].faction = Faction.StringToFactionType(value.s);
+        } else if (lower === "faction") {
+            currentPreset.faction = Faction.StringToFactionType(value);
         }
         return true;
     }
-    bool parserEndStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (NPC.Presets[npcIndex].plural == "") NPC.Presets[npcIndex].plural = NPC.Presets[npcIndex].name + "s";
-        if (NPC.Presets[npcIndex].faction == -1) {
-            if (NPC.Presets[npcIndex].ai == "PlayerNPC") {
-                NPC.Presets[npcIndex].faction = PLAYERFACTION;
-            } else if (NPC.Presets[npcIndex].ai == "PeacefulAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Peaceful animal");
-            } else if (NPC.Presets[npcIndex].ai == "HungryAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Hostile monster");
-            } else if (NPC.Presets[npcIndex].ai == "HostileAnimal") {
-                NPC.Presets[npcIndex].faction = Faction.StringToFactionType("Hostile monster");
+    parserEndStruct(str, name) {
+        if (this.NPC.Presets[this.npcIndex].plural == "")
+            this.NPC.Presets[this.npcIndex].plural = this.NPC.Presets[this.npcIndex].name + "s";
+        if (this.NPC.Presets[this.npcIndex].faction == -1) {
+            if (this.NPC.Presets[this.npcIndex].ai == "PlayerNPC") {
+                this.NPC.Presets[this.npcIndex].faction = PLAYERFACTION;
+            } else if (this.NPC.Presets[this.npcIndex].ai == "PeacefulAnimal") {
+                this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Peaceful animal");
+            } else if (this.NPC.Presets[this.npcIndex].ai == "HungryAnimal") {
+                this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Hostile monster");
+            } else if (this.NPC.Presets[this.npcIndex].ai == "HostileAnimal") {
+                this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Hostile monster");
             }
         }
         return true;
     }
-    void error(const char * msg) {
-        throw std.runtime_error(msg);
+    error(msg) {
+        throw new Error(msg);
     }
 };

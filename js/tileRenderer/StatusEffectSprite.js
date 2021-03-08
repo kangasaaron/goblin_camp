@@ -14,26 +14,24 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-
-
 import "tileRenderer/Sprite.js"
 
-class StatusEffectSprite
-{
-//public extends 
-	explicit StatusEffectSprite();
-	explicit StatusEffectSprite(Sprite_ptr sprite, int flashRate, bool alwaysOn);
-	~StatusEffectSprite();
+class StatusEffectSprite {
+    //public extends 
+    explicit StatusEffectSprite();
+    explicit StatusEffectSprite(SpritePtr sprite, int flashRate, bool alwaysOn);
+    ~StatusEffectSprite();
 
-	void Draw(int screenX, int screenY, bool forceOn) const;
-	bool IsAlwaysVisible() const;
-	bool Exists() const;
-	
-//private:
-	Sprite_ptr sprite;
-	bool alwaysOn;
-	int flashRate;
-};/* Copyright 2011 Ilkka Halila
+    void Draw(int screenX, int screenY, bool forceOn) const;
+    bool IsAlwaysVisible() const;
+    bool Exists() const;
+
+    //private:
+    SpritePtr sprite;
+    bool alwaysOn;
+    int flashRate;
+};
+/* Copyright 2011 Ilkka Halila
 This file is part of Goblin Camp.
 
 Goblin Camp is free software: you can redistribute it and/or modify
@@ -52,31 +50,26 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import "stdafx.js"
 import "tileRenderer/StatusEffectSprite.js"
 
-StatusEffectSprite.StatusEffectSprite()
-	: sprite(),
-	  alwaysOn(false),
-	  flashRate(0)
-{}
+StatusEffectSprite.StatusEffectSprite(): sprite(),
+    alwaysOn(false),
+    flashRate(0) {}
 
-StatusEffectSprite.StatusEffectSprite(Sprite_ptr sprite, int flashRate, bool alwaysOn)
-	: sprite(sprite),
-	  alwaysOn(alwaysOn),
-	  flashRate(flashRate == 0 ? 0 : 1000/(flashRate + 1))
-{}
-	
+StatusEffectSprite.StatusEffectSprite(SpritePtr sprite, int flashRate, bool alwaysOn): sprite(sprite),
+    alwaysOn(alwaysOn),
+    flashRate(flashRate == 0 ? 0 : 1000 / (flashRate + 1)) {}
+
 StatusEffectSprite.~StatusEffectSprite() {}
 
 void StatusEffectSprite.Draw(int screenX, int screenY, bool forceOn) const {
-	if (forceOn || flashRate == 0 || (TCODSystem.getElapsedMilli() / flashRate) % 2 == 0)
-	{
-		sprite.Draw(screenX, screenY);
-	}
+    if (forceOn || flashRate == 0 || (TCODSystem.getElapsedMilli() / flashRate) % 2 == 0) {
+        sprite.Draw(screenX, screenY);
+    }
 }
 
 bool StatusEffectSprite.IsAlwaysVisible() const {
-	return alwaysOn;
+    return alwaysOn;
 }
 
 bool StatusEffectSprite.Exists() const {
-	return sprite.Exists();
+    return sprite.Exists();
 }

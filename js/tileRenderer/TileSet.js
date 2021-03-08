@@ -91,19 +91,19 @@ class TileSet extends private boost.noncopyable {
     void SetDescription(std.string desc);
     void SetTerrain(TileType type,
         const TerrainSprite & sprite);
-    void SetWaterAndIce(Sprite_ptr sprite);
-    void SetIce(Sprite_ptr sprite);
-    void SetFilthMinor(Sprite_ptr sprite);
-    void SetFilthMajor(Sprite_ptr sprite);
-    void SetMarker(Sprite_ptr sprite);
-    void SetBlood(Sprite_ptr sprite);
-    void SetNonTerritoryOverlay(Sprite_ptr sprite);
-    void SetTerritoryOverlay(Sprite_ptr sprite);
-    void SetMarkedOverlay(Sprite_ptr sprite);
-    void SetCursorSprites(CursorType type, Sprite_ptr sprite);
-    void SetCursorSprites(CursorType type, Sprite_ptr placeableSprite, Sprite_ptr nonplaceableSprite);
-    void SetDefaultUnderConstructionSprite(Sprite_ptr sprite);
-    void SetFireSprite(Sprite_ptr sprite);
+    void SetWaterAndIce(SpritePtr sprite);
+    void SetIce(SpritePtr sprite);
+    void SetFilthMinor(SpritePtr sprite);
+    void SetFilthMajor(SpritePtr sprite);
+    void SetMarker(SpritePtr sprite);
+    void SetBlood(SpritePtr sprite);
+    void SetNonTerritoryOverlay(SpritePtr sprite);
+    void SetTerritoryOverlay(SpritePtr sprite);
+    void SetMarkedOverlay(SpritePtr sprite);
+    void SetCursorSprites(CursorType type, SpritePtr sprite);
+    void SetCursorSprites(CursorType type, SpritePtr placeableSprite, SpritePtr nonplaceableSprite);
+    void SetDefaultUnderConstructionSprite(SpritePtr sprite);
+    void SetFireSprite(SpritePtr sprite);
 
     void SetStatusSprite(StatusEffectType statusEffect,
         const StatusEffectSprite & sprite);
@@ -127,7 +127,7 @@ class TileSet extends private boost.noncopyable {
 
     //private:
     typedef boost.array < TerrainSprite, TILE_TYPE_COUNT > TileTypeSpriteArray;
-    typedef boost.array < Sprite_ptr, Cursor_Simple_Mode_Count > CursorTypeSpriteArray;
+    typedef boost.array < SpritePtr, Cursor_Simple_Mode_Count > CursorTypeSpriteArray;
     typedef boost.array < StatusEffectSprite, STATUS_EFFECT_COUNT > StatusEffectSpriteArray;
     typedef boost.unordered_map < std.string, int, boost.hash < std.string > > LookupMap;
 
@@ -138,20 +138,20 @@ class TileSet extends private boost.noncopyable {
     std.string version;
     std.string description;
 
-    Sprite_ptr waterTile;
-    Sprite_ptr iceTile;
-    Sprite_ptr fireTile;
-    Sprite_ptr minorFilth;
-    Sprite_ptr majorFilth;
+    SpritePtr waterTile;
+    SpritePtr iceTile;
+    SpritePtr fireTile;
+    SpritePtr minorFilth;
+    SpritePtr majorFilth;
 
-    Sprite_ptr nonTerritoryOverlay;
-    Sprite_ptr territoryOverlay;
-    Sprite_ptr markedOverlay;
+    SpritePtr nonTerritoryOverlay;
+    SpritePtr territoryOverlay;
+    SpritePtr markedOverlay;
 
-    Sprite_ptr marker;
-    Sprite_ptr blood;
+    SpritePtr marker;
+    SpritePtr blood;
 
-    Sprite_ptr defaultUnderConstructionSprite;
+    SpritePtr defaultUnderConstructionSprite;
 
     NPCSprite defaultNPCSprite;
     std.vector < NPCSprite > npcSprites;
@@ -255,8 +255,8 @@ TileSet.TileSet(std.string tileSetName, int tileW, int tileH):
             terrainTiles[i] = TerrainSprite();
         }
         for (size_t i = 0; i < placeableCursors.size(); ++i) {
-            placeableCursors[i] = Sprite_ptr();
-            nonplaceableCursors[i] = Sprite_ptr();
+            placeableCursors[i] = SpritePtr();
+            nonplaceableCursors[i] = SpritePtr();
         }
         for (size_t i = 0; i < defaultStatusEffects.size(); ++i) {
             defaultStatusEffects[i] = StatusEffectSprite();
@@ -645,43 +645,43 @@ void TileSet.SetTerrain(TileType type,
     }
 }
 
-void TileSet.SetWaterAndIce(Sprite_ptr sprite) {
+void TileSet.SetWaterAndIce(SpritePtr sprite) {
     waterTile = sprite;
 }
 
-void TileSet.SetIce(Sprite_ptr sprite) {
+void TileSet.SetIce(SpritePtr sprite) {
     iceTile = sprite;
 }
 
-void TileSet.SetFilthMinor(Sprite_ptr sprite) {
+void TileSet.SetFilthMinor(SpritePtr sprite) {
     minorFilth = sprite;
 }
 
-void TileSet.SetFilthMajor(Sprite_ptr sprite) {
+void TileSet.SetFilthMajor(SpritePtr sprite) {
     majorFilth = sprite;
 }
 
-void TileSet.SetMarker(Sprite_ptr sprite) {
+void TileSet.SetMarker(SpritePtr sprite) {
     marker = sprite;
 }
 
-void TileSet.SetBlood(Sprite_ptr sprite) {
+void TileSet.SetBlood(SpritePtr sprite) {
     blood = sprite;
 }
 
-void TileSet.SetNonTerritoryOverlay(Sprite_ptr sprite) {
+void TileSet.SetNonTerritoryOverlay(SpritePtr sprite) {
     nonTerritoryOverlay = sprite;
 }
 
-void TileSet.SetTerritoryOverlay(Sprite_ptr sprite) {
+void TileSet.SetTerritoryOverlay(SpritePtr sprite) {
     territoryOverlay = sprite;
 }
 
-void TileSet.SetMarkedOverlay(Sprite_ptr sprite) {
+void TileSet.SetMarkedOverlay(SpritePtr sprite) {
     markedOverlay = sprite;
 }
 
-void TileSet.SetCursorSprites(CursorType type, Sprite_ptr sprite) {
+void TileSet.SetCursorSprites(CursorType type, SpritePtr sprite) {
     placeableCursors[type] = sprite;
     nonplaceableCursors[type] = sprite;
     if (type == Cursor_None) {
@@ -694,7 +694,7 @@ void TileSet.SetCursorSprites(CursorType type, Sprite_ptr sprite) {
     }
 }
 
-void TileSet.SetCursorSprites(CursorType type, Sprite_ptr placeableSprite, Sprite_ptr nonplaceableSprite) {
+void TileSet.SetCursorSprites(CursorType type, SpritePtr placeableSprite, SpritePtr nonplaceableSprite) {
     placeableCursors[type] = placeableSprite;
     nonplaceableCursors[type] = nonplaceableSprite;
     if (type == Cursor_None) {
@@ -712,11 +712,11 @@ void TileSet.SetStatusSprite(StatusEffectType statusEffect,
     defaultStatusEffects[statusEffect] = sprite;
 }
 
-void TileSet.SetDefaultUnderConstructionSprite(Sprite_ptr sprite) {
+void TileSet.SetDefaultUnderConstructionSprite(SpritePtr sprite) {
     defaultUnderConstructionSprite = sprite;
 }
 
-void TileSet.SetFireSprite(Sprite_ptr sprite) {
+void TileSet.SetFireSprite(SpritePtr sprite) {
     fireTile = sprite;
 }
 

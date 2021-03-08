@@ -79,17 +79,17 @@ export class Coordinate extends Array {
 
     static DirectionToCoordinate(dir) {
         let coordsToDirs = [
-            new Coordinate(0, -1), // North
-            new Coordinate(1, -1), // North-east
-            new Coordinate(1, 0), // East
-            new Coordinate(1, 1), // South-east
-            new Coordinate(0, 1), // South
-            new Coordinate(-1, 1), // South-west
-            new Coordinate(-1, 0), // West
-            new Coordinate(-1, -1), // North-west
-            new Coordinate(0, 0) // No direction
+            [0, -1], // North
+            [1, -1], // North-east
+            [1, 0], // East
+            [1, 1], // South-east
+            [0, 1], // South
+            [-1, 1], // South-west
+            [-1, 0], // West
+            [-1, -1], // North-west
+            [0, 0] // No direction
         ];
-        return coordsToDirs[dir];
+        return new Coordinate(...coordsToDirs[dir]);
     }
 
     /* specific and generic accessors
@@ -293,9 +293,14 @@ export class Coordinate extends Array {
     }
     static Distance(...args) {
         if (args[0] instanceof Coordinate && args[1] instanceof Coordinate)
-            return DistanceBetweenCoordinates(args[0], args[1]);
+            return this.DistanceBetweenCoordinates(args[0], args[1]);
         else if (Number.isFinite(args[0]) && Number.isFinite(args[1]) && Number.isFinite(args[2]) && Number.isFinite(args[3]))
-            return DistanceBetweenCoordinatePoints(args[0], args[1], args[2], args[3]);
+            return this.DistanceBetweenCoordinatePoints(
+                args[0],
+                args[1],
+                args[2],
+                args[3]
+            );
     }
 
     static DistanceBetweenCoordinates(p, q) {
@@ -305,15 +310,15 @@ export class Coordinate extends Array {
         }
         return distance;
     }
-
-
     static DistanceBetweenCoordinatePoints(x0, y0, x1, y1) {
-        return DistanceBetweenCoordinates(new Coordinate(x0, y0), new Coordinate(x1, y1));
+        return this.DistanceBetweenCoordinates(new Coordinate(x0, y0), new Coordinate(x1, y1));
     }
-
-    static zero = new Coordinate(0, 0);
-
-    static undefinedCoordinate = new Coordinate(-1, -1);
+    static get zero() {
+        return new Coordinate(0, 0);
+    }
+    static get undefinedCoordinate() {
+        return new Coordinate(-1, -1);
+    }
 }
 
 function hash_value(coord) {

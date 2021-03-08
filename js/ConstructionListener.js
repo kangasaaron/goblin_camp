@@ -1,126 +1,129 @@
-class ConstructionListener extends ITCODParserListener {
+import {
+    ConstructionPreset
+} from "./ConstructionPreset";
+import {
+    PresetParser
+} from "./PresetParser.js";
+
+export class ConstructionListener extends PresetParser {
     constructionIndex = 0;
-
-    bool parserNewStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (name && boost.iequals(str.getName(), "construction_type")) {
-
-            //Figure out the index, whether this is a new construction or a redefinition
-            std.string strName(name);
-            boost.to_upper(strName);
-            if (Construction.constructionNames.find(strName) != Construction.constructionNames.end()) {
-                constructionIndex = Construction.constructionNames[strName];
-                //A redefinition, so wipe out the earlier one
-                Construction.Presets[constructionIndex] = ConstructionPreset();
-                Construction.Presets[constructionIndex].name = name;
-                Construction.AllowedAmount[constructionIndex] = -1;
-            } else { //New construction
-                Construction.Presets.push_back(ConstructionPreset());
-                Construction.Presets.back().name = name;
-                Construction.constructionNames.insert(std.make_pair(strName, static_cast < ConstructionType > (Construction.Presets.size() - 1)));
-                Construction.AllowedAmount.push_back(-1);
-                constructionIndex = Construction.Presets.size() - 1;
-            }
+    constructor(Construction) {
+        this.Construction = Construction;
+    }
+    parserNewStruct(obj) {
+        let name = obj.construction_type;
+        let strName = name.toUpperCase();
+        if (this.Construction.constructionNames.has(strName)) {
+            this.constructionIndex = this.Construction.constructionNames.get(strName);
+            //A redefinition, so wipe out the earlier one
+            this.Construction.Presets[this.constructionIndex] = new ConstructionPreset();
+            this.Construction.Presets[this.constructionIndex].name = name;
+            this.Construction.AllowedAmount[this.constructionIndex] = -1;
+        } else { //New construction
+            this.Construction.Presets.push(new ConstructionPreset());
+            this.constructionIndex = this.Construction.Presets.length - 1;
+            this.Construction.Presets[this.constructionIndex].name = name;
+            this.Construction.constructionNames.set(name, this.constructionIndex)
+            this.Construction.AllowedAmount.push(-1);
+        }
+    }
+    parserFlag(value, name) {
+        let preset = this.Construction.Presets[this.constructionIndex];
+        let strName = name.toLowerCase();
+        if (strName === "walkable") {
+            preset.walkable = value;
+            preset.blocksLight = false;
+        } else if (strName === "wall") {
+            preset.graphic.push_back(1);
+            preset.graphic.push_back('W');
+            preset.tags[ConstructionTag.WALL] = value;
+        } else if (strName === "stockpile") {
+            preset.tags[ConstructionTag.STOCKPILE] = value;
+        } else if (strName === "farmplot") {
+            preset.tags[ConstructionTag.FARMPLOT] = value;
+            preset.dynamic = true;
+        } else if (strName === "door") {
+            preset.tags[ConstructionTag.DOOR] = value;
+            preset.tags[ConstructionTag.FURNITURE] = value;
+            preset.dynamic = true;
+        } else if (strName === "bed") {
+            preset.tags[ConstructionTag.BED] = value;
+            preset.tags[ConstructionTag.FURNITURE] = value;
+        } else if (strName === "furniture") {
+            preset.tags[ConstructionTag.FURNITURE] = value;
+        } else if (strName === "permanent") {
+            preset.permanent = value;
+            preset.tags[ConstructionTag.PERMANENT] = value;
+        } else if (strName === "blocksLight") {
+            preset.blocksLight = value;
+        } else if (strName === "unique") {
+            this.Construction.AllowedAmount[this.constructionIndex] = 1;
+        } else if (strName === "centersCamp") {
+            preset.tags[ConstructionTag.CENTERSCAMP] = value;
+        } else if (strName === "spawningPool") {
+            preset.tags[ConstructionTag.SPAWNINGPOOL] = value;
+            preset.dynamic = value;
+        } else if (strName === "bridge") {
+            preset.tags[ConstructionTag.BRIDGE] = value;
+            preset.moveSpeedModifier = 0;
         }
         return true;
     }
-
-    bool parserFlag(TCODParser * parser,
-        const char * name) {
-        if (boost.iequals(name, "walkable")) {
-            Construction.Presets[constructionIndex].walkable = true;
-            Construction.Presets[constructionIndex].blocksLight = false;
-        } else if (boost.iequals(name, "wall")) {
-            Construction.Presets[constructionIndex].graphic.push_back(1);
-            Construction.Presets[constructionIndex].graphic.push_back('W');
-            Construction.Presets[constructionIndex].tags[WALL] = true;
-        } else if (boost.iequals(name, "stockpile")) {
-            Construction.Presets[constructionIndex].tags[STOCKPILE] = true;
-        } else if (boost.iequals(name, "farmplot")) {
-            Construction.Presets[constructionIndex].tags[FARMPLOT] = true;
-            Construction.Presets[constructionIndex].dynamic = true;
-        } else if (boost.iequals(name, "door")) {
-            Construction.Presets[constructionIndex].tags[DOOR] = true;
-            Construction.Presets[constructionIndex].tags[FURNITURE] = true;
-            Construction.Presets[constructionIndex].dynamic = true;
-        } else if (boost.iequals(name, "bed")) {
-            Construction.Presets[constructionIndex].tags[BED] = true;
-            Construction.Presets[constructionIndex].tags[FURNITURE] = true;
-        } else if (boost.iequals(name, "furniture")) {
-            Construction.Presets[constructionIndex].tags[FURNITURE] = true;
-        } else if (boost.iequals(name, "permanent")) {
-            Construction.Presets[constructionIndex].permanent = true;
-            Construction.Presets[constructionIndex].tags[PERMANENT] = true;
-        } else if (boost.iequals(name, "blocksLight")) {
-            Construction.Presets[constructionIndex].blocksLight = true;
-        } else if (boost.iequals(name, "unique")) {
-            Construction.AllowedAmount[constructionIndex] = 1;
-        } else if (boost.iequals(name, "centersCamp")) {
-            Construction.Presets[constructionIndex].tags[CENTERSCAMP] = true;
-        } else if (boost.iequals(name, "spawningPool")) {
-            Construction.Presets[constructionIndex].tags[SPAWNINGPOOL] = true;
-            Construction.Presets[constructionIndex].dynamic = true;
-        } else if (boost.iequals(name, "bridge")) {
-            Construction.Presets[constructionIndex].tags[BRIDGE] = true;
-            Construction.Presets[constructionIndex].moveSpeedModifier = 0;
-        }
-        return true;
-    }
-
-    bool parserProperty(TCODParser * parser,
-        const char * name, TCOD_value_type_t type, TCOD_value_t value) {
-        if (boost.iequals(name, "graphicLength")) {
-            if (Construction.Presets[constructionIndex].graphic.size() == 0)
-                Construction.Presets[constructionIndex].graphic.push_back(value.i);
+    parserProperty(name, value) {
+        let preset = this.Construction.Presets[this.constructionIndex];
+        let strName = name.toLowerCase();
+        if (strName == "graphicLength") {
+            if (preset.graphic.length == 0)
+                preset.graphic.push(value);
             else
-                Construction.Presets[constructionIndex].graphic[0] = value.i;
-        } else if (boost.iequals(name, "graphic")) {
-            if (Construction.Presets[constructionIndex].graphic.size() == 0) //In case graphicLength hasn't been parsed yet
-                Construction.Presets[constructionIndex].graphic.push_back(1);
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Construction.Presets[constructionIndex].graphic.push_back((intptr_t) TCOD_list_get(value.list, i));
+                preset.graphic[0] = value;
+        } else if (strName == "graphic") {
+            if (preset.graphic.length == 0) //In case graphicLength hasn't been parsed yet
+                preset.graphic.push(1);
+            for (let i = 0; i < value.length; ++i) {
+                preset.graphic.push(value[i]);
             }
-        } else if (boost.iequals(name, "fallbackGraphicsSet")) {
-            Construction.Presets[constructionIndex].fallbackGraphicsSet = value.s;
-        } else if (boost.iequals(name, "category")) {
-            Construction.Presets[constructionIndex].category = value.s;
-            Construction.Categories.insert(value.s);
-        } else if (boost.iequals(name, "placementType")) {
-            Construction.Presets[constructionIndex].placementType = value.i;
-        } else if (boost.iequals(name, "materials")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Construction.Presets[constructionIndex].materials.push_back(Item.StringToItemCategory((char * ) TCOD_list_get(value.list, i)));
+        } else if (strName == "fallbackGraphicsSet") {
+            preset.fallbackGraphicsSet = value;
+        } else if (strName == "category") {
+            preset.category = value;
+            this.Construction.Categories.add(value.s);
+        } else if (strName == "placementType") {
+            preset.placementType = value;
+        } else if (strName == "materials") {
+            for (let i = 0; i < value.length; ++i) {
+                preset.materials.push(Item.StringToItemCategory(value[i]));
             }
-        } else if (boost.iequals(name, "maxCondition")) {
-            Construction.Presets[constructionIndex].maxCondition = value.i;
-        } else if (boost.iequals(name, "productionx")) {
-            Construction.Presets[constructionIndex].productionSpot.X(value.i);
-        } else if (boost.iequals(name, "productiony")) {
-            Construction.Presets[constructionIndex].productionSpot.Y(value.i);
-        } else if (boost.iequals(name, "spawnsCreatures")) {
-            Construction.Presets[constructionIndex].spawnCreaturesTag = value.s;
-            Construction.Presets[constructionIndex].dynamic = true;
-        } else if (boost.iequals(name, "spawnFrequency")) {
-            Construction.Presets[constructionIndex].spawnFrequency = value.i * UPDATES_PER_SECOND;
-        } else if (boost.iequals(name, "col")) {
-            Construction.Presets[constructionIndex].color = value.col;
-        } else if (boost.iequals(name, "tileReqs")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Construction.Presets[constructionIndex].tileReqs.insert(Tile.StringToTileType((char * ) TCOD_list_get(value.list, i)));
+        } else if (strName == "maxCondition") {
+            preset.maxCondition = value;
+        } else if (strName == "productionx") {
+            preset.productionSpot.X(value);
+        } else if (strName == "productiony") {
+            preset.productionSpot.Y(value);
+        } else if (strName == "spawnsCreatures") {
+            preset.spawnCreaturesTag = value;
+            preset.dynamic = true;
+        } else if (strName == "spawnFrequency") {
+            preset.spawnFrequency = value * UPDATES_PER_SECOND;
+        } else if (strName == "col") {
+            preset.color = value.col;
+        } else if (strName == "tileReqs") {
+            for (let i = 0; i < value.length++i) {
+                preset.tileReqs.add(Tile.StringToTileType(value[i]));
                 //TILEGRASS changes to TILESNOW in winter
-                if (Tile.StringToTileType((char * ) TCOD_list_get(value.list, i)) == TILEGRASS) {
-                    Construction.Presets[constructionIndex].tileReqs.insert(TILESNOW);
+                if (Tile.StringToTileType(value[i]) == TileType.TILEGRASS) {
+                    preset.tileReqs.insert(TileType.TILESNOW);
                 }
             }
-        } else if (boost.iequals(name, "tier")) {
-            Construction.Presets[constructionIndex].tier = value.i;
-        } else if (boost.iequals(name, "description")) {
+        } else if (strName == "tier") {
+            preset.tier = value;
+        } else if (strName == "description") {
             /*Tokenize the description string and add/remove spaces to make it fit nicely
             into the 25-width tooltip*/
             /*I was going to use boost.tokenizer but hey it starts giving me assertion failures
             in debug. So let's just do it ourselves then, wouldn't want to use a readymade wheel
             or anything, that'd be dumb*/
+            /*
             std.string desc(value.s);
             std.vector < std.string > tokens;
             while (desc.length() > 0) {
@@ -132,100 +135,96 @@ class ConstructionListener extends ITCODParserListener {
             int width = 0;
             for (std.vector < std.string > .iterator it = tokens.begin(); it != tokens.end(); ++it) {
                 if (width > 0 && width < 25 && width + it.length() >= 25) {
-                    Construction.Presets[constructionIndex].description += std.string(25 - width, ' ');
+                    preset.description += std.string(25 - width, ' ');
                     width = 0;
                 }
 
                 while (width >= 25) width -= 25;
                 if (width > 0) {
-                    Construction.Presets[constructionIndex].description += " ";
+                    preset.description += " ";
                     ++width;
                 }
 
-                Construction.Presets[constructionIndex].description += * it;
+                preset.description += * it;
                 width += it.length();
-            }
-
-        } else if (boost.iequals(name, "chimneyx")) {
-            Construction.Presets[constructionIndex].chimney.X(value.i);
-        } else if (boost.iequals(name, "chimneyy")) {
-            Construction.Presets[constructionIndex].chimney.Y(value.i);
-        } else if (boost.iequals(name, "type")) {
-            Construction.Presets[constructionIndex].trapAttack.Type(Attack.StringToDamageType(value.s));
-            Construction.Presets[constructionIndex].dynamic = true;
-            Construction.Presets[constructionIndex].tags[TRAP] = true;
-        } else if (boost.iequals(name, "damage")) {
-            Construction.Presets[constructionIndex].trapAttack.Amount(value.dice);
-        } else if (boost.iequals(name, "statusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                StatusEffectType type = StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i));
+            }*/
+            preset.description = value;
+        } else if (strName == "chimneyx") {
+            preset.chimney.X(value);
+        } else if (strName == "chimneyy") {
+            preset.chimney.Y(value);
+        } else if (strName == "type") {
+            preset.trapAttack.Type(Attack.StringToDamageType(value));
+            preset.dynamic = true;
+            preset.tags[ConstructionTag.TRAP] = true;
+        } else if (strName == "damage") {
+            preset.trapAttack.Amount(value.dice);
+        } else if (strName == "statusEffects") {
+            for (let i = 0; i < value.length; ++i) {
+                let type = StatusEffect.StringToStatusEffectType(value[i]);
                 if (StatusEffect.IsApplyableStatusEffect(type))
-                    Construction.Presets[constructionIndex].trapAttack.StatusEffects().push_back(std.pair < StatusEffectType, int > (type, 100));
+                    preset.trapAttack.StatusEffects().push([type, 100]);
             }
-        } else if (boost.iequals(name, "effectChances")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Construction.Presets[constructionIndex].trapAttack.StatusEffects().at(i).second = (intptr_t) TCOD_list_get(value.list, i);
+        } else if (strName == "effectChances") {
+            for (let i = 0; i < value.length; ++i) {
+                preset.trapAttack.StatusEffects()[i][1] = value[i];
             }
-        } else if (boost.iequals(name, "reloadItem")) {
-            Construction.Presets[constructionIndex].trapReloadItem = Item.StringToItemCategory(value.s);
-        } else if (boost.iequals(name, "slowMovement")) {
-            Construction.Presets[constructionIndex].moveSpeedModifier = value.i;
-            Construction.Presets[constructionIndex].walkable = true;
-            Construction.Presets[constructionIndex].blocksLight = false;
-        } else if (boost.iequals(name, "passiveStatusEffects")) {
-            for (int i = 0; i < TCOD_list_size(value.list); ++i) {
-                Construction.Presets[constructionIndex].passiveStatusEffects.push_back(StatusEffect.StringToStatusEffectType((char * ) TCOD_list_get(value.list, i)));
+        } else if (strName == "reloadItem") {
+            preset.trapReloadItem = Item.StringToItemCategory(value);
+        } else if (strName == "slowMovement") {
+            preset.moveSpeedModifier = value;
+            preset.walkable = true;
+            preset.blocksLight = false;
+        } else if (strName == "passiveStatusEffects") {
+            for (let i = 0; i < value.length; ++i) {
+                preset.passiveStatusEffects.push(StatusEffect.StringToStatusEffectType(value[i]));
             }
-            Construction.Presets[constructionIndex].dynamic = true;
-            if (Construction.Presets[constructionIndex].passiveStatusEffects.back() == HIGHGROUND)
-                Construction.Presets[constructionIndex].tags[RANGEDADVANTAGE] = true;
+            preset.dynamic = true;
+            if (preset.passiveStatusEffects[preset.passiveStatusEffects.length - 1] == StatusEffectType.HIGHGROUND)
+                preset.tags[ConstructionTag.RANGEDADVANTAGE] = true;
         }
 
         return true;
     }
 
-    bool parserEndStruct(TCODParser * parser,
-        const TCODParserStruct * str,
-            const char * name) {
-        if (boost.iequals(str.getName(), "construction_type")) {
-            Construction.Presets[constructionIndex].blueprint = Coordinate(Construction.Presets[constructionIndex].graphic[0],
-                (Construction.Presets[constructionIndex].graphic.size() - 1) / Construction.Presets[constructionIndex].graphic[0]);
+    parserEndStruct(data) {
+        let preset = this.Construction.Presets[this.constructionIndex];
+        preset.blueprint = new Coordinate(preset.graphic[0],
+            (preset.graphic.length - 1) / preset.graphic[0]);
 
-            if (Construction.Presets[constructionIndex].tileReqs.empty()) {
-                Construction.Presets[constructionIndex].tileReqs.insert(TILEGRASS);
-                Construction.Presets[constructionIndex].tileReqs.insert(TILEMUD);
-                Construction.Presets[constructionIndex].tileReqs.insert(TILEROCK);
-                Construction.Presets[constructionIndex].tileReqs.insert(TILESNOW);
-            }
+        if (preset.tileReqs.empty()) {
+            preset.tileReqs.insert(TILEGRASS);
+            preset.tileReqs.insert(TILEMUD);
+            preset.tileReqs.insert(TILEROCK);
+            preset.tileReqs.insert(TILESNOW);
+        }
 
-            //Add material information to the description
-            if (Construction.Presets[constructionIndex].materials.size() > 0) {
-                if (Construction.Presets[constructionIndex].description.length() > 0 && Construction.Presets[constructionIndex].description.length() % 25 != 0)
-                    Construction.Presets[constructionIndex].description += std.string(25 - Construction.Presets[constructionIndex].description.length() % 25, ' ');
-                ItemCategory item = -1;
-                int multiplier = 0;
+        //Add material information to the description
+        if (preset.materials.length > 0) {
+            // if (preset.description.length > 0 && preset.description.length % 25 != 0)
+            //     preset.description += std.string(25 - preset.description.length % 25, ' ');
+            let item = -1;
+            let multiplier = 0;
 
-                for (std.list < ItemCategory > .iterator mati = Construction.Presets[constructionIndex].materials.begin(); mati != Construction.Presets[constructionIndex].materials.end(); ++mati) {
-                    if (item == * mati) ++multiplier;
-                    else {
-                        if (multiplier > 0) {
-                            Construction.Presets[constructionIndex].description +=
-                                (boost.format("%s x%d") % Item.ItemCategoryToString(item) % multiplier).str();
-                            if (Construction.Presets[constructionIndex].description.length() % 25 != 0)
-                                Construction.Presets[constructionIndex].description += std.string(25 - Construction.Presets[constructionIndex].description.length() % 25, ' ');
-                        }
-                        item = * mati;
-                        multiplier = 1;
+            for (let mati of preset.materials) {
+                if (item == mati) ++multiplier;
+                else {
+                    if (multiplier > 0) {
+                        preset.description += `${Item.ItemCategoryToString(item)} x${multiplier}`;
+                        // if (preset.description.length % 25 != 0)
+                        //     preset.description += std.string(25 - preset.description.length % 25, ' ');
                     }
+                    item = mati;
+                    multiplier = 1;
                 }
-                Construction.Presets[constructionIndex].description +=
-                    (boost.format("%s x%d") % Item.ItemCategoryToString(item) % multiplier).str();
-
             }
+            preset.description += `${Item.ItemCategoryToString(item)} x${multiplier}`;
+
         }
+
         return true;
     }
-    void error(const char * msg) {
-        throw std.runtime_error(msg);
+    error(msg) {
+        throw new Error(msg);
     }
-};
+}

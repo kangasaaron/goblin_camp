@@ -63,6 +63,7 @@ export class NatureObject extends Entity {
             Map.SetBlocksLight(this.pos, false);
         }
         Map.SetBuildable(this.pos, true);
+        super.destructor();
     }
     Update() {}
     GetGraphicsHint() {

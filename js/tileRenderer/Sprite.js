@@ -122,46 +122,7 @@ template < typename IterT > Sprite.Sprite(IterT start, IterT end, bool connectio
 
 	}
 
-class SpritePtr {
-	//public extends 
-	explicit SpritePtr(): ptr() {}
-	explicit SpritePtr(Sprite * sprite): ptr(sprite) {}
 
-	Sprite * get() {
-		return ptr.get();
-	}
-	// bool Exists() const { return ptr; }
-	bool Exists() const {
-		return true;
-	} // FIXME
-
-	void Draw(int screenX, int screenY) const {
-		if (ptr) ptr.Draw(screenX, screenY);
-	};
-
-	void Draw(int screenX, int screenY, Sprite.ConnectedFunction connectedFunction) const {
-		if (ptr) ptr.Draw(screenX, screenY, connectedFunction);
-	}
-
-	void Draw(int screenX, int screenY, int connectionLayer, Sprite.LayeredConnectedFunction connectedFunction) const {
-		if (ptr) ptr.Draw(screenX, screenY, connectionLayer, connectedFunction);
-	}
-
-	bool IsConnectionMap() const {
-		return ptr && ptr.IsConnectionMap();
-	}
-	bool IsTwoLayeredConnectionMap() const {
-		return ptr && ptr.IsTwoLayeredConnectionMap();
-	}
-	bool IsAnimated() const {
-		return ptr && ptr.IsAnimated();
-	}
-
-	//private:
-	boost.shared_ptr < Sprite > ptr;
-};
-
-typedef SpritePtr Sprite_ptr;
 /* Copyright 2011 Ilkka Halila
 This file is part of Goblin Camp.
 

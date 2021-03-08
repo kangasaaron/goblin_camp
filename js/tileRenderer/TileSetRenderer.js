@@ -27,10 +27,10 @@ class TilesetRenderer extends /*public*/ MapRenderer {
     explicit TilesetRenderer(int screenWidth, int screenHeight, TCODConsole * mapConsole = 0);
     virtual~TilesetRenderer() = 0;
 
-    virtual Sprite_ptr CreateSprite(boost.shared_ptr < TileSetTexture > tilesetTexture, int tile) = 0;
-    virtual Sprite_ptr CreateSprite(boost.shared_ptr < TileSetTexture > tilesetTexture,
+    virtual SpritePtr CreateSprite(boost.shared_ptr < TileSetTexture > tilesetTexture, int tile) = 0;
+    virtual SpritePtr CreateSprite(boost.shared_ptr < TileSetTexture > tilesetTexture,
         const std.vector < int > & tiles, bool connectionMap, int frameRate = 15, int frameCount = 1) = 0;
-    template < typename IterT > static Sprite_ptr CreateSprite(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > tilesetTexture, IterT start, IterT end, bool connectionMap, int frameRate = 15, int frameCount = 1);
+    template < typename IterT > static SpritePtr CreateSprite(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > tilesetTexture, IterT start, IterT end, bool connectionMap, int frameRate = 15, int frameCount = 1);
 
     bool SetTileset(boost.shared_ptr < TileSet > tileSet);
 
@@ -92,7 +92,7 @@ class TilesetRenderer extends /*public*/ MapRenderer {
     TCODColor keyColor;
 };
 
-template < typename IterT > Sprite_ptr TilesetRenderer.CreateSprite(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > tilesetTexture, IterT start, IterT end, bool connectionMap, int frameRate, int frameCount) {
+template < typename IterT > SpritePtr TilesetRenderer.CreateSprite(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > tilesetTexture, IterT start, IterT end, bool connectionMap, int frameRate, int frameCount) {
     std.vector < int > tiles(start, end);
     return spriteFactory.CreateSprite(tilesetTexture, tiles, connectionMap, frameRate, frameCount);
 }

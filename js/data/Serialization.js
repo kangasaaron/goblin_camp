@@ -16,23 +16,23 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 /**
-	This macro exists to enfoce consistent signatures across all serialisable
-	classes. I removed templateness to speed up the build (since we only use binary
-	archives anyway) � save/load can now be implemented in separate translation units.
+    This macro exists to enfoce consistent signatures across all serialisable
+    classes. I removed templateness to speed up the build (since we only use binary
+    archives anyway) � save/load can now be implemented in separate translation units.
 	
-	A complete definition of a serialisable class/struct looks like this:
+    A complete definition of a serialisable class/struct looks like this:
 	
-	<code>
-		class T {
-			GC_SERIALIZABLE_CLASS
-		};
-		
-		BOOST_CLASS_VERSION(T, 0)
-	</code>
+    <code>
+        class T {
+            GC_SERIALIZABLE_CLASS
+        };
+    	
+        BOOST_CLASS_VERSION(T, 0)
+    </code>
 	
-	@ref InputArchive and @ref OutputArchive typedefs have been created
-	so that we don't completely lose ability to change the archive type
-	in the future (even if it's not likely to happen).
+    @ref InputArchive and @ref OutputArchive typedefs have been created
+    so that we don't completely lose ability to change the archive type
+    in the future (even if it's not likely to happen).
 */
 
 
@@ -99,218 +99,8 @@ const saveMagicConst = 0x47434d50;
 // File format version (8-bit, because it should not change too often).
 const fileFormatConst = 0x01;
 
-class ReadingStream {
-    data = "";
-    position = 0;
-    constructor(string) {
-        this.data = string;
-    }
-    read(amount) {
-        let result = this.data.slice(this.position, this.position + amount);
-        this.position += amount;
-        return result;
-    }
-    readByte(size, type) {
-        let result = new type();
-        result.push(this.read(size));
-        return result[0];
-    }
-    ReadUInt8() {
-        return this.readByte(8, Uint8Array);
-    }
-    ReadUInt16() {
-        return this.readByte(16, Uint16Array);
-    }
-    ReadUInt32() {
-        return this.readByte(32, Uint32Array);
-    }
-    ReadUInt64() {
-        let binary = this.read(64);
-        let result = BigInt(binary);
-        return result;
-    }
-}
-//
 // Save/load entry points
 //
-
-// XXX implement the archives
-// template < size_t N > struct Type {};
-
-// let DEFINE_TYPE = (T) => template < > struct Type < sizeof(T) > {
-// 	typedef T uint;
-// };
-// DEFINE_TYPE(std.uint8_t);
-// DEFINE_TYPE(std.uint16_t);
-// DEFINE_TYPE(std.uint32_t);
-// DEFINE_TYPE(std.uint64_t);
-// delete DEFINE_TYPE;
-/*
-function ReadUInt8(stream) {
-	// typedef typename Type < sizeof(T) / 2 > .uint U;
-	const bits = 8;
-
-	let a = new Uint8Array();
-	a.push(stream)
-	// a = ReadUInt < U > (stream);
-	// b = ReadUInt < U > (stream);
-
-	// return (static_cast < T > (a) << bits) | static_cast < T > (b);
-}
-
-template < >
-	std.uint8_t ReadUInt < std.uint8_t > (std.istream & stream) {
-		return static_cast < std.uint8_t > (stream.get());
-	}
-
-template < typename T >
-	void WriteUInt(std.ostream & stream, T value) {
-		typedef typename Type < sizeof(T) / 2 > .uint U;
-		const std.uint32_t bits = sizeof(U) * 8;
-
-		// All types here are unsigned.
-		const U max = static_cast < U > (-1);
-
-		WriteUInt < U > (stream, (value >> bits) & max);
-		WriteUInt < U > (stream, value & max);
-	}
-
-template < >
-	void WriteUInt < std.uint8_t > (std.ostream & stream, std.uint8_t value) {
-		stream.put(static_cast < char > (value));
-	}
-*/
-export class Serialization {
-    WritePayload(ofs) {
-        let oarch = ofs;
-        oarch.WriteUInt32(Entity.uids);
-        oarch.WriteBuffer(Game.serialize());
-        oarch.WriteBuffer(JobManager.seralize());
-        oarch.WriteBuffer(Camp.seralize());
-        oarch.WriteBuffer(StockManager.seralize());
-        oarch.WriteBuffer(Map.seralize());
-    }
-
-    ReadPayload(ifs) {
-        let iarch = ifs;
-        Entity.uids = iarch.ReadUInt32();
-        Game.deserialize(iarch);
-        JobManager.deserialize(iarch);
-        Camp.deserialize(iarch);
-        StockManager.deserialize(iarch);
-        Map.deserialize(iarch);
-    }
-
-
-    SaveGame(filename) {
-        try {
-            // std.ofstream rawStream(filename.c_str(), std.ios.binary);
-            // io.filtering_ostream stream;
-
-            // Write the file header
-            WriteUInt32(rawStream, saveMagicConst);
-            WriteUInt8(rawStream, fileFormatConst);
-
-            let compress = Config.GetCVar("compressSaves");
-            compress = false; /// TODO implement compression
-            // compression flag
-            WriteUInt8(rawStream, (compress ? 0x01 : 0x00));
-
-            // reserved
-            WriteUInt8(rawStream, 0x00);
-            WriteUInt16(rawStream, 0x00);
-            WriteUInt32(rawStream, 0x00);
-            WriteUInt64(rawStream, 0x00);
-            WriteUInt64(rawStream, 0x00);
-            WriteUInt64(rawStream, 0x00);
-
-            // Write the payload
-            // if (compress) {
-            // 	io.zlib_params params(6); // level
-            // 	stream.push(io.zlib_compressor(params));
-            // }
-
-            stream.push(rawStream);
-            Game.SavingScreen(this.WritePayload.bind(this), stream);
-
-            return true;
-        } catch (e) {
-            console.log("std.exception while trying to save the game: ", e.message);
-            return false;
-        }
-    }
-
-    ReadGameFile(data) {
-        try {
-            // io.filtering_istream stream;
-            let rawStream = new ReadingStream(data);
-
-            // Read and verify the file header
-            if (rawStream.ReadUInt32() != saveMagicConst) {
-                throw std.runtime_error("Invalid magic value.");
-            }
-
-            if (rawStream.ReadUInt8() != fileFormatConst) {
-                throw std.runtime_error("Invalid file format value.");
-            }
-
-            // compression
-            let compressed = rawStream.ReadUInt8(); // TODO implement compression
-
-            // if (compressed > 1) {
-            // 	throw new Error("Invalid compression algorithm.");
-            // }
-
-            // reserved values
-            if (rawStream.ReadUInt8() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #1 not 0x00.");
-            }
-            if (rawStream.ReadUInt16() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #2 not 0x0000.");
-            }
-            if (rawStream.ReadUInt32() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #3 not 0x00000000.");
-            }
-            if (rawStream.ReadUInt64() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #4 not 0x0000000000000000.");
-            }
-            if (rawStream.ReadUInt64() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #5 not 0x0000000000000000.");
-            }
-            if (rawStream.ReadUInt64() != 0) {
-                throw std.runtime_error("Forward compatibility: reserved value #6 not 0x0000000000000000.");
-            }
-
-            Game.Reset();
-
-            // Read the payload
-            // if (compressed) { // TODO implement compression
-            // 	stream.push(io.zlib_decompressor());
-            // }
-
-            stream.push(rawStream);
-            Game.LoadingScreen(this.ReadPayload.bind(this), stream);
-            Game.TranslateContainerListeners();
-            Game.ProvideMap();
-            Game.Pause();
-
-            return true;
-        } catch (e) {
-            console.error("exception while trying to load the game: ", e.message);
-            return false;
-        }
-    }
-    LoadGame(filename) {
-        try {
-            let rawStream = new FileReader();
-            rawStream.onload = this.ReadGameFile.bind(this, filename);
-            rawStream.readAsBinaryString(filename);
-        } catch (e) {
-            console.error("exception while trying to read the game file: ", e.message);
-            return false;
-        }
-    }
-}
 
 export class Serializable {
     static CLASS_VERSION = 0;
@@ -412,7 +202,7 @@ class SerializableUndefined extends SerializablePrimative {
         return;
     }
 }
-class SerializableBoolean extends SerializablePrimative {}
+class SerializableBoolean extends SerializablePrimative { }
 class SerializableString extends SerializablePrimative {
     serialize() {
         return this.data;
@@ -514,8 +304,8 @@ class SerializableSet extends SerializableObject {
         return new Set(values);
     }
 }
-class SerializableWeakMap extends SerializableObject {}
-class SerializableWeakSet extends SerializableObject {}
+class SerializableWeakMap extends SerializableObject { }
+class SerializableWeakSet extends SerializableObject { }
 class SerializableArray extends SerializableObject {
     serialize(serializer) {
         return this.data.map(item => serializer.serializable(item));
@@ -538,15 +328,15 @@ class SerializableTypedArray extends SerializableArray {
         return globalThis[this.typeName].from(data.values);
     }
 }
-class SerializableInt8Array extends SerializableTypedArray {}
-class SerializableUint8Array extends SerializableTypedArray {}
-class SerializableUint8ClampedArray extends SerializableTypedArray {}
-class SerializableInt16Array extends SerializableTypedArray {}
-class SerializableUint16Array extends SerializableTypedArray {}
-class SerializableInt32Array extends SerializableTypedArray {}
-class SerializableUint32Array extends SerializableTypedArray {}
-class SerializableFloat32Array extends SerializableTypedArray {}
-class SerializableFloat64Array extends SerializableTypedArray {}
+class SerializableInt8Array extends SerializableTypedArray { }
+class SerializableUint8Array extends SerializableTypedArray { }
+class SerializableUint8ClampedArray extends SerializableTypedArray { }
+class SerializableInt16Array extends SerializableTypedArray { }
+class SerializableUint16Array extends SerializableTypedArray { }
+class SerializableInt32Array extends SerializableTypedArray { }
+class SerializableUint32Array extends SerializableTypedArray { }
+class SerializableFloat32Array extends SerializableTypedArray { }
+class SerializableFloat64Array extends SerializableTypedArray { }
 class SerializableBigIntArray extends SerializableTypedArray {
     serialize(serializer) {
         return {
@@ -561,9 +351,9 @@ class SerializableBigIntArray extends SerializableTypedArray {
         return globalThis[this.typeName].from(data.values.map(value => BigInt(value)));
     }
 }
-class SerializableBigInt64Array extends SerializableBigIntArray {}
-class SerializableBigUint64Array extends SerializableBigIntArray {}
-class SerializableArrayBuffer extends SerializableObject {}
+class SerializableBigInt64Array extends SerializableBigIntArray { }
+class SerializableBigUint64Array extends SerializableBigIntArray { }
+class SerializableArrayBuffer extends SerializableObject { }
 
 export class JSONSerializer extends Serializable {
     registered_types = [];
@@ -683,7 +473,7 @@ export class JSONSerializer extends Serializable {
                 else if (obj instanceof Array)
                     return SerializableArray
                 return SerializableObject;
-                //Error, Regexp, Date, Map, Set, WeakMap, WeakSet, Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array,Float32Array,Float64Array, BigInt64Array, BigUint64Array, ArrayBuffer, 
+            //Error, Regexp, Date, Map, Set, WeakMap, WeakSet, Array, Int8Array, Uint8Array, Uint8ClampedArray, Int16Array, Uint16Array, Int32Array, Uint32Array,Float32Array,Float64Array, BigInt64Array, BigUint64Array, ArrayBuffer, 
         }
     }
     serialize(object) {
