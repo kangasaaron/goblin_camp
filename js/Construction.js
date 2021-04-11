@@ -34,7 +34,7 @@ import {
 } from "./BuildResult.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 import {
     ItemCategory
 } from "./ItemCategory.js";
@@ -135,58 +135,56 @@ export class Construction extends Entity {
      * @returns {Coordinate}
      */
     static Blueprint(construct) {
-        return this.Presets[construct].blueprint;
-    }
-    /**
-     * 
-     * @param {ConstructionType} construct 
-     * @returns {Coordinate}
-     */
+            return this.Presets[construct].blueprint;
+        }
+        /**
+         * 
+         * @param {ConstructionType} construct 
+         * @returns {Coordinate}
+         */
     static ProductionSpot(construct) {
         return this.Presets[construct].productionSpot;
     }
     static ResolveProducts() {
-        for (let itemPreset of Item.Presets) {
-            if (ItemPreset.constructedInRaw == "") continue;
-            let conPreset = Construction.Presets.find(function (preset) {
-                return preset.name == itemPreset.constructedInRaw;
-            });
-            if (conPreset) {
-                conPreset.producer = conPreset.tags[ConstructionTag.WORKSHOP] = true;
-                conPreset.products.push(Item.StringToItemType(itemPreset.name));
-                itemPreset.constructionInRaw = "";
-            } else {
-                console.log("Item " + itemPreset.name + " refers to nonexistant construction " + itemPreset.constructedInRaw + ".");
+            for (let itemPreset of Item.Presets) {
+                if (ItemPreset.constructedInRaw == "") continue;
+                let conPreset = Construction.Presets.find(function(preset) {
+                    return preset.name == itemPreset.constructedInRaw;
+                });
+                if (conPreset) {
+                    conPreset.producer = conPreset.tags[ConstructionTag.WORKSHOP] = true;
+                    conPreset.products.push(Item.StringToItemType(itemPreset.name));
+                    itemPreset.constructionInRaw = "";
+                } else {
+                    console.log("Item " + itemPreset.name + " refers to nonexistant construction " + itemPreset.constructedInRaw + ".");
+                }
             }
         }
-    }
-    /**
-     * 
-     * @param {string} nm - name of the Construction Preset
-     * @returns {ConstructionType} the Construction type for the preset
-     */
+        /**
+         * 
+         * @param {string} nm - name of the Construction Preset
+         * @returns {ConstructionType} the Construction type for the preset
+         */
     static StringToConstructionType(nm) {
-        nm = nm.toUpperCase();
-        if (!this.constructionNames.has(nm)) {
-            return -1;
+            nm = nm.toUpperCase();
+            if (!this.constructionNames.has(nm)) {
+                return -1;
+            }
+            return this.constructionNames.get(nm);
         }
-        return this.constructionNames.get(nm);
-    }
-    /**
-     * 
-     * @param {ConstructionType} type 
-     * @returns {string} name of the Construction Preset
-     */
+        /**
+         * 
+         * @param {ConstructionType} type 
+         * @returns {string} name of the Construction Preset
+         */
     static ConstructionTypeToString(type) {
         return this.Presets[type].name;
     }
     static LoadPresets(filename) {
-        let listener = new ConstructionListener(this);
-        listener.fetch(filename)
-            .then(function (data) {
-                listener.parse(data);
-            });
+        let listener = new ConstructionListener(this, filename);
+        return listener.fetch();
     }
+
     //note: optional constructors do not make sense, but they are
     //required by the Boost.serialization library. More precisely, it
     //would be possible to define {save,load}_construct_data method,

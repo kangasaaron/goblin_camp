@@ -1,7 +1,8 @@
 import { PresetParser } from "./PresetParser.js";
 
 export class FactionListener extends PresetParser {
-    constructor(Faction) {
+    constructor(Faction, filename) {
+        super(filename);
         this.Faction = Faction;
     }
     parserNewStruct(str, name) {

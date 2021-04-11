@@ -1,6 +1,6 @@
-import define, { extend } from "./define.js";
-import { Color, rgbConvert, Rgb } from "./_color.js";
-import { degrees, radians } from "./math.js";
+import define, { extend } from "./d3_define.js";
+import { Color, rgbConvert, Rgb } from "./d3_color.js";
+import { degrees, radians } from "./d3_math.js";
 
 // https://observablehq.com/@mbostock/lab-and-rgb
 const K = 18,
@@ -48,7 +48,7 @@ export function Lab(l, a, b, opacity) {
 }
 
 define(Lab, lab, extend(Color, {
-    brighter: function(k) {
+    brighter: function (k) {
         return new Lab(
             this.l + K * (k == null ? 1 : k),
             this.a,
@@ -56,7 +56,7 @@ define(Lab, lab, extend(Color, {
             this.opacity
         );
     },
-    darker: function(k) {
+    darker: function (k) {
         return new Lab(
             this.l - K * (k == null ? 1 : k),
             this.a,
@@ -64,7 +64,7 @@ define(Lab, lab, extend(Color, {
             this.opacity
         );
     },
-    rgb: function() {
+    rgb: function () {
         var y = (this.l + 16) / 116,
             x = isNaN(this.a) ? y : y + this.a / 500,
             z = isNaN(this.b) ? y : y - this.b / 200;
@@ -138,7 +138,7 @@ function hcl2lab(o) {
 }
 
 define(Hcl, hcl, extend(Color, {
-    brighter: function(k) {
+    brighter: function (k) {
         return new Hcl(
             this.h,
             this.c,
@@ -146,7 +146,7 @@ define(Hcl, hcl, extend(Color, {
             this.opacity
         );
     },
-    darker: function(k) {
+    darker: function (k) {
         return new Hcl(
             this.h,
             this.c,
@@ -154,7 +154,7 @@ define(Hcl, hcl, extend(Color, {
             this.opacity
         );
     },
-    rgb: function() {
+    rgb: function () {
         return hcl2lab(this).rgb();
     },
 }));

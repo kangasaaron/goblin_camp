@@ -9,7 +9,7 @@ import {
 } from "./other/OrderedSet.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 export class ConstructionPreset {
     maxCondition = 0;

@@ -32,7 +32,7 @@ import {
 from "./NatureObjectType.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 export class NatureObject extends Entity {
     static CLASS_VERSION = 1;
@@ -138,10 +138,7 @@ export class NatureObject extends Entity {
     }
 
     static LoadPresets(filename) {
-        let listener = new NatureObjectListener(this);
-        listener.fetch(filename)
-            .then(function (data) {
-                listener.parse(data);
-            });
+        let listener = new NatureObjectListener(this, filename);
+        return listener.fetch();
     }
 }

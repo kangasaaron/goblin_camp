@@ -16,7 +16,7 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
     Construction
-} from "Construction.js";
+} from "./Construction.js";
 
 export class Door extends Construction {
     static CLASS_VERSION = 0;

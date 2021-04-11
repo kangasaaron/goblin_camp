@@ -1,12 +1,17 @@
 import {
-    defineEnum
-} from "./other/Enums.js";
-
-export const TaskResult = defineEnum("TaskResult", [
-    "TASKSUCCESS",
-    "TASKFAILNONFATAL",
-    "TASKFAILFATAL",
-    "TASKCONTINUE",
-    "TASKOWNDONE",
-    "PATHEMPTY"
-]);
+    Enum
+} from "./other/enums.js";
+/**
+ * @constant
+ * @type {Enum}
+ * @enum {TaskResult}
+ */
+export class TaskResult extends Enum {
+    static TASKSUCCESS;
+    static TASKFAILNONFATAL;
+    static TASKFAILFATAL;
+    static TASKCONTINUE;
+    static TASKOWNDONE;
+    static PATHEMPTY;
+}
+TaskResult.enumify();

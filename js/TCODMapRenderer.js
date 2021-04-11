@@ -14,8 +14,13 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import { Coordinate } from "./Coordinate.js";
+import { NPCPreset } from "./NPCPreset.js";
+import { ItemPreset } from "./ItemPreset.js";
+import { CursorType } from "./UI/CursorType.js";
+
 /**
- * @class{TCODMapRenderer}
+ * @class {TCODMapRenderer}
  */
 export class TCODMapRenderer {
     the_console = null;
@@ -79,8 +84,8 @@ export class TCODMapRenderer {
                     this.cursorChar = 'X';
                     break;
             }
-        } else if (typeof arg == "number") {
-            this.cursorChar = other;
+        } else if (typeof arg === "number") {
+            this.cursorChar = arg;
         }
     }
 
@@ -98,12 +103,12 @@ export class TCODMapRenderer {
     TileAt(x, y, focusX, focusY, viewportX, viewportY, viewportW, viewportH) {
         // Convert viewport to tile space
         let { charX, charY } = TCODSystem.getCharSize();
-        if (viewportW == -1) {
+        if (viewportW === -1) {
             viewportW = this.the_console.getWidth();
         } else {
             viewportW /= charX;
         }
-        if (viewportH == -1) {
+        if (viewportH === -1) {
             viewportH = this.the_console.getHeight();
         } else {
             viewportH /= charY;
@@ -245,7 +250,7 @@ export class TCODMapRenderer {
         for (let it of map.entries()) {
             let ptr = it[1];
 
-            if (ptr.get() != null) {
+            if (ptr.get() !== null) {
                 ptr.Draw(upleft, buffer);
                 ++it;
             } else {

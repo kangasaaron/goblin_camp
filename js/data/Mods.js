@@ -14,6 +14,8 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import { Paths } from "./Paths.js";
+
 // Data refactoring: mods.
 // import "tileRenderer/TileSetLoader.js"
 
@@ -66,7 +68,7 @@ class Modifications {
     GetLoaded() {
         return this.loadedMods;
     }
-    GetLoaded();
+
     /**
      * @returns {Array<TilesetModMetadata>}
      */
@@ -77,23 +79,30 @@ class Modifications {
     /**
         Loads global mod and then tries to load user mods.
     */
-    Load(fs) {
-        this.fs = fs;
+    Load() {
         // load core data
-        this.LoadMod(Paths.Get(Paths.GlobalData) + "/" + "lib" + "/" + "gcamp_core", true);
-        this.loadedMods.push(new Metadata("Goblin Camp"));
-
-        // load user mods
-        for (let it of fs.root.getDirectory(Paths.Get(Paths.Mods))) {
-            if (it.isFile) continue;
-
-            this.LoadMod(it.fullPath);
-        }
-
-        // now resolve containers and products
-        Item.ResolveContainers();
-        Construction.ResolveProducts();
+        let me = this,
+            modNames = [];
+        return this.LoadMod(Paths.GetName(Paths.GlobalData) + "gcamp_core", true)
+            .then(function() {
+                return me.loadedMods.push(new MetaData("Goblin Camp"));
+            }).then(function() {
+                return Paths.Mods.keys();
+            }).then(function(keys) {
+                // load user mods
+                return Promise.all(keys.map(function(key) {
+                    let modName = key.substring(0, key.indexOf("/"));
+                    if (modNames.includes(modName)) return true;
+                    return me.LoadMod(Paths.GetName(Paths.Mods) + modName);
+                }));
+            }).then(function() {
+                // now resolve containers and products
+                Item.ResolveContainers();
+                Construction.ResolveProducts();
+                return me;
+            });
     }
+
     /**
       Loads given mod and inserts it's metadata into loadedMods.
       NB: Currently there is no way to unload a mod.
@@ -102,46 +111,59 @@ class Modifications {
       @param[in] required Passed down to @ref{Modifications.LoadFile} for every data file of the mod.
      */
     LoadMod(dir, required = false) {
-        let mod = dir.filename().string();
+        let mod = dir.GetCache();
 
         console.log("Trying to load mod '" + mod + "' from " + dir, "LoadMod");
 
         // Removed magic apiVersion in favour of reusing already-hardcoded 'required' code path.
         let metadata = new Metadata(mod, mod, "", "1.0", (required ? Script.version : -1));
+        return mod.keys().then(function(keys) {
+                if (keys.includes(dir.GetURL() + "mod.dat")) {
+                    console.log("Loading metadata.", "LoadMod");
+                    return this.LoadMetadata(metadata, dir.GetURL() + "mod.dat");
+                }
+                return Promise.all([]);
+            }).then(function() {
+                return this.LoadModFiles(dir, required)
+            })
+            .then(function() {
+                return TileSetLoader.LoadTilesetModMetadata(dir);
+            })
+            .then(function(tilesetMods) {
+                for (let iter of tilesetMods)
+                    this.availableTilesetMods.push(iter);
 
-        if (fs.exists(dir + "/" + "mod.dat")) {
-            console.log("Loading metadata.", "LoadMod");
-            this.LoadMetadata(metadata, (dir + "/" + "mod.dat"));
-        }
-
-        try {
-            this.LoadFile("spells", dir, Spell.LoadPresets.bind(Spell), required);
-            this.LoadFile("items", dir, Item.LoadPresets.bind(Item), required);
-            this.LoadFile("constructions", dir, Construction.LoadPresets.bind(Construction), required);
-            this.LoadFile("wildplants", dir, NatureObject.LoadPresets.bind(NatureObject), required);
-            this.LoadFile("names", dir, LoadNames.bind(this), required);
-            this.LoadFile("creatures", dir, NPC.LoadPresets.bind(NPC), required);
-            this.LoadFile("factions", dir, Faction.LoadPresets.bind(Faction), required);
-        } catch (e) {
-            console.log("Failed to load mod due to std.runtime_error: " + e.message, "LoadMod");
-            if (required)
-                Game.ErrorScreen(); // FIXME: hangs
-        }
-        let tilesetMods = TileSetLoader.LoadTilesetModMetadata(dir);
-        for (let iter of tilesetMods) {
-            this.availableTilesetMods.push(iter);
-        }
-
-        if (metadata.apiVersion != -1) {
-            if (metadata.apiVersion != Script.version) {
-                console.log("WARNING: Ignoring mod scripts because of an incorrect API version.", "LoadMod");
-            } else {
-                Script.LoadScript(mod, dir.string());
-            }
-        }
-
-        this.loadedMods.push(metadata);
+                let p;
+                if (metadata.apiVersion != -1) {
+                    if (metadata.apiVersion != Script.version) {
+                        console.log("WARNING: Ignoring mod scripts because of an incorrect API version.", "LoadMod");
+                    } else {
+                        p = Script.LoadScript(mod, dir.string());
+                    }
+                }
+                this.loadedMods.push(metadata);
+                if (p) return p;
+                return Promise.all([]);
+            })
+            .catch(function(e) {
+                console.log("Failed to load mod due to std.runtime_error: " + e.message, "LoadMod");
+                if (required)
+                    Game.ErrorScreen(); // FIXME: hangs
+            })
     }
+
+    LoadModFiles(dir, required) {
+        return Promise.all([
+            this.LoadFile("spells", dir, Spell.LoadPresets.bind(Spell), required),
+            this.LoadFile("items", dir, Item.LoadPresets.bind(Item), required),
+            this.LoadFile("constructions", dir, Construction.LoadPresets.bind(Construction), required),
+            this.LoadFile("wildplants", dir, NatureObject.LoadPresets.bind(NatureObject), required),
+            this.LoadFile("names", dir, LoadNames.bind(this), required),
+            this.LoadFile("creatures", dir, NPC.LoadPresets.bind(NPC), required),
+            this.LoadFile("factions", dir, Faction.LoadPresets.bind(Faction), required)
+        ]);
+    }
+
     /**
         Loads mod metadata from given file. Doesn't modify loadedMods.
 
@@ -149,12 +171,9 @@ class Modifications {
         @param {string}  metadataFile Full path to the metadata file.
     */
     LoadMetadata(metadata, metadataFile) {
-        let listener = new ModListener(this, metadata);
-        listener.fetch(metadataFile)
-            .then(function (data) {
-                listener.parse(data);
-            });
+        return new ModListener(this, metadata, metadataFile).fetch();
     }
+
     /**
         Loads given data file with given function.
 
@@ -186,9 +205,3 @@ class Modifications {
 }
 
 export let Mods = new Modifications();
-
-
-
-
-
-

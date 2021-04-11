@@ -33,9 +33,10 @@ export class UIContainer extends Drawable {
     }
 
     GetTooltip(x, y, tooltip) {
-        super.GetTooltip(x, y, tooltip);
+        let result = super.GetTooltip(x, y, tooltip);
         for (let component of this.components.filter(component => component.Visible())) {
             component.GetTooltip(x - this._x, y - this._y, tooltip);
         }
+        return result;
     }
 }

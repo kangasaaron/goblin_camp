@@ -3,7 +3,8 @@ import { PresetParser } from "../PresetParser.js";
 export class ModListener extends PresetParser {
     ptr = null;
 
-    constructor(ptr) {
+    constructor(ptr, filename) {
+        super(filename);
         this.ptr = ptr;
     }
 

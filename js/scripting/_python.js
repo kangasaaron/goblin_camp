@@ -25,14 +25,14 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 //
 // At any rate don't include Python.h directly, unless you want magic to break everything
 
-if /* if(def */ ( _DEBUG!== undefined){
-	const _SAVE_DEBUG = 1;
-	delete _DEBUG;
-}/*#endif*/
+// if ( _DEBUG!== undefined){
+// 	const _SAVE_DEBUG = 1;
+// 	delete _DEBUG;
+// }
 
-import "Python.h"
+// import "Python.h"
 
-if /* if(def */ ( __cplusplus !== undefined){
-import "boost/python.js"
-namespace py = boost.python;
-}/*#endif*/
+// if  ( __cplusplus !== undefined){
+// import "boost/python.js"
+// namespace py = boost.python;
+// }

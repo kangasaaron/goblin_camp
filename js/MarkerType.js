@@ -1,7 +1,10 @@
 import {
-    defineEnum
-} from "./other/Enums.js";
-
-export const MarkerType = defineEnum('MarkerType', [
-    'FLASHINGMARKER'
-]);
+    Enum
+} from "./other/enums.js";
+/**
+ * @enum
+ */
+export class MarkerType extends Enum {
+    static FLASHINGMARKER;
+}
+MarkerType.enumify();

@@ -1,0 +1,8 @@
+{
+    "eqeqeq": true,
+    "esversion": 7,
+    "nonew": true,
+    "unused": true,
+    "undef": true,
+    "varstmt": true
+}

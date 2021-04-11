@@ -1,18 +1,18 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
-
-export const Direction = defineEnum(
-    "Direction",
-    [
-        "NORTH",
-        "NORTHEAST",
-        "EAST",
-        "SOUTHEAST",
-        "SOUTH",
-        "SOUTHWEST",
-        "WEST",
-        "NORTHWEST",
-        "NODIRECTION"
-    ],
-);
+/**
+ * @enum
+ */
+export class Direction extends Enum {
+    static NORTH;
+    static NORTHEAST;
+    static EAST;
+    static SOUTHEAST;
+    static SOUTH;
+    static SOUTHWEST;
+    static WEST;
+    static NORTHWEST;
+    static NODIRECTION
+}
+Direction.enumify();

@@ -15,16 +15,11 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "libtcod.js"
-import "vector "
-import "string"
-import "boost/function.js"
-import "boost/weak_ptr.js"
 
-import "UI/Menu.js"
-import "UI/SideBar.js"
-import "Entity.js"
-import "Game.js"
+import "./UI/Menu.js"
+import "./UI/SideBar.js"
+import "./Entity.js"
+import "./Game.js"
 
 import {
     UIState
@@ -142,35 +137,27 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
 
-import "libtcod.js"
-import "string"
-import "vector"
-import "boost/function.js"
-import "boost/lexical_cast.js"
-import "boost/lambda/lambda.js"
 
-import "Random.js"
-import "UI.js"
-import "Announce.js"
-import "Game.js"
-import "GCamp.js"
-import "Logger.js"
-import "Map.js"
-import "Job.js"
-import "Stockpile.js"
-import "Farmplot.js"
-import "data/Config.js"
-import "data/Data.js"
-import "Camp.js"
-import "UI/StockManagerDialog.js"
-import "UI/SquadsDialog.js"
-import "UI/ConstructionDialog.js"
-import "UI/AnnounceDialog.js"
-import "UI/Tooltip.js"
-import "UI/JobDialog.js"
-import "UI/DevConsole.js"
+import "./Random.js"
+import "./UI.js"
+import "./Announce.js"
+import "./Game.js"
+import "./GCamp.js"
+import "./Map.js"
+import "./Job.js"
+import "./Stockpile.js"
+import "./Farmplot.js"
+import "./data/Config.js"
+import "./data/Data.js"
+import "./Camp.js"
+import "./UI/StockManagerDialog.js"
+import "./UI/SquadsDialog.js"
+import "./UI/ConstructionDialog.js"
+import "./UI/AnnounceDialog.js"
+import "./UI/Tooltip.js"
+import "./UI/JobDialog.js"
+import "./UI/DevConsole.js"
 
 UI * UI.instance = 0;
 

@@ -1,11 +1,14 @@
 import {
-    defineEnum
-} from "./other/Enums.js";
-
-export const FactionGoal = defineEnum("FactionGoal", [
-    'FACTIONDESTROY', //Destroy buildings
-    'FACTIONKILL', //Kill hostiles
-    'FACTIONSTEAL', //Steal items valuable to the faction
-    'FACTIONPATROL', //Patrol area
-    'FACTIONIDLE' //Idle
-]);
+    Enum
+} from "./other/enums.js";
+/**
+ * @enum
+ */
+export class FactionGoal extends Enum {
+    static FACTIONDESTROY; //Destroy buildings
+    static FACTIONKILL; //Kill hostiles
+    static FACTIONSTEAL; //Steal items valuable to the faction
+    static FACTIONPATROL; //Patrol area
+    static FACTIONIDLE; //Idle
+}
+FactionGoal.enumify();

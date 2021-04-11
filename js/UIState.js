@@ -1,11 +1,12 @@
 import {
-    defineEnum
+    Enum
 } from "./other/Enums.js";
 
-export const UIState = defineEnum("UIState", [
-    'UINORMAL', // No selection highlights
-    'UIPLACEMENT',
-    'UIABPLACEMENT',
-    'UIRECTPLACEMENT',
-    'UICOUNT'
-]);
+export class UIState extends Enum {
+    static UINORMAL; // No selection highlights
+    static UIPLACEMENT;
+    static UIABPLACEMENT;
+    static UIRECTPLACEMENT;
+    static UICOUNT;
+};
+UIState.enumify();

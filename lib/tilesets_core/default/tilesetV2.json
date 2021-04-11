@@ -1,0 +1,690 @@
+{
+    "name": "Default Tileset",
+    "tileWidth": 16,
+    "tileHeight": 16,
+    "description": "Test tileset with various tiles sourced from Goblin Camp Forum, as well as crawl-tiles",
+    "author": "onionknight, hutze, apostrophest, Crawl Stone Soup artists",
+    "version": "0.15",
+
+    "textures": [{
+            "name": "terrain.png",
+            "sprites": [{
+                    "type": "terrain",
+                    "sprites": [0]
+                },
+
+                {
+                    "name": "grass",
+                    "type": "terrain",
+                    "sprites": [
+                        20,
+                        21,
+                        22,
+                        23,
+                        24,
+                        25,
+                        26,
+                        27,
+                        28
+                    ],
+                    "heightSplits": [-1.0, -0.5, 0.0, 0.25, 0.5, 1.0, 2.0, 4.0],
+                    "snowSprites": [152],
+                    "edgeSprites": [16, 17, 18, 19],
+                    "snowEdgeSprites": [148, 149, 150, 151],
+
+                    "details": [192, 193, 194, 195, 208, 209, 210, 211],
+                    "snowedDetails": [196, 197, 198, 199, 212, 213, 214, 215],
+                    "detailsChance": 0.0625,
+
+                    "burntOverlay": [32, 33, 34, 35, 36],
+                    "corruption": [128, 129, 130, 131,
+                        144, 145, 146, 147,
+                        160, 161, 162, 163,
+                        176, 177, 178, 179
+                    ]
+                },
+
+                {
+                    "name": "ditch",
+                    "type": "terrain",
+                    "sprites": [1]
+                },
+
+                {
+                    "name": "riverbed",
+                    "type": "terrain",
+                    "sprites": [2]
+                },
+
+                {
+                    "name": "bog",
+                    "type": "terrain",
+                    "sprites": [3]
+                },
+
+                {
+                    "name": "rock",
+                    "type": "terrain",
+                    "sprites": [126]
+                },
+
+                {
+                    "name": "mud",
+                    "type": "terrain",
+                    "sprites": [5]
+                }
+            ]
+        },
+
+        {
+            "name": "tileset.png",
+
+            "waterAndIce": [84, 85, 86, 87, 88,
+                100, 101, 102, 103, 104, 105, 106,
+                116, 117, 118, 119, 120, 121, 122
+            ],
+            "filth": [164, 165, 166, 167, 168,
+                180, 181, 182, 183, 184, 185, 186,
+                196, 197, 198, 199, 200, 169, 170
+            ],
+            "marker": [14],
+            "blood": [16],
+
+            "nonTerritory": [13],
+            "territory": [6, 7, 8, 9, 10],
+            "marked": [75, 91, 107, 123, 139],
+
+            "defaultTileHighlight": [10, 13],
+            "constructionTileHighlight": [10, 13],
+            "stockpileTileHighlight": [10, 13],
+            "treeFellingTileHighlight": [10, 13],
+            "harvestTileHighlight": [10, 13],
+            "orderTileHighlight": [10, 13],
+            "treeTileHighlight": [10, 13],
+            "dismantleTileHighlight": [10, 13],
+            "undesignateTileHighlight": [10, 13],
+            "bogTileHighlight": [10, 13],
+            "digTileHighlight": [10, 13],
+            "addTerritoryTileHighlight": [10],
+            "removeTerritoryTileHighlight": [13],
+            "gatherTileHighlight": [10, 13],
+
+            "defaultUnderconstruction": 18,
+            "fire": [68, 69],
+            "fireFPS": 10,
+            "sprites": [{
+                    "type": "creature",
+                    "sprites": [21]
+                },
+                {
+                    "type": "plant",
+                    "sprites": [29]
+                },
+                {
+                    "type": "item",
+                    "sprites": [20]
+                },
+                {
+                    "type": "spell",
+                    "sprites": [71, 73],
+                    "fps": 30
+                },
+                {
+                    "type": "construction",
+                    "sprites": [19]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "hunger",
+                    "sprites": [46]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "thirst",
+                    "sprites": [47]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "panic",
+                    "sprites": [48],
+                    "flashRate": 5
+                },
+                {
+                    "type": "status_effect",
+                    "name": "concussion",
+                    "sprites": [49]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "drowsy",
+                    "sprites": [50]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "sleeping",
+                    "sprites": [51]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "poison",
+                    "sprites": [52]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "bleeding",
+                    "sprites": [53]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "sluggish",
+                    "sprites": [54],
+                    "flashRate": 1
+                },
+                {
+                    "type": "status_effect",
+                    "name": "rage",
+                    "sprites": [55],
+                    "flashRate": 3
+                },
+                {
+                    "type": "status_effect",
+                    "name": "eating",
+                    "sprites": [56]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "drinking",
+                    "sprites": [57]
+                },
+                {
+                    "type": "status_effect",
+                    "name": "swimming",
+                    "sprites": [58],
+                    "flashRate": 0,
+                    "alwaysOn": true
+                },
+                {
+                    "type": "status_effect",
+                    "name": "burning",
+                    "sprites": [68, 69],
+                    "fps": 10,
+                    "flashRate": 0,
+                    "alwaysOn": true
+                },
+                {
+                    "type": "creature",
+                    "name": "goblin",
+                    "sprites": [23]
+                },
+                {
+                    "type": "creature",
+                    "name": "orc",
+                    "sprites": [24]
+                },
+                {
+                    "type": "creature",
+                    "name": "soldier ant",
+                    "sprites": [59]
+                },
+                {
+                    "type": "creature",
+                    "name": "starving wolf",
+                    "sprites": [60]
+                },
+                {
+                    "type": "creature",
+                    "name": "giant snail",
+                    "sprites": [207]
+                },
+                {
+                    "type": "creature",
+                    "name": "rabid albino rat",
+                    "sprites": [217]
+                },
+                {
+                    "type": "creature",
+                    "name": "snake",
+                    "sprites": [218]
+                },
+                {
+                    "type": "creature",
+                    "name": "killer bee",
+                    "sprites": [220]
+                },
+                {
+                    "type": "creature",
+                    "name": "harpy",
+                    "sprites": [221]
+                },
+                {
+                    "type": "creature",
+                    "name": "kobold",
+                    "sprites": [222]
+                },
+                {
+                    "type": "creature",
+                    "name": "ogre",
+                    "sprites": [223]
+                },
+                {
+                    "type": "creature",
+                    "name": "troll",
+                    "sprites": [233]
+                },
+                {
+                    "type": "creature",
+                    "name": "skeleton",
+                    "sprites": [234]
+                },
+                {
+                    "type": "creature",
+                    "name": "minotaur",
+                    "sprites": [235]
+                },
+                {
+                    "type": "creature",
+                    "name": "cyclops",
+                    "sprites": [236]
+                },
+                {
+                    "type": "creature",
+                    "name": "giant",
+                    "sprites": [237]
+                },
+                {
+                    "type": "creature",
+                    "name": "griffon",
+                    "sprites": [238]
+                },
+                {
+                    "type": "creature",
+                    "name": "will o wisp",
+                    "sprites": [239]
+                },
+                {
+                    "type": "creature",
+                    "name": "imp",
+                    "sprites": [249]
+                },
+                {
+                    "type": "creature",
+                    "name": "salamander",
+                    "sprites": [250]
+                },
+                {
+                    "type": "creature",
+                    "name": "fire elemental",
+                    "sprites": [251]
+                },
+                {
+                    "type": "creature",
+                    "name": "treeman",
+                    "sprites": [29]
+                },
+                {
+                    "type": "plant",
+                    "name": "Pine",
+                    "sprites": [29]
+                },
+                {
+                    "type": "plant",
+                    "name": "Wild Bloodberry bush",
+                    "sprites": [22]
+                },
+                {
+                    "type": "plant",
+                    "name": "Wild Blueleaf",
+                    "sprites": [28]
+                },
+                {
+                    "type": "plant",
+                    "name": "Dandelion",
+                    "sprites": [28]
+                },
+                {
+                    "type": "plant",
+                    "name": "Red Poppy",
+                    "sprites": [28]
+                },
+                {
+                    "type": "plant",
+                    "name": "Alpine aster",
+                    "sprites": [30]
+                },
+                {
+                    "type": "plant",
+                    "name": "Blue Skullcap",
+                    "sprites": [28]
+                },
+                {
+                    "type": "plant",
+                    "name": "Willow",
+                    "sprites": [28]
+                },
+                {
+                    "type": "plant",
+                    "name": "Birch",
+                    "sprites": [29]
+                },
+                {
+                    "type": "plant",
+                    "name": "Spruce",
+                    "sprites": [29]
+                },
+                {
+                    "type": "plant",
+                    "name": "Silvervine",
+                    "sprites": [156]
+                },
+                {
+                    "type": "plant",
+                    "name": "Thornbush",
+                    "sprites": [155]
+                },
+                {
+                    "type": "plant",
+                    "name": "Withering tree",
+                    "sprites": [31]
+                },
+                {
+                    "type": "plant",
+                    "name": "Redhollow",
+                    "sprites": [30]
+                },
+                {
+                    "type": "plant",
+                    "name": "Darkroot",
+                    "sprites": [31]
+                },
+                {
+                    "type": "item",
+                    "sprites": [20]
+                },
+                {
+                    "type": "item",
+                    "name": "Log",
+                    "sprites": [38]
+                },
+                {
+                    "type": "item",
+                    "name": "Plank",
+                    "sprites": [37]
+                },
+                {
+                    "type": "item",
+                    "name": "Stone",
+                    "sprites": [32]
+                },
+                {
+                    "type": "item",
+                    "name": "Firewood",
+                    "sprites": [36]
+                },
+                {
+                    "type": "item",
+                    "name": "Rough stone",
+                    "sprites": [32]
+                },
+                {
+                    "type": "item",
+                    "name": "Berry",
+                    "sprites": [35]
+                },
+                {
+                    "type": "item",
+                    "name": "Bread",
+                    "sprites": [189]
+                },
+                {
+                    "type": "item",
+                    "name": "Crate",
+                    "sprites": [40]
+                },
+                {
+                    "type": "item",
+                    "name": "Barrel",
+                    "sprites": [41]
+                },
+                {
+                    "type": "item",
+                    "name": "Bucket",
+                    "sprites": [74],
+                    "drawWhenWielded": true
+                },
+                {
+                    "type": "item",
+                    "name": "Sack",
+                    "sprites": [20]
+                },
+                {
+                    "type": "item",
+                    "name": "Door",
+                    "sprites": [39]
+                },
+                {
+                    "type": "item",
+                    "name": "Bed",
+                    "sprites": [42]
+                },
+                {
+                    "type": "item",
+                    "name": "Clay",
+                    "sprites": [34]
+                },
+                {
+                    "type": "item",
+                    "name": "Seed",
+                    "sprites": [61]
+                },
+                {
+                    "type": "item",
+                    "name": "Nightbloom",
+                    "sprites": [158]
+                },
+                {
+                    "type": "item",
+                    "name": "Dried fruit",
+                    "sprites": [159]
+                },
+                {
+                    "type": "item",
+                    "name": "Meat",
+                    "sprites": [174]
+                },
+                {
+                    "type": "item",
+                    "name": "Berry wine",
+                    "sprites": [174]
+                },
+                {
+                    "type": "item",
+                    "name": "Chillwine",
+                    "sprites": [175]
+                },
+                {
+                    "type": "item",
+                    "name": "Healing tonic",
+                    "sprites": [187]
+                },
+                {
+                    "type": "item",
+                    "name": "Poison antidote",
+                    "sprites": [188]
+                },
+                {
+                    "type": "item",
+                    "name": "Wooden club",
+                    "sprites": [190]
+                },
+                {
+                    "type": "item",
+                    "name": "Stone maul",
+                    "sprites": [191]
+                },
+                {
+                    "type": "item",
+                    "name": "Stone axe",
+                    "sprites": [201]
+                },
+                {
+                    "type": "item",
+                    "name": "Stone spear",
+                    "sprites": [202]
+                },
+                {
+                    "type": "item",
+                    "name": "Bone dagger",
+                    "sprites": [203]
+                },
+                {
+                    "type": "item",
+                    "name": "Wooden arrow",
+                    "sprites": [204]
+                },
+                {
+                    "type": "item",
+                    "name": "Stone-tipped arrow",
+                    "sprites": [205]
+                },
+                {
+                    "type": "item",
+                    "name": "Wooden bow",
+                    "sprites": [206]
+                },
+                {
+                    "type": "construction",
+                    "name": "Farm plot",
+                    "sprites": [43]
+                },
+                {
+                    "type": "construction",
+                    "name": "Totem Pole",
+                    "sprites": [43, 43, 43,
+                        43, 44, 43,
+                        43, 43, 43
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Door",
+                    "sprites": [39],
+                    "openSprite": 45
+                },
+                {
+                    "type": "construction",
+                    "name": "Palisade",
+                    "connectionMap": true,
+                    "sprites": [64, 65, 66, 67,
+                        80, 81, 82, 83,
+                        96, 97, 98, 99,
+                        112, 113, 114, 115
+                    ]
+                },
+                {
+                    "type": "construction",
+                    "name": "Stockpile",
+                    "sprites": [232]
+                },
+                {
+                    "type": "construction",
+                    "name": "Saw pit",
+                    "sprites": [242, 242, 242,
+                        242, 242, 242,
+                        242, 242, 242
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Spawning pool",
+                    "sprites": [224, 225, 240, 241, 240, 225],
+                    "frameCount": 6,
+                    "fps": 3,
+                    "underconstructionSprites": [226]
+                },
+                {
+                    "type": "construction",
+                    "name": "Carpenter",
+                    "sprites": [230, 229, 231,
+                        228, 243, 245,
+                        246, 244, 247
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Weaver",
+                    "sprites": [230, 229, 231,
+                        228, 243, 245,
+                        246, 244, 247
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Basket Weaver",
+                    "sprites": [230, 229, 231,
+                        228, 243, 245,
+                        246, 244, 247
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Kitchen",
+                    "sprites": [230, 229, 231,
+                        228, 243, 245,
+                        246, 244, 247
+                    ],
+                    "underconstructionSprites": [18],
+                    "width": 3
+                },
+                {
+                    "type": "construction",
+                    "name": "Bed",
+                    "sprites": [42]
+                },
+                {
+                    "type": "construction",
+                    "name": "Spiked pit",
+                    "sprites": [26],
+                    "unreadyTrapSprites": [25]
+                },
+                {
+                    "type": "spell",
+                    "name": "smoke",
+                    "sprites": [63]
+                },
+                {
+                    "type": "spell",
+                    "name": "spark",
+                    "sprites": [62]
+                },
+                {
+                    "type": "spell",
+                    "name": "steam",
+                    "sprites": [72]
+                }
+            ]
+        },
+
+        {
+            "name": "orcTiles.png",
+            "sprites": {
+                "name": "orc",
+                "type": "creature",
+                "sprites": [5, 6, 7, 8, 9],
+                "weaponOverlays": [1, 2, 3, 4],
+                "paperdoll": true,
+                "weaponTypes": ["Blunt weapon", "Slashing weapon", "Piercing weapon", "Ranged weapon"],
+                "armorTypes": ["Padded clothing", "Light armor", "Medium armor", "Heavy armor"]
+            }
+        }
+    ]
+}

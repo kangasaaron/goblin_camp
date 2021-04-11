@@ -23,7 +23,7 @@ import {
 } from "./AnnounceMessage.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 export class Announcer {
     messageQueue = [];
@@ -41,7 +41,7 @@ export class Announcer {
         return this.messageQueue[0].target;
     }
     static Reset() {
-        export let Announce = new Announcer();
+        Announce = new Announcer();
     }
     AnnouncementClicked(arg) {
         if (arg && arg instanceof AnnounceMessage) {

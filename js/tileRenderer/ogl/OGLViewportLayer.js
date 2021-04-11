@@ -14,74 +14,59 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import "vector"
+// import "vector"
 
 class ViewportLayer {
-//public extends 
-	explicit ViewportLayer();
-	explicit ViewportLayer(int width, int height);
-	void Reset();
-	void SetTile(int x, int y, unsigned int tile);
-	int GetTile(int x, int y) const;
-	bool IsTileSet(int x, int y) const;
-	unsigned char* operator*();
-//private:
-	std.vector<unsigned char> data;
-	int width;
-	int height;
-};/* Copyright 2011 Ilkka Halila
-This file is part of Goblin Camp.
+    // std.vector<unsigned char> data;
+    data = [];
+    width = 0;
+    height = 0;
 
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    constructor() {
+        data();
+        width(0);
+        height(0)
+    }
+    constructor(width, height) {
+        data(width * height * 4, 0),
+            width(width),
+            height(height)
+    }
 
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+    // void Reset();
+    // void ViewportLayer.Reset() {
+    Reset() {
+        for (let i = 3; i < 4 * width * height; i += 4) {
+            data[i] = 0;
+        }
+    }
 
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
+    // void SetTile(int x, int y, unsigned int tile);
+    // void ViewportLayer.SetTile(int x, int y, unsigned int tile) {
+    SetTile(x, y, tile) {
+        let index = 4 * (x + y * width);
+        data[index] = tile & 0xff;
+        data[index + 1] = (tile >> 8) & 0xff;
+        data[index + 2] = (tile >> 16) & 0xff;
+        data[index + 3] = 0xff;
+    }
 
-import "tileRenderer/ogl/OGLViewportLayer.js"
+    // int GetTile(int x, int y) const;
+    // int ViewportLayer.GetTile(int x, int y) const {
+    GetTile(x, y) {
+        let index = 4 * (x + y * width);
+        return data[index] | (data[index + 1] << 8) | (data[index + 2] << 16);
+    }
 
-ViewportLayer.ViewportLayer()
-: data(), width(0), height(0)
-{}
+    // bool IsTileSet(int x, int y) const;
+    // bool ViewportLayer.IsTileSet(int x, int y) const {
+    IsTileSet(x, y) {
+        return data[4 * (x + y * width) + 3] != 0;
+    }
 
-ViewportLayer.ViewportLayer(int width, int height)
-:
-	data(width * height * 4, 0),
-	width(width),
-	height(height)
-{}
-
-void ViewportLayer.Reset() {
-	for (int i = 3; i < 4 * width * height; i += 4) {
-		data[i] = 0;
-	}
-}
-
-void ViewportLayer.SetTile(int x, int y, unsigned int tile) {
-	int index = 4 * (x + y * width);
-	data[index] = tile & 0xff;
-	data[index + 1] = (tile >> 8) & 0xff;
-	data[index + 2] = (tile >> 16) & 0xff;
-	data[index + 3] = 0xff;
-}
-
-unsigned char * ViewportLayer.operator*() {
-	return &data[0];
-}
-
-bool ViewportLayer.IsTileSet(int x, int y) const {
-	return data[4 * (x + y * width) + 3] != 0;
-}
-
-int ViewportLayer.GetTile(int x, int y) const {
-	int index = 4 * (x + y * width);
-	return data[index] | (data[index + 1] << 8) | (data[index + 2] << 16);
+    // unsigned char * operator * ();
+    // unsigned char * ViewportLayer.operator * () {
+    operator_star() {
+        return data[0];
+    }
 }

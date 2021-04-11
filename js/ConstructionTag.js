@@ -1,20 +1,24 @@
 import {
-    defineEnum
+    Enum
 } from "./other/Enums.js";
 
-export const ConstructionTag = defineEnum("ConstructionTag", [
-    'STOCKPILE',
-    'FARMPLOT',
-    'DOOR',
-    'WALL',
-    'BED',
-    'WORKSHOP',
-    'FURNITURE',
-    'CENTERSCAMP',
-    'SPAWNINGPOOL',
-    'BRIDGE',
-    'TRAP',
-    'RANGEDADVANTAGE',
-    'PERMANENT',
-    'TAGCOUNT'
-]);
+/**
+ * @enum
+ */
+export class ConstructionTag extends Enum {
+    static STOCKPILE;
+    static FARMPLOT;
+    static DOOR;
+    static WALL;
+    static BED;
+    static WORKSHOP;
+    static FURNITURE;
+    static CENTERSCAMP;
+    static SPAWNINGPOOL;
+    static BRIDGE;
+    static TRAP;
+    static RANGEDADVANTAGE;
+    static PERMANENT;
+    static TAGCOUNT;
+}
+ConstructionTag.enumify();

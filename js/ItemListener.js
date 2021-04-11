@@ -4,9 +4,12 @@ import {
 import {
     ItemPreset
 } from "./ItemPreset.js";
-import { Color } from "./other/Color.js";
+import { Color } from "./color/Color.js";
+import {
+    PresetParser
+} from "./PresetParser.js";
 
-export class ItemListener {
+export class ItemListener extends PresetParser {
     /*preset[x] holds item names as strings untill all items have been
     read, and then they are converted into ItemTypes */
     presetGrowth = new Map();
@@ -21,9 +24,9 @@ export class ItemListener {
      * 
      * @param {Item} store 
      */
-    constructor(store) {
+    constructor(store, filename) {
+        super(filename);
         this.Item = store;
-        this.filename = filename;
     }
     parse(data) {
         super.parse(data["item category definitions"]);
@@ -67,8 +70,7 @@ export class ItemListener {
                 this.Item.itemTypeNames.set(strName, Game.ItemTypeCount - 1);
                 this.presetProjectile.set(this.itemIndex, "");
             }
-        } else if (nm && str.name === "attack") {
-        }
+        } else if (nm && str.name === "attack") {}
         return true;
     }
     parserFlag(name, value) {
@@ -184,7 +186,7 @@ export class ItemListener {
         return true;
     }
     parserEndStruct(str, name) {
-        if (str.name == "category_type")) {
+        if (str.name == "category_type") {
             if (this.presetCategoryParent[this.categoryIndex] == "")
                 this.Item.ParentCategories.push(this.Item.Categories[this.categoryIndex]);
         }

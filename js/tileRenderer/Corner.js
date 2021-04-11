@@ -14,20 +14,11 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-	defineEnum
-} from "./other/enums.js";
+import { Enum } from "./other/enums.js";
 
-export const Corner = defineEnum("Corner", [{
-		TopLeft: 0x0
-	},
-	{
-		TopRight: 0x1
-	},
-	{
-		BottomLeft: 0x2
-	},
-	{
-		BottomRight: 0x3
-	}
-]);
+export class Corner extends Enum {
+    static TopLeft = 0x0;
+    static TopRight = 0x1;
+    static BottomLeft = 0x2;
+    static BottomRight = 0x3;
+}

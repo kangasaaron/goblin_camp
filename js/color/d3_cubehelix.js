@@ -1,6 +1,6 @@
-import define, { extend } from "./define.js";
-import { Color, rgbConvert, Rgb, darker, brighter } from "./_color.js";
-import { degrees, radians } from "./math.js";
+import define, { extend } from "./d3_define.js";
+import { Color, rgbConvert, Rgb, darker, brighter } from "./d3_color.js";
+import { degrees, radians } from "./d3_math.js";
 
 var A = -0.14861,
     B = +1.78277,
@@ -37,15 +37,15 @@ export function Cubehelix(h, s, l, opacity) {
 }
 
 define(Cubehelix, cubehelix, extend(Color, {
-    brighter: function(k) {
+    brighter: function (k) {
         k = k == null ? brighter : Math.pow(brighter, k);
         return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
     },
-    darker: function(k) {
+    darker: function (k) {
         k = k == null ? darker : Math.pow(darker, k);
         return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
     },
-    rgb: function() {
+    rgb: function () {
         var h = isNaN(this.h) ? 0 : (this.h + 120) * radians,
             l = +this.l,
             a = isNaN(this.s) ? 0 : this.s * l * (1 - l),

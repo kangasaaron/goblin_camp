@@ -15,11 +15,14 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Color
+} from "./color/Color.js";
+import {
     Coordinate
 } from "./Coordinate.js";
 import {
-    Color
-} from "./other/Color.js";
+    NPC
+} from "./NPC.js";
 
 
 /*Events will include all the hardcoded events. Once Python is figured
@@ -28,7 +31,7 @@ should be possible to turn off if desired.
 I want to have the basic ones coded in c++, python will necessarily be
 a bit slower, and it might make a crucial difference on low-end machines. */
 
-class Events {
+export class Events {
     map = null;
     hostileSpawningMonsters = [];
     timeSinceHostileSpawn = 0;
@@ -36,7 +39,7 @@ class Events {
     migratingAnimals = [];
     immigrants = [];
     existingImmigrants = [];
-    constructor(map) {
+    constructor(vmap) {
         this.map = vmap;
         for (let i = 0; i < NPC.Presets.length; ++i) {
             if (NPC.Presets[i].tags.has("attacksrandomly"))

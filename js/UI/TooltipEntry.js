@@ -1,6 +1,6 @@
 import {
     Color
-} from "../other/Color.js";
+} from "../color/Color.js";
 
 export class TooltipEntry {
     text = "";

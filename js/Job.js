@@ -17,46 +17,28 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import {
     JobPriority
 } from "./JobPriority.js";
-
 import {
     JobCompletion
 } from "./JobCompletion.js";
-
 import {
     Action
 } from "./Action.js";
-
-import {
-    TaskResult
-} from "./TaskResult.js";
-
 import {
     Task
 } from "./Task.js";
-
 import {
     Construction
 } from "./Construction.js";
 
 
-
-
-import "string"
-import "libtcod.js"
-import "boost/algorithm/string.js"
-import "boost/serialization/weak_ptr.js"
-import "boost/serialization/list.js"
-import "boost/serialization/vector.js"
-
-import "Job.js"
-import "Announce.js"
-import "Game.js"
-import "Logger.js"
-import "GCamp.js"
-import "MapMarker.js"
-import "Stockpile.js"
-import "Door.js"
-import "Farmplot.js"
+import "./Job.js"
+import "./Announce.js"
+import "./Game.js"
+import "./GCamp.js"
+import "./MapMarker.js"
+import "./Stockpile.js"
+import "./Door.js"
+import "./Farmplot.js"
 import {
     Coordinate
 } from "./Coordinate.js";
@@ -69,6 +51,7 @@ export class Job extends Serializable {
 
     _priority = null;
     completion = null;
+    /** @type {Array<Job>} */
     preReqs = [];
     parent = null;
     npcUid = 0;
@@ -89,10 +72,11 @@ export class Job extends Serializable {
     mapMarkers = [];
     fireAllowed = false;
     name = "";
+    /** @type {Array<Task>} */
     tasks = [];
     internal = false;
     statusEffects = [];
-    constructor(value = "NONAME JOB", pri = MED, z = 0, m = true) {
+    constructor(value = "NONAME JOB", pri = JobPriority.MED, z = 0, m = true) {
         this._priority = pri;
         this.completion = JobCompletion.ONGOING;
         this.npcUid = -1;
@@ -129,7 +113,7 @@ export class Job extends Serializable {
         return (this.completion == JobCompletion.SUCCESS || this.completion == JobCompletion.FAILURE);
     }
     Complete() {
-        this.completion = Job.SUCCESS;
+        this.completion = JobCompletion.SUCCESS;
     }
     Fail() {
         this.completion = JobCompletion.FAILURE;

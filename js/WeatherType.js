@@ -1,8 +1,9 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
 
-export const WeatherType = defineEnum("WeatherType", [
-    'NORMALWEATHER',
-    'RAIN'
-]);
+export class WeatherType extends Enum {
+    static NORMALWEATHER;
+    static RAIN;
+}
+WeatherType.enumify();

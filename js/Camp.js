@@ -21,7 +21,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 class Encampment extends Serializable {
     //Version 2 = 0.2 - diseaseChance

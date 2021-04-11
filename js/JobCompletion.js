@@ -1,9 +1,13 @@
 import {
-    defineEnum
+    Enum
 } from "./other/Enums.js";
 
-export const JobCompletion = defineEnum("JobCompletion", [
-    "FAILURE",
-    "SUCCESS",
-    "ONGOING"
-]);
+/**
+ * @enum
+ */
+export class JobCompletion extends Enum {
+    static FAILURE;
+    static SUCCESS;
+    static ONGOING
+}
+JobCompletion.enumify();

@@ -6,7 +6,7 @@ import {
 } from "./Dice.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 export class SpellPreset {
     name = "";

@@ -15,27 +15,20 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-
-
-import "boost/array.js"
-import "boost/functional/hash.js"
-import "boost/unordered_map.js"
-import "SDL.h "
-
-import "MapRenderer.js"
-import "Tile.js"
-import "NPC.js"
-import "NatureObject.js"
-import "Spell.js"
-import "Fire.js"
-import "tileRenderer/Sprite.js"
-import "tileRenderer/StatusEffectSprite.js"
-import "tileRenderer/NPCSprite.js"
-import "tileRenderer/NatureObjectSpriteSet.js"
-import "tileRenderer/ItemSprite.js"
-import "tileRenderer/ConstructionSprite.js"
-import "tileRenderer/SpellSpriteSet.js"
-import "tileRenderer/TerrainSprite.js"
+import "./MapRenderer.js"
+import "./Tile.js"
+import "./NPC.js"
+import "./NatureObject.js"
+import "./Spell.js"
+import "./Fire.js"
+import "./tileRenderer/Sprite.js"
+import "./tileRenderer/StatusEffectSprite.js"
+import "./tileRenderer/NPCSprite.js"
+import "./tileRenderer/NatureObjectSpriteSet.js"
+import "./tileRenderer/ItemSprite.js"
+import "./tileRenderer/ConstructionSprite.js"
+import "./tileRenderer/SpellSpriteSet.js"
+import "./tileRenderer/TerrainSprite.js"
 
 class TileSet extends private boost.noncopyable {
     //public:
@@ -197,15 +190,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
 
-import "tileRenderer/TileSet.js"
-import "boost/numeric/conversion/cast.js"
 
-import "Farmplot.js"
-import "Stockpile.js"
-import "Door.js"
-import "SpawningPool.js"
+import "./tileRenderer/TileSet.js"
+
+import "./Farmplot.js"
+import "./Stockpile.js"
+import "./Door.js"
+import "./SpawningPool.js"
 
 TileSet.TileSet(std.string tileSetName, int tileW, int tileH):
     tileWidth(tileW),

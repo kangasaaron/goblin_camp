@@ -14,7 +14,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-
+import { Item } from "./Item.js"
 import { Job } from "./Job.js"
 import { Serializable } from "./data/Serialization.js"
 
@@ -22,7 +22,7 @@ export class JobManagerClass extends Serializable {
     static CLASS_VERSION = 1;
 
     /** @type {Array<Job>} */
-    availableList = new Array(JobPriority.PRIORITY_COUNT);
+    availableList = new Array(JobPriority.JobPrority.PRIORITY_COUNT);
     /** @type {Array<Job>} */
     waitingList = [];
     /** @type {Array<number>} */
@@ -64,9 +64,9 @@ export class JobManagerClass extends Serializable {
         let npc;
         let color_mappings = [Color.green, new Color(0, 160, 60), new Color(175, 150, 50), new Color(165, 95, 0), Color.grey];
 
-        for (let i = 0; i <= JobPriority.PRIORITY_COUNT; i++) {
+        for (let i = 0; i <= JobPriority.JobPrority.PRIORITY_COUNT; i++) {
             the_console.setDefaultForeground(color_mappings[i]);
-            for (let jobi of(i < JobPriority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
+            for (let jobi of(i < JobPriority.JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
                 if (skip < from) {
                     ++skip;
                     continue;
@@ -127,7 +127,7 @@ export class JobManagerClass extends Serializable {
         let job;
 
         outer:
-            for (let i = 0; i < JobPriority.PRIORITY_COUNT; ++i) {
+            for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
                 for (let jobi of this.availableList[i]) {
                     let npc = Game.GetNPC(uid);
                     if (npc && jobi.Menial() != npc.Expert()) {
@@ -148,7 +148,7 @@ export class JobManagerClass extends Serializable {
     GetJobByListIndex(index) {
         let count = 0;
 
-        for (let i = 0; i < JobPriority.PRIORITY_COUNT; ++i) {
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
             for (let jobi of this.availableList[i]) {
                 if (count++ == index) return jobi;
             }
@@ -160,330 +160,320 @@ export class JobManagerClass extends Serializable {
 
         return null;
     }
-
-    void RemoveJob(boost.weak_ptr < Job > );
-    void RemoveJob(Action, Coordinate); //Can remove more than was intended, use with caution
-    void Update();
-    int JobAmount();
-    void NPCWaiting(int);
-    void NPCNotWaiting(int);
-    void ClearWaitingNpcs();
-    void AssignJobs();
-}
-
-
-
-void JobManager.Update() {
-
-    //Check the waiting list for jobs that have completed prerequisites, and move them to the
-    //job queue if so, remove removables, and retry retryables, remove unpauseds
-    for (std.list < boost.shared_ptr < Job > > .iterator jobIter = waitingList.begin(); jobIter != waitingList.end();) {
-
-        if (( * jobIter).Removable()) {
-            jobIter = waitingList.erase(jobIter);
+    JobAmount() {
+        let count = 0;
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
+            count += this.availableList[i].length;
+        }
+        count += this.waitingList.length;
+        return count;
+    }
+    ClearWaitingNpcs() {
+        this.expertNPCsWaiting = [];
+        this.menialNPCsWaiting = [];
+    }
+    NPCWaiting(uid) {
+        let npc = Game.GetNPC(uid);
+        if (!npc) return;
+        if (npc.Expert()) {
+            for (let it of this.expertNPCsWaiting) {
+                if (it == uid) {
+                    return;
+                }
+            }
+            this.expertNPCsWaiting.push(uid);
         } else {
+            for (let it of this.menialNPCsWaiting) {
+                if (it == uid) {
+                    return;
+                }
+            }
+            this.menialNPCsWaiting.push(uid);
+        }
 
-            if (!( * jobIter).PreReqs().empty() && ( * jobIter).PreReqsCompleted()) {
-                ( * jobIter).Paused(false);
+    }
+
+    NPCNotWaiting(uid) {
+        let npc = Game.GetNPC(uid);
+        if (!npc) return;
+        if (npc.Expert()) {
+            for (let it of this.expertNPCsWaiting) {
+                if (it == uid) {
+                    this.expertNPCsWaiting.splice(this.expertNPCsWaiting.indexOf(it), 1);
+                    return;
+                }
+            }
+        } else {
+            for (let it of this.menialNPCsWaiting) {
+                if (it == uid) {
+                    this.menialNPCsWaiting.splice(this.expertNPCsWaiting.indexOf(it), 1);
+                    return;
+                }
+            }
+        }
+
+    }
+    Update() {
+        //Check the waiting list for jobs that have completed prerequisites, and move them to the
+        //job queue if so, remove removables, and retry retryables, remove unpauseds
+
+        /** @type {Job} jobIter */
+        let jobIter;
+        for (jobIter of this.waitingList) {
+
+            if (jobIter.Removable()) {
+                jobIter = this.waitingList.splice(this.waitingList.indexOf(jobIter), 1);
+                continue;
             }
 
-            if (!( * jobIter).Paused()) {
-                AddJob( * jobIter);
-                jobIter = waitingList.erase(jobIter);
+            if (!(jobIter).PreReqs().empty() && (jobIter).PreReqsCompleted()) {
+                (jobIter).Paused(false);
+            }
+
+            if (!(jobIter).Paused()) {
+                this.AddJob(jobIter);
+                jobIter = this.waitingList.splice(this.waitingList.indexOf(jobIter), 1);
             } else {
-                if (!( * jobIter).Parent().lock() && !( * jobIter).PreReqs().empty()) {
+                if (!(jobIter).Parent().lock() && (jobIter).PreReqs().length) {
                     //Job has unfinished prereqs, itsn't removable and is NOT a prereq itself
-                    for (std.list < boost.weak_ptr < Job > > .iterator pri = ( * jobIter).PreReqs().begin(); pri != ( * jobIter).PreReqs().end(); ++pri) {
+                    for (let pri of(jobIter).PreReqs()) {
                         if (pri.lock()) {
                             pri.lock().Paused(false);
                         }
                     }
-                } else if (!( * jobIter).Parent().lock()) {
-                    ( * jobIter).Paused(false);
+                } else if (!(jobIter).Parent().lock()) {
+                    (jobIter).Paused(false);
                 }
-                ++jobIter;
+                // ++jobIter;
+            }
+
+        }
+
+        //Check the normal queues for jobs that have all prerequisites and parents completed and
+        //remove them
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
+            for (let jobi of this.availableList[i]) {
+                if ((jobi).Completed() && (jobi).PreReqsCompleted()) {
+                    jobi = this.availableList[i].splice(this.availableList.indexOf(jobi));
+                } else {
+                    ++jobi;
+                }
+            }
+        }
+
+        //Check tool jobs, remove them if they no longer point to existing jobs
+        for (let i = 0; i < Item.Categories.length; ++i) {
+            for (let jobi of this.toolJobs[i]) {
+                if (!jobi.lock()) jobi = this.toolJobs[i].splice(this.toolJobs[i].indexOf(jobi), 1);
+                else ++jobi;
+            }
+        }
+
+        while (this.failList.length) {
+            this.failList[0].Fail();
+            this.failList.shift();
+        }
+    }
+    AssignJobs() {
+        //It's useless to attempt to assing more tool-required jobs than there are tools 
+        let maxToolJobs = Item.Categories.length;
+        for (let i = 0; i < Item.Categories.length; ++i) {
+            maxToolJobs[i] = StockManager.CategoryQuantity(new ItemCategory(i)) - this.toolJobs[i].length;
+        }
+
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT && (this.expertNPCsWaiting.length || this.menialNPCsWaiting.length); i++) {
+            if (!this.availableList[i].length) continue;
+
+            let menialJobsToAssign = [];
+            let expertJobsToAssign = [];
+            for (let jobi of this.availableList[i]) {
+                if ((jobi).Assigned() == -1 && !(jobi).Removable()) {
+                    /*Limit assigning jobs to 20 at a time, large matrix sizes cause considerable slowdowns.
+                    Also, if the job requires a tool only add it to assignables if there are potentially enough
+                    tools for each job*/
+                    if (!(jobi).RequiresTool() ||
+                        ((jobi).RequiresTool() && maxToolJobs[(jobi).GetRequiredTool()] > 0)) {
+                        if ((jobi).RequiresTool()) --maxToolJobs[(jobi).GetRequiredTool()];
+                        if ((jobi).Menial() && menialJobsToAssign.length < 20) menialJobsToAssign.push(jobi);
+                        else if (!(jobi).Menial() && expertJobsToAssign.length < 20) expertJobsToAssign.push(jobi);
+                    }
+                }
+            }
+            if (!(menialJobsToAssign.length || expertJobsToAssign.length)) continue;
+
+            let menialMatrixSize = Math.max(menialJobsToAssign.length, menialNPCsWaiting.length);
+            let expertMatrixSize = Math.max(expertJobsToAssign.length, expertNPCsWaiting.length);
+            /** @type {boost.numeric.ublas.matrix} */
+            let menialMatrix = new matrix(menialMatrixSize, menialMatrixSize);
+            /** @type {boost.numeric.ublas.matrix} */
+            let expertMatrix = new matrix(expertMatrixSize, expertMatrixSize);
+
+            for (let x = 0; x < menialMatrixSize; x++) {
+                for (let y = 0; y < menialMatrixSize; y++) {
+                    if (x >= this.menialNPCsWaiting.length || y >= menialJobsToAssign.length) {
+                        menialMatrix[x][y] = 1;
+                        continue;
+                    }
+
+                    let job = menialJobsToAssign[y];
+                    let npc = Game.GetNPC(this.menialNPCsWaiting[x]);
+                    if (!npc || !job.tasks.length ||
+                        (job.tasks[0].target.X() == 0 && job.tasks[0].target.Y() == 0)) {
+                        menialMatrix[x][y] = 1;
+                    } else if (npc) {
+                        menialMatrix[x][y] = 10000 - Coordinate.Distance(job.tasks[0].target, npc.Position());
+                    }
+                    if (npc && job.RequiresTool()) {
+                        if (!npc.Wielding().lock() || !npc.Wielding().lock().IsCategory(job.GetRequiredTool())) {
+                            menialMatrix[x][y] -= 2000;
+                        }
+                    }
+
+                }
+            }
+
+            for (let x = 0; x < expertMatrixSize; x++) {
+                for (let y = 0; y < expertMatrixSize; y++) {
+                    if (x >= this.expertNPCsWaiting.length || y >= expertJobsToAssign.length) {
+                        expertMatrix[x][y] = 1;
+                    } else {
+                        let job = expertJobsToAssign[y];
+                        let npc = Game.GetNPC(this.expertNPCsWaiting[x]);
+                        if (!npc || job.tasks.empty() ||
+                            (job.tasks[0].target.X() == 0 && job.tasks[0].target.Y() == 0)) {
+                            expertMatrix[x][y] = 1;
+                        } else {
+                            expertMatrix[x][y] = 10000 - Coordinate.Distance(job.tasks[0].target, npc.Position());
+                        }
+                        if (npc && job.RequiresTool()) {
+                            if (!npc.Wielding().lock() || !npc.Wielding().lock().IsCategory(job.GetRequiredTool())) {
+                                expertMatrix[x][y] -= 2000;
+                            }
+                        }
+                    }
+                }
+            }
+            let menialAssignments = FindBestMatching(menialMatrix);
+            let expertAssignments = FindBestMatching(expertMatrix);
+
+            for (let i = 0, n = 0; n < this.menialNPCsWaiting.length; i++, n++) {
+                let jobNum = menialAssignments[i];
+                if (jobNum < menialJobsToAssign.length) {
+                    let npcNum = this.menialNPCsWaiting[n];
+                    let job = menialJobsToAssign[jobNum];
+                    let npc = Game.GetNPC(npcNum);
+                    if (job && npc) {
+                        job.Assign(npcNum);
+                        this.menialNPCsWaiting.splice(n, 1);
+                        n--;
+                        if (job.RequiresTool())
+                            this.toolJobs[job.GetRequiredTool()].push(job);
+                        npc.StartJob(job);
+                    }
+                }
+            }
+
+            for (let i = 0, n = 0; n < this.expertNPCsWaiting.length; i++, n++) {
+                let jobNum = expertAssignments[i];
+                if (jobNum < expertJobsToAssign.length) {
+                    let npcNum = this.expertNPCsWaiting[n];
+                    let job = expertJobsToAssign[jobNum];
+                    let npc = Game.GetNPC(npcNum);
+                    if (job && npc) {
+                        job.Assign(npcNum);
+                        this.expertNPCsWaiting.splice(n, 1);
+                        n--;
+                        if (job.RequiresTool())
+                            this.toolJobs[job.GetRequiredTool()].push(job);
+                        npc.StartJob(job);
+                    }
+                }
             }
         }
     }
-
-    //Check the normal queues for jobs that have all prerequisites and parents completed and
-    //remove them
-    for (int i = 0; i < PRIORITY_COUNT; ++i) {
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[i].begin(); jobi != availableList[i].end();) {
-            if (( * jobi).Completed() && ( * jobi).PreReqsCompleted()) {
-                jobi = availableList[i].erase(jobi);
-            } else {
-                ++jobi;
-            }
-        }
+    RemoveJob(...args) {
+        if (args[0] instanceof Job)
+            this.RemoveJobByJob(args[0]);
+        else if (args[0] instanceof Action && args[1] instanceof Coordinate)
+            this.RemoveJobByActionAndCoordinate(args[0], args[1]);
     }
 
-    //Check tool jobs, remove them if they no longer point to existing jobs
-    for (unsigned int i = 0; i < Item.Categories.size(); ++i) {
-        for (std.vector < boost.weak_ptr < Job > > .iterator jobi = toolJobs[i].begin(); jobi != toolJobs[i].end();) {
-            if (!jobi.lock()) jobi = toolJobs[i].erase(jobi);
-            else ++jobi;
-        }
-    }
-
-    while (!failList.empty()) {
-        failList.front().Fail();
-        failList.pop_front();
-    }
-}
-
-int JobManager.JobAmount() {
-    int count = 0;
-    for (int i = 0; i < PRIORITY_COUNT; ++i) {
-        count += availableList[i].size();
-    }
-    count += waitingList.size();
-    return count;
-}
-
-void JobManager.RemoveJob(boost.weak_ptr < Job > wjob) {
-    if (boost.shared_ptr < Job > job = wjob.lock()) {
-        for (int i = 0; i < PRIORITY_COUNT; ++i) {
-            for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[i].begin(); jobi != availableList[i].end(); ++jobi) {
-                if ( * jobi == job) {
-                    jobi = availableList[i].erase(jobi);
+    /**
+     * 
+     * @param {Job} wjob 
+     */
+    RemoveJobByJob(wjob) {
+        let job;
+        if (!(job = wjob.lock())) return;
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
+            for (let jobi of this.availableList[i]) {
+                if (jobi == job) {
+                    jobi = this.availableList[i].splice(this.availableList[i].indexOf(jobi), 1);
                     return;
                 }
             }
         }
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = waitingList.begin(); jobi != waitingList.end(); ++jobi) {
-            if ( * jobi == job) {
-                jobi = waitingList.erase(jobi);
+        for (let jobi of this.waitingList) {
+            if (jobi == job) {
+                jobi = this.waitingList.splice(this.waitingList.indexOf(jobi));
                 return;
             }
         }
     }
-}
 
-void JobManager.NPCWaiting(int uid) {
-    boost.shared_ptr < NPC > npc = Game.GetNPC(uid);
-    if (npc) {
-        if (npc.Expert()) {
-            for (std.vector < int > .iterator it = expertNPCsWaiting.begin(); it != expertNPCsWaiting.end(); it++) {
-                if ( * it == uid) {
-                    return;
-                }
-            }
-            expertNPCsWaiting.push(uid);
-        } else {
-            for (std.vector < int > .iterator it = menialNPCsWaiting.begin(); it != menialNPCsWaiting.end(); it++) {
-                if ( * it == uid) {
-                    return;
-                }
-            }
-            menialNPCsWaiting.push(uid);
-        }
-    }
-}
-
-void JobManager.NPCNotWaiting(int uid) {
-    boost.shared_ptr < NPC > npc = Game.GetNPC(uid);
-    if (npc) {
-        if (npc.Expert()) {
-            for (std.vector < int > .iterator it = expertNPCsWaiting.begin(); it != expertNPCsWaiting.end(); it++) {
-                if ( * it == uid) {
-                    expertNPCsWaiting.erase(it);
-                    return;
-                }
-            }
-        } else {
-            for (std.vector < int > .iterator it = menialNPCsWaiting.begin(); it != menialNPCsWaiting.end(); it++) {
-                if ( * it == uid) {
-                    menialNPCsWaiting.erase(it);
-                    return;
-                }
-            }
-        }
-    }
-}
-
-void JobManager.ClearWaitingNpcs() {
-    expertNPCsWaiting.clear();
-    menialNPCsWaiting.clear();
-}
-
-void JobManager.AssignJobs() {
-    //It's useless to attempt to assing more tool-required jobs than there are tools 
-    std.vector < int > maxToolJobs(Item.Categories.size());
-    for (unsigned int i = 0; i < Item.Categories.size(); ++i) {
-        maxToolJobs[i] = StockManager.CategoryQuantity(ItemCategory(i)) - toolJobs[i].size();
-    }
-
-    for (int i = 0; i < PRIORITY_COUNT && (!expertNPCsWaiting.empty() || !menialNPCsWaiting.empty()); i++) {
-        if (!availableList[i].empty()) {
-            std.vector < boost.shared_ptr < Job > > menialJobsToAssign;
-            std.vector < boost.shared_ptr < Job > > expertJobsToAssign;
-            for (std.list < boost.shared_ptr < Job > > .iterator jobi = availableList[i].begin(); jobi != availableList[i].end(); ++jobi) {
-                if (( * jobi).Assigned() == -1 && !( * jobi).Removable()) {
-                    /*Limit assigning jobs to 20 at a time, large matrix sizes cause considerable slowdowns.
-                    Also, if the job requires a tool only add it to assignables if there are potentially enough
-                    tools for each job*/
-                    if (!( * jobi).RequiresTool() ||
-                        (( * jobi).RequiresTool() && maxToolJobs[( * jobi).GetRequiredTool()] > 0)) {
-                        if (( * jobi).RequiresTool()) --maxToolJobs[( * jobi).GetRequiredTool()];
-                        if (( * jobi).Menial() && menialJobsToAssign.size() < 20) menialJobsToAssign.push( * jobi);
-                        else if (!( * jobi).Menial() && expertJobsToAssign.size() < 20) expertJobsToAssign.push( * jobi);
+    /**
+     * Can remove more than was intended, use with caution
+     * 
+     * @param {Action} action
+     * @param {Coordinate} location
+     */
+    RemoveJobByActionAndCoordinate(action, location) {
+        for (let i = 0; i <= JobPrority.PRIORITY_COUNT; ++i) {
+            for (let jobi of(i < JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
+                let remove = false;
+                for (let taski of(jobi).tasks) {
+                    if (taski.action == action && taski.target == location) {
+                        remove = true;
+                        break;
                     }
                 }
-            }
-            if (!menialJobsToAssign.empty() || !expertJobsToAssign.empty()) {
-
-                unsigned int menialMatrixSize = Math.max(menialJobsToAssign.size(), menialNPCsWaiting.size());
-                unsigned int expertMatrixSize = Math.max(expertJobsToAssign.size(), expertNPCsWaiting.size());
-                boost.numeric.ublas.matrix < int > menialMatrix(menialMatrixSize, menialMatrixSize);
-                boost.numeric.ublas.matrix < int > expertMatrix(expertMatrixSize, expertMatrixSize);
-
-                for (unsigned int x = 0; x < menialMatrixSize; x++) {
-                    for (unsigned int y = 0; y < menialMatrixSize; y++) {
-                        if (x >= menialNPCsWaiting.size() || y >= menialJobsToAssign.size()) {
-                            menialMatrix(x, y) = 1;
-                        } else {
-                            boost.shared_ptr < Job > job = menialJobsToAssign[y];
-                            boost.shared_ptr < NPC > npc = Game.GetNPC(menialNPCsWaiting[x]);
-                            if (!npc || job.tasks.empty() ||
-                                (job.tasks[0].target.X() == 0 && job.tasks[0].target.Y() == 0)) {
-                                menialMatrix(x, y) = 1;
-                            } else if (npc) {
-                                menialMatrix(x, y) = 10000 - Distance(job.tasks[0].target, npc.Position());
-                            }
-                            if (npc && job.RequiresTool()) {
-                                if (!npc.Wielding().lock() || !npc.Wielding().lock().IsCategory(job.GetRequiredTool())) {
-                                    menialMatrix(x, y) -= 2000;
-                                }
-                            }
-                        }
+                if (remove) {
+                    (jobi).Attempts(0);
+                    if ((jobi).Assigned() >= 0) {
+                        let npc = Game.GetNPC((jobi).Assigned());
+                        let jobToRemove = jobi;
+                        ++jobi; //AbortJob will cancel the job and the invalidate the old iterator
+                        if (npc) npc.AbortJob(jobToRemove);
+                    } else {
+                        jobi = (i < JobPrority.PRIORITY_COUNT) ?
+                            this.availableList[i].splice(this.availableList[i].indexOf(jobi), -1) :
+                            this.waitingList.splice(this.waitingList.indexOf(jobi), 1);
                     }
-                }
-
-                for (unsigned int x = 0; x < expertMatrixSize; x++) {
-                    for (unsigned int y = 0; y < expertMatrixSize; y++) {
-                        if (x >= expertNPCsWaiting.size() || y >= expertJobsToAssign.size()) {
-                            expertMatrix(x, y) = 1;
-                        } else {
-                            boost.shared_ptr < Job > job = expertJobsToAssign[y];
-                            boost.shared_ptr < NPC > npc = Game.GetNPC(expertNPCsWaiting[x]);
-                            if (!npc || job.tasks.empty() ||
-                                (job.tasks[0].target.X() == 0 && job.tasks[0].target.Y() == 0)) {
-                                expertMatrix(x, y) = 1;
-                            } else {
-                                expertMatrix(x, y) = 10000 - Distance(job.tasks[0].target, npc.Position());
-                            }
-                            if (npc && job.RequiresTool()) {
-                                if (!npc.Wielding().lock() || !npc.Wielding().lock().IsCategory(job.GetRequiredTool())) {
-                                    expertMatrix(x, y) -= 2000;
-                                }
-                            }
-                        }
-                    }
-                }
-                std.vector < int > menialAssignments = FindBestMatching(menialMatrix);
-                std.vector < int > expertAssignments = FindBestMatching(expertMatrix);
-
-                for (unsigned int i = 0, n = 0; n < menialNPCsWaiting.size(); i++, n++) {
-                    unsigned int jobNum = menialAssignments[i];
-                    if (jobNum < menialJobsToAssign.size()) {
-                        int npcNum = menialNPCsWaiting[n];
-                        boost.shared_ptr < Job > job = menialJobsToAssign[jobNum];
-                        boost.shared_ptr < NPC > npc = Game.GetNPC(npcNum);
-                        if (job && npc) {
-                            job.Assign(npcNum);
-                            menialNPCsWaiting.erase(menialNPCsWaiting.begin() + n);
-                            n--;
-                            if (job.RequiresTool())
-                                toolJobs[job.GetRequiredTool()].push(job);
-                            npc.StartJob(job);
-                        }
-                    }
-                }
-
-                for (unsigned int i = 0, n = 0; n < expertNPCsWaiting.size(); i++, n++) {
-                    unsigned int jobNum = expertAssignments[i];
-                    if (jobNum < expertJobsToAssign.size()) {
-                        int npcNum = expertNPCsWaiting[n];
-                        boost.shared_ptr < Job > job = expertJobsToAssign[jobNum];
-                        boost.shared_ptr < NPC > npc = Game.GetNPC(npcNum);
-                        if (job && npc) {
-                            job.Assign(npcNum);
-                            expertNPCsWaiting.erase(expertNPCsWaiting.begin() + n);
-                            n--;
-                            if (job.RequiresTool())
-                                toolJobs[job.GetRequiredTool()].push(job);
-                            npc.StartJob(job);
-                        }
-                    }
-                }
-
-            }
-        }
-    }
-}
-
-void JobManager.RemoveJob(Action action, Coordinate location) {
-    for (int i = 0; i <= PRIORITY_COUNT; ++i) {
-        for (std.list < boost.shared_ptr < Job > > .iterator jobi = (i < PRIORITY_COUNT ? availableList[i].begin() : waitingList.begin()); jobi != (i < PRIORITY_COUNT ? availableList[i].end() : waitingList.end());) {
-            bool remove = false;
-            for (std.vector < Task > .iterator taski = ( * jobi).tasks.begin(); taski != ( * jobi).tasks.end(); ++taski) {
-                if (taski.action == action && taski.target == location) {
-                    remove = true;
-                    break;
-                }
-            }
-            if (remove) {
-                ( * jobi).Attempts(0);
-                if (( * jobi).Assigned() >= 0) {
-                    boost.shared_ptr < NPC > npc = Game.GetNPC(( * jobi).Assigned());
-                    boost.weak_ptr < Job > jobToRemove = * jobi;
-                    ++jobi; //AbortJob will cancel the job and the invalidate the old iterator
-                    if (npc) npc.AbortJob(jobToRemove);
                 } else {
-                    jobi = (i < PRIORITY_COUNT ? availableList[i].erase(jobi) : waitingList.erase(jobi));
+                    ++jobi;
                 }
-            } else {
-                ++jobi;
             }
         }
     }
-}
-
-void JobManager.save(OutputArchive & ar,
-    const unsigned int version) const {
-    int count = PRIORITY_COUNT;
-    ar & count;
-    for (int i = 0; i < count; ++i) {
-        ar & availableList[i];
+    serialize(ar, version) {
+        return {
+            availableList: ar.serialize(this.availableList),
+            waitingList: ar.serialize(this.waitingList),
+            menialNPCsWaiting: ar.serialize(this.menialNPCsWaiting),
+            expertNPCsWaiting: ar.serialize(this.expertNPCsWaiting),
+            toolJobs: ar.serialize(this.toolJobs),
+            failList: ar.serialize(this.failList)
+        };
     }
-    ar & waitingList;
-    ar & menialNPCsWaiting;
-    ar & expertNPCsWaiting;
-    ar & toolJobs;
-    ar & failList;
-}
-
-void JobManager.load(InputArchive & ar,
-    const unsigned int version) {
-    if (version == 0) {
-        std.list < boost.shared_ptr < Job > > oldList[3];
-        ar & oldList;
-        for (int i = 0; i < 3 && i < PRIORITY_COUNT; ++i) {
-            availableList[i] = oldList[i];
-        }
-    } else {
-        int count;
-        ar & count;
-        for (int i = 0; i < count && i < PRIORITY_COUNT; ++i) {
-            ar & availableList[i];
-        }
+    static deserialize(data, version, deserializer) {
+        let result = new JobManagerClass();
+        result.availableList = deserializer.deserialize(data.availableList);
+        result.waitingList = deserializer.deserialize(data.waitingList);
+        result.menialNPCsWaiting = deserializer.deserialize(data.menialNPCsWaiting);
+        result.expertNPCsWaiting = deserializer.deserialize(data.expertNPCsWaiting);
+        result.toolJobs = deserializer.deserialize(data.toolJobs);
+        result.failList = deserializer.deserialize(data.failList);
+        return result;
     }
-    ar & waitingList;
-    ar & menialNPCsWaiting;
-    ar & expertNPCsWaiting;
-    ar & toolJobs;
-    ar & failList;
 }
-
 export let JobManager = new JobManagerClass();

@@ -15,40 +15,6 @@
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-void ShowDevConsole();
-/* Copyright 2010-2011 Ilkka Halila
-This file is part of Goblin Camp.
-
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
-
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
-
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "libtcod.js"
-import "string"
-import "vector"
-import "cstdint"
-import "boost/tokenizer.js"
-import "boost/foreach.js"
-import "algorithm"
-
-import "boost/python/detail/wrap_python.js"
-import "boost/python.js"
-namespace py = boost.python;
-
-import "scripting/Engine.js"
-import "Logger.js"
-import "Game.js"
-
 // +-------[ DEV CONSOLE ]--------------------------+
 // | output                                       ^ |
 // | output                                         |
@@ -57,19 +23,31 @@ import "Game.js"
 // | >>> input                                      |
 // +------------------------------------------------+
 
-import "cStringIO.h"
 
-struct DevConsole {
-    unsigned inputID;
-    std.string input;
-    std.string output;
-    TCODConsole canvas;
+class DevConsole {
+    /** @type {unsigned} */
+    inputID = 0;
+    /** @type {std.string} */
+    input = "";
+    /** @type {std.string} */
+    output = "";
+    /** @type {TCODConsole} */
+    canvas = null;
+    /** @type {PyCompilerFlags} */
+    cf;
+    /** @type {PyObject *} */
+    newStdOut;
+    /** @type {PyObject *} */
+    ewStdIn;
+    /** @type {PyObject *} */
+    oldStdOut;
+    /** @type {PyObject *} */
+    oldStdErr;
+    /** @type {PyObject *} */
+    oldStdIn;
 
-    PyCompilerFlags cf;
-    PyObject * newStdOut, * newStdIn;
-    PyObject * oldStdOut, * oldStdErr, * oldStdIn;
-
-    DevConsole(unsigned width): inputID(0), input(""), output(""), canvas(TCODConsole(width - 2, 256)) {
+    constructor(width) {
+        canvas = new TCODConsole(width - 2, 256);
         output.reserve(2048);
         input.reserve(256);
         canvas.clear();
@@ -83,39 +61,39 @@ struct DevConsole {
            a char * instead of const char *
            see: http://mail.python.org/pipermail/python-dev/2011-February/108140.html
         */
-        oldStdOut = PySys_GetObject(const_cast < char * > ("stdout"));
-        oldStdErr = PySys_GetObject(const_cast < char * > ("stderr"));
-        oldStdIn = PySys_GetObject(const_cast < char * > ("stdin"));
+        oldStdOut = PySys_GetObject(("stdout"));
+        oldStdErr = PySys_GetObject(("stderr"));
+        oldStdIn = PySys_GetObject(("stdin"));
     }
 
-    std.string GetStreamValue() {
-        PyObject * str = PycStringIO.cgetvalue(newStdOut);
-        return std.string(py.extract < char * > (py.object(py.handle < > (str))));
+    GetStreamValue() {
+        /** @type {PyObject *} */
+        let str = PycStringIO.cgetvalue(newStdOut);
+        return String(str);
     }
 
-    void RedirectStreams() {
+    RedirectStreams() {
         newStdOut = PycStringIO.NewOutput(2048);
 
-        PySys_SetObject(const_cast < char * > ("stdout"), newStdOut);
-        PySys_SetObject(const_cast < char * > ("stderr"), newStdOut);
-        PySys_SetObject(const_cast < char * > ("stdin"), newStdIn);
+        PySys_SetObject(("stdout"), newStdOut);
+        PySys_SetObject(("stderr"), newStdOut);
+        PySys_SetObject(("stdin"), newStdIn);
     }
 
-    void RestoreStreams() {
-        PySys_SetObject(const_cast < char * > ("stdout"), oldStdOut);
-        PySys_SetObject(const_cast < char * > ("stderr"), oldStdErr);
-        PySys_SetObject(const_cast < char * > ("stdin"), oldStdIn);
+    RestoreStreams() {
+        PySys_SetObject(("stdout"), oldStdOut);
+        PySys_SetObject(("stderr"), oldStdErr);
+        PySys_SetObject(("stdin"), oldStdIn);
 
         Py_DECREF(newStdOut);
     }
 
-    unsigned Render(bool error) {
-        typedef boost.char_separator < char > SepT;
-        typedef boost.tokenizer < SepT > TokT;
+    Render(error) {
 
-        SepT sep("\n");
-        TokT inTok(input, sep);
-        TokT outTok(output, sep);
+
+        let sep = ("\n");
+        let inTok = new tokenizer(input, sep);
+        let outTok = new tokenizer(output, sep);
 
         canvas.clear();
         canvas.setAlignment(TCOD_LEFT);
@@ -125,11 +103,11 @@ struct DevConsole {
         canvas.print(0, 0, "[In  %d]", inputID);
         canvas.setDefaultForeground(TCODColor.sky);
 
-        unsigned y = 1;
-        BOOST_FOREACH(std.string token, inTok) {
+        let y = 1;
+        inTok.forEach(function(token) {
             canvas.print(0, y, "%s", token.c_str());
             ++y;
-        }
+        });
 
         ++y;
 
@@ -138,32 +116,35 @@ struct DevConsole {
         canvas.setDefaultForeground(error ? TCODColor.amber : TCODColor.chartreuse);
 
         ++y;
-        BOOST_FOREACH(std.string token, outTok) {
+        outTok.forEach(function(token) {
             canvas.print(0, y, "%s", token.c_str());
             ++y;
-        }
+        });
 
         ++inputID;
         input.clear();
         return y;
     }
 
-    unsigned Eval() {
-        bool error = false;
+    Eval() {
+        error = false;
         RedirectStreams();
         output.clear();
 
         try {
-            PyCodeObject * co = (PyCodeObject * ) Py_CompileStringFlags(
-                input.c_str(), "<the_console>", Py_single_input, & cf
+            /** @type {PyCodeObject *} */
+            let co = Py_CompileStringFlags(
+                input.c_str(), "<the_console>", Py_single_input, cf
             );
 
             if (co == null) {
                 py.throw_error_already_set();
             }
 
-            py.object ns = py.import("__gcdevthe_console__").attr("__dict__");
-            PyObject * ret = PyEval_EvalCode(co, ns.ptr(), ns.ptr());
+            /** @type {py.object} */
+            let ns = py.import("__gcdevthe_console__").attr("__dict__");
+            /** @type {PyObject *} */
+            ret = PyEval_EvalCode(co, ns.ptr(), ns.ptr());
 
             if (ret == null) {
                 Py_DECREF(co);
@@ -176,16 +157,16 @@ struct DevConsole {
             //py.object repr = py.object(py.handle<>(PyObject_Repr(ret)));
 
             output = GetStreamValue(); // + "\n" + std.string(py.extract<char*>(repr));
-        } catch (const py.error_already_set & ) {
-            py.object excType, excVal, excTB;
+        } catch (e) {
+            let excType, excVal, excTB;
             Script.ExtractException(excType, excVal, excTB);
             Script.LogException();
 
             error = true;
             if (!excType.is_none()) {
-                output = py.extract < char * > (py.str(excType));
+                output = (py.str(excType));
                 if (!excVal.is_none()) {
-                    output += std.string(": ") + std.string(py.extract < char * > (py.str(excVal)));
+                    output += std.string(": ") + std.string((py.str(excVal)));
                 }
             } else {
                 output = "Internal error: exception with None type.";
@@ -195,83 +176,89 @@ struct DevConsole {
         RestoreStreams();
         return Render(error);
     }
-};
 
-void ShowDevConsole() {
-    int w = Game.ScreenWidth() - 4;
-    int h = 25;
-    int x = 2;
-    int y = Game.ScreenHeight() - h - 2;
 
-    TCOD_key_t key;
-    TCOD_mouse_t mouse;
-    TCOD_event_t event;
+    // void ShowDevConsole() {
+    static Show() {
+        let w = Game.ScreenWidth() - 4;
+        let h = 25;
+        let x = 2;
+        let y = Game.ScreenHeight() - h - 2;
 
-    TCODConsole * c = TCODConsole.root;
+        /** @type {TCOD_key_t} */
+        let key = new TCOD_key_t();
+        /** @type {TCOD_mouse_t} */
+        let mouse = new TCOD_mouse_t();;
+        /** @type {TCOD_event_t} */
+        let event = new TCOD_event_t;
 
-    bool clicked = false;
-    int scroll = 0;
-    unsigned maxScroll = 0;
+        /** @type {TCODConsole * } */
+        let c = TCODConsole.root;
 
-    DevConsole the_console(w - 2);
+        let clicked = false;
+        let scroll = 0;
+        let maxScroll = 0;
 
-    // I tried to use the UI code. Really. I can't wrap my head around it.
-    // FIXME: That's OK. :)
-    while (true) {
-        c.setDefaultForeground(TCODColor.white);
-        c.setDefaultBackground(TCODColor.black);
-        c.printFrame(x, y, w, h, true, TCOD_BKGND_SET, "Developer the_console");
-        c.setAlignment(TCOD_LEFT);
+        let the_console = new DevConsole(w - 2);
 
-        TCODConsole.blit( & the_console.canvas, 0, scroll, w - 2, h - 5, c, x + 1, y + 1);
+        // I tried to use the UI code. Really. I can't wrap my head around it.
+        // FIXME: That's OK. :)
+        while (true) {
+            c.setDefaultForeground(TCODColor.white);
+            c.setDefaultBackground(TCODColor.black);
+            c.printFrame(x, y, w, h, true, TCOD_BKGND_SET, "Developer the_console");
+            c.setAlignment(TCOD_LEFT);
 
-        c.putChar(x + w - 2, y + 1, TCOD_CHAR_ARROW_N, TCOD_BKGND_SET);
-        c.putChar(x + w - 2, y + h - 4, TCOD_CHAR_ARROW_S, TCOD_BKGND_SET);
+            TCODConsole.blit(the_console.canvas, 0, scroll, w - 2, h - 5, c, x + 1, y + 1);
 
-        for (int i = 1; i < w - 1; ++i) {
-            c.putChar(x + i, y + h - 3, TCOD_CHAR_HLINE, TCOD_BKGND_SET);
-        }
+            c.putChar(x + w - 2, y + 1, TCOD_CHAR_ARROW_N, TCOD_BKGND_SET);
+            c.putChar(x + w - 2, y + h - 4, TCOD_CHAR_ARROW_S, TCOD_BKGND_SET);
 
-        c.putChar(x, y + h - 3, TCOD_CHAR_TEEE, TCOD_BKGND_SET);
-        c.putChar(x + w - 1, y + h - 3, TCOD_CHAR_TEEW, TCOD_BKGND_SET);
-
-        c.print(x + 1, y + h - 2, "[In %d]: %s", the_console.inputID, the_console.input.c_str());
-
-        c.flush();
-
-        event = TCODSystem.checkForEvent(TCOD_EVENT_ANY, & key, & mouse);
-
-        if (event & TCOD_EVENT_KEY_PRESS) {
-            if (key.vk == TCODK_ESCAPE) {
-                return;
-            } else if (key.vk == TCODK_ENTER || key.vk == TCODK_KPENTER) {
-                maxScroll = the_console.Eval();
-            } else if (key.vk == TCODK_BACKSPACE && the_console.input.size() > 0) {
-                the_console.input.erase(the_console.input.end() - 1);
-            } else if (key.c >= ' ' && key.c <= '~') {
-                the_console.input.push_back(key.c);
+            for (let i = 1; i < w - 1; ++i) {
+                c.putChar(x + i, y + h - 3, TCOD_CHAR_HLINE, TCOD_BKGND_SET);
             }
-        }
 
-        // if (event & TCOD_EVENT_MOUSE) {
-        //     mouse = TCODMouse.getStatus();
-        // }
+            c.putChar(x, y + h - 3, TCOD_CHAR_TEEE, TCOD_BKGND_SET);
+            c.putChar(x + w - 1, y + h - 3, TCOD_CHAR_TEEW, TCOD_BKGND_SET);
 
-        // if (mouse.lbutton) {
-        // 	clicked = true;
-        // }
+            c.print(x + 1, y + h - 2, "[In %d]: %s", the_console.inputID, the_console.input.c_str());
 
-        // if (clicked && !mouse.lbutton) {
-        if (event & TCOD_EVENT_MOUSE_PRESS) {
-            if (mouse.lbutton) {
-                if (mouse.cx == x + w - 2) {
-                    if (mouse.cy == y + 1) {
-                        scroll = Math.max(0, scroll - 1);
-                    } else if (mouse.cy == y + h - 4) {
-                        scroll = Math.min((int) maxScroll - h + 3, scroll + 1);
-                    }
+            c.flush();
+
+            event = TCODSystem.checkForEvent(TCOD_EVENT_ANY, key, mouse);
+
+            if (event & TCOD_EVENT_KEY_PRESS) {
+                if (key.vk == TCODK_ESCAPE) {
+                    return;
+                } else if (key.vk == TCODK_ENTER || key.vk == TCODK_KPENTER) {
+                    maxScroll = the_console.Eval();
+                } else if (key.vk == TCODK_BACKSPACE && the_console.input.size() > 0) {
+                    the_console.input.erase(the_console.input.end() - 1);
+                } else if (key.c >= ' ' && key.c <= '~') {
+                    the_console.input.push_back(key.c);
                 }
-                clicked = false;
+            }
+
+            // if (event & TCOD_EVENT_MOUSE) {
+            //     mouse = TCODMouse.getStatus();
+            // }
+
+            // if (mouse.lbutton) {
+            // 	clicked = true;
+            // }
+
+            // if (clicked && !mouse.lbutton) {
+            if (event & TCOD_EVENT_MOUSE_PRESS) {
+                if (mouse.lbutton) {
+                    if (mouse.cx == x + w - 2) {
+                        if (mouse.cy == y + 1) {
+                            scroll = Math.max(0, scroll - 1);
+                        } else if (mouse.cy == y + h - 4) {
+                            scroll = Math.min(maxScroll - h + 3, scroll + 1);
+                        }
+                    }
+                    clicked = false;
+                }
             }
         }
     }

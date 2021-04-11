@@ -18,136 +18,80 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import "boost/noncopyable.js"
 import "SDL/SDL_opengl.h "
 
-namespace OGLFunctionExtension {
-	GLhandleARB glCreateShaderObjectARB(GLenum shaderType);
-	void glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params);
-	void glShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB* *string, const GLint *length);
-	void glCompileShaderARB(GLhandleARB shaderObj);
-	void glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog);
-	GLhandleARB glCreateProgramObjectARB();
-	void glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj);
-	void glLinkProgramARB(GLhandleARB programObj);
-	void glUseProgramObjectARB(GLhandleARB programObj);
-	void glUniform2fARB(GLint location, GLfloat v0, GLfloat v1);
-	GLint glGetUniformLocationARB(GLhandleARB programObj, const GLcharARB *name);
-	void glUniform1fARB(GLint location, GLfloat v0);
-	void glUniform1iARB(GLint location, GLint v0);
-	void glDeleteObjectARB(GLhandleARB handle);
+class OGLFunctionExtension {
+    // static glCreateShaderObjectARB(/**GLenum*/ shaderType) {
+    // 	static PFNGLCREATESHADEROBJECTARBPROC function((PFNGLCREATESHADEROBJECTARBPROC)SDL_GL_GetProcAddress("glCreateShaderObjectARB"));
+    // 	return function(shaderType);
+    // }
 
-	// OpenGL 1.2 functions are extensions in windows
-	if /* if(def */ ( WINDOWS ){){
-		void glActiveTexture(GLenum texture);
-	}/*#endif*/
-}/* Copyright 2011 Ilkka Halila
-This file is part of Goblin Camp.
 
-Goblin Camp is free software: you can redistribute it and/or modify
-it under the terms of the GNU General Public License as published by
-the Free Software Foundation, either version 3 of the License, or
-(at your option) any later version.
+    // static glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params) {
+    // 	static PFNGLGETOBJECTPARAMETERIVARBPROC function((PFNGLGETOBJECTPARAMETERIVARBPROC)SDL_GL_GetProcAddress("glGetObjectParameterivARB"));
+    // 	function(obj, pname, params);
+    // }
 
-Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
-GNU General Public License for more details.
+    // static glShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB* *string, const GLint *length) {
+    // 	static PFNGLSHADERSOURCEARBPROC function((PFNGLSHADERSOURCEARBPROC)SDL_GL_GetProcAddress("glShaderSourceARB"));
+    // 	function(shaderObj, count, string, length);
+    // }
 
-You should have received a copy of the GNU General Public License 
-along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
+    // static glCompileShaderARB(GLhandleARB shaderObj) {
+    // 	static PFNGLCOMPILESHADERARBPROC function((PFNGLCOMPILESHADERARBPROC)SDL_GL_GetProcAddress("glCompileShaderARB"));
+    // 	function(shaderObj);
+    // }
 
-import "SDL.h "
-import "SDL_opengl.h"
-import "tileRenderer/ogl/OGLFunctionExt.js"
+    // static glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog) {
+    // 	static PFNGLGETINFOLOGARBPROC function((PFNGLGETINFOLOGARBPROC)SDL_GL_GetProcAddress("glGetInfoLogARB"));
+    // 	function(obj, maxLength, length, infoLog);
+    // }
 
-// XXX this code is not fully conformant — void* (as returned by SDL_GL_GetProcAddress)
-// is not guaranteed to be able to hold a function pointer by C++.
+    // static glCreateProgramObjectARB() {
+    // 	static PFNGLCREATEPROGRAMOBJECTARBPROC function((PFNGLCREATEPROGRAMOBJECTARBPROC)SDL_GL_GetProcAddress("glCreateProgramObjectARB"));
+    // 	return function();
+    // }
 
-if /* if(def */ ( __GNUC__){){
-#	if __GNUC_MINOR__ > 5
-#		pragma GCC diagnostic push
-#	endif
-#	pragma GCC diagnostic ignored "-pedantic"
-}/*#endif*/
+    // static glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj) {
+    // 	static PFNGLATTACHOBJECTARBPROC function((PFNGLATTACHOBJECTARBPROC)SDL_GL_GetProcAddress("glAttachObjectARB"));
+    // 	function(containerObj, obj);
+    // }
 
-namespace OGLFunctionExtension {
-	GLhandleARB glCreateShaderObjectARB(GLenum shaderType) {
-		static PFNGLCREATESHADEROBJECTARBPROC function((PFNGLCREATESHADEROBJECTARBPROC)SDL_GL_GetProcAddress("glCreateShaderObjectARB"));
-		return function(shaderType);
-	}
+    // static glLinkProgramARB(GLhandleARB programObj) {
+    // 	static PFNGLLINKPROGRAMARBPROC function((PFNGLLINKPROGRAMARBPROC)SDL_GL_GetProcAddress("glLinkProgramARB"));
+    // 	function(programObj);
+    // }
 
-	void glGetObjectParameterivARB(GLhandleARB obj, GLenum pname, GLint *params) {
-		static PFNGLGETOBJECTPARAMETERIVARBPROC function((PFNGLGETOBJECTPARAMETERIVARBPROC)SDL_GL_GetProcAddress("glGetObjectParameterivARB"));
-		function(obj, pname, params);
-	}
+    // static glUseProgramObjectARB(GLhandleARB programObj) {
+    // 	static PFNGLUSEPROGRAMOBJECTARBPROC function((PFNGLUSEPROGRAMOBJECTARBPROC)SDL_GL_GetProcAddress("glUseProgramObjectARB"));
+    // 	function(programObj);
+    // }
 
-	void glShaderSourceARB(GLhandleARB shaderObj, GLsizei count, const GLcharARB* *string, const GLint *length) {
-		static PFNGLSHADERSOURCEARBPROC function((PFNGLSHADERSOURCEARBPROC)SDL_GL_GetProcAddress("glShaderSourceARB"));
-		function(shaderObj, count, string, length);
-	}
+    // static glUniform2fARB(GLint location, GLfloat v0, GLfloat v1) {
+    // 	static PFNGLUNIFORM2FARBPROC function((PFNGLUNIFORM2FARBPROC)SDL_GL_GetProcAddress("glUniform2fARB"));
+    // 	function(location, v0, v1);
+    // }
 
-	void glCompileShaderARB(GLhandleARB shaderObj) {
-		static PFNGLCOMPILESHADERARBPROC function((PFNGLCOMPILESHADERARBPROC)SDL_GL_GetProcAddress("glCompileShaderARB"));
-		function(shaderObj);
-	}
+    // static glGetUniformLocationARB(GLhandleARB programObj, const GLcharARB *name) {
+    // 	static PFNGLGETUNIFORMLOCATIONARBPROC function((PFNGLGETUNIFORMLOCATIONARBPROC)SDL_GL_GetProcAddress("glGetUniformLocationARB"));
+    // 	return function(programObj, name);
+    // }
 
-	void glGetInfoLogARB(GLhandleARB obj, GLsizei maxLength, GLsizei *length, GLcharARB *infoLog) {
-		static PFNGLGETINFOLOGARBPROC function((PFNGLGETINFOLOGARBPROC)SDL_GL_GetProcAddress("glGetInfoLogARB"));
-		function(obj, maxLength, length, infoLog);
-	}
+    // static glUniform1fARB(GLint location, GLfloat v0) {
+    // 	static PFNGLUNIFORM1FARBPROC function((PFNGLUNIFORM1FARBPROC)SDL_GL_GetProcAddress("glUniform1fARB"));
+    // 	function(location, v0);
+    // }
 
-	GLhandleARB glCreateProgramObjectARB() {
-		static PFNGLCREATEPROGRAMOBJECTARBPROC function((PFNGLCREATEPROGRAMOBJECTARBPROC)SDL_GL_GetProcAddress("glCreateProgramObjectARB"));
-		return function();
-	}
+    // static glUniform1iARB(GLint location, GLint v0) {
+    // 	static PFNGLUNIFORM1IARBPROC function((PFNGLUNIFORM1IARBPROC)SDL_GL_GetProcAddress("glUniform1iARB"));
+    // 	function(location, v0);
+    // }
 
-	void glAttachObjectARB(GLhandleARB containerObj, GLhandleARB obj) {
-		static PFNGLATTACHOBJECTARBPROC function((PFNGLATTACHOBJECTARBPROC)SDL_GL_GetProcAddress("glAttachObjectARB"));
-		function(containerObj, obj);
-	}
+    // static glDeleteObjectARB(GLhandleARB handle) {
+    // 	static PFNGLDELETEOBJECTARBPROC function((PFNGLDELETEOBJECTARBPROC)SDL_GL_GetProcAddress("glDeleteObjectARB"));
+    // 	function(handle);
+    // }
 
-	void glLinkProgramARB(GLhandleARB programObj) {
-		static PFNGLLINKPROGRAMARBPROC function((PFNGLLINKPROGRAMARBPROC)SDL_GL_GetProcAddress("glLinkProgramARB"));
-		function(programObj);
-	}
-
-	void glUseProgramObjectARB(GLhandleARB programObj) {
-		static PFNGLUSEPROGRAMOBJECTARBPROC function((PFNGLUSEPROGRAMOBJECTARBPROC)SDL_GL_GetProcAddress("glUseProgramObjectARB"));
-		function(programObj);
-	}
-
-	void glUniform2fARB(GLint location, GLfloat v0, GLfloat v1) {
-		static PFNGLUNIFORM2FARBPROC function((PFNGLUNIFORM2FARBPROC)SDL_GL_GetProcAddress("glUniform2fARB"));
-		function(location, v0, v1);
-	}
-
-	GLint glGetUniformLocationARB(GLhandleARB programObj, const GLcharARB *name) {
-		static PFNGLGETUNIFORMLOCATIONARBPROC function((PFNGLGETUNIFORMLOCATIONARBPROC)SDL_GL_GetProcAddress("glGetUniformLocationARB"));
-		return function(programObj, name);
-	}
-
-	void glUniform1fARB(GLint location, GLfloat v0) {
-		static PFNGLUNIFORM1FARBPROC function((PFNGLUNIFORM1FARBPROC)SDL_GL_GetProcAddress("glUniform1fARB"));
-		function(location, v0);
-	}
-
-	void glUniform1iARB(GLint location, GLint v0) {
-		static PFNGLUNIFORM1IARBPROC function((PFNGLUNIFORM1IARBPROC)SDL_GL_GetProcAddress("glUniform1iARB"));
-		function(location, v0);
-	}
-
-	void glDeleteObjectARB(GLhandleARB handle) {
-		static PFNGLDELETEOBJECTARBPROC function((PFNGLDELETEOBJECTARBPROC)SDL_GL_GetProcAddress("glDeleteObjectARB"));
-		function(handle);
-	}
-
-	if /* if(def */ ( WINDOWS){){
-		void glActiveTexture(GLenum texture) {
-			static PFNGLACTIVETEXTUREPROC function((PFNGLACTIVETEXTUREPROC)SDL_GL_GetProcAddress("glActiveTexture"));
-			function(texture);
-		}
-	}/*#endif*/
+    // 	static glActiveTexture(GLenum texture) {
+    // 		static PFNGLACTIVETEXTUREPROC function((PFNGLACTIVETEXTUREPROC)SDL_GL_GetProcAddress("glActiveTexture"));
+    // 		function(texture);
+    // 	}
 }
-
-if( defined(__GNUC__) && __GNUC_MINOR__ > 5){
-#	pragma GCC diagnostic pop
-}/*#endif*/

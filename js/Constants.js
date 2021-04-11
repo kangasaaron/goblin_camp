@@ -1,0 +1,13 @@
+export const Constants = {
+    UPDATES_PER_SECOND: 25,
+    BFS_MAX_DISTANCE: 20,
+    MONTH_LENGTH: ( /** UPDATES_PER_SECOND */ 25 * 60 * 4),
+    LOS_DISTANCE: 12,
+    MAXIMUM_JOB_ATTEMPTS: 5,
+    THIRST_THRESHOLD: ( /** UPDATES_PER_SECOND */ 25 * 60 * 10),
+    HUNGER_THRESHOLD: ( /**MONTH_LENGTH **/ 25 * 60 * 4 * 6),
+    WEARY_THRESHOLD: ( /** UPDATES_PER_SECOND */ 25 * 60 * 12),
+    DRINKABLE_WATER_DEPTH: 2,
+    WALKABLE_WATER_DEPTH: 1,
+};
+Object.freeze(Constants);

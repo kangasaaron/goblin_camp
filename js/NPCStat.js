@@ -1,11 +1,14 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
-
-export const NPCStat = defineEnum("NPCStat", [
-    'MOVESPEED',
-    'DODGE',
-    'STRENGTH',
-    'NPCSIZE',
-    'STAT_COUNT'
-]);
+/**
+ * @enum
+ */
+export class NPCStat extends Enum {
+    static MOVESPEED;
+    static DODGE;
+    static STRENGTH;
+    static NPCSIZE;
+    static STAT_COUNT;
+}
+NPCStat.enumify();

@@ -33,161 +33,164 @@ import "algorithm"
 import "data/Paths.js"
 
 namespace Globals {
-	extern bool noDumpMode;
+    extern bool noDumpMode;
 }
 
 namespace {
-	// Generates crash dump filename.
-	void GetDumpFilename(char dumpPath[MAX_PATH], char dumpFilename[MAX_PATH]) {
-		char date[20]; // DD-MM-YYYY-HH-MM-SS
-		struct tm *timeStruct;
-		__int64 timestamp;
-		
-		_time64(&timestamp);
-		timeStruct = _gmtime64(&timestamp);
-		
-		SHGetFolderPathAndSubDir(
-			null, CSIDL_PERSONAL | CSIDL_FLAG_CREATE, null,
-			SHGFP_TYPE_CURRENT, "My Games\\Goblin Camp\\crashes", dumpPath
-		);
-		
-		strftime(date, 20, "%Y-%m-%d_%H-%M-%S", timeStruct);
-		_snprintf(dumpFilename, MAX_PATH, "dump_%s.dmp", date);
-		_snprintf(dumpPath, MAX_PATH, "%s\\%s", dumpPath, dumpFilename);
-		
-		char buffer[MAX_PATH + 200];
-		_snprintf(buffer, MAX_PATH + 200, "[Goblin Camp] Dump will be written to: %s", dumpFilename);
-		OutputDebugString(buffer);
-	}
-	
-	BOOL CALLBACK DumpCallback(void*, MINIDUMP_CALLBACK_INPUT * const input, MINIDUMP_CALLBACK_OUTPUT *output);
-	
-	// Produces crash.dmp containing exception info and portions of process memory.
-	bool CreateDump(EXCEPTION_POINTERS *exception, char dumpPath[MAX_PATH]) {
-		HANDLE dump = CreateFile(
-			dumpPath, GENERIC_WRITE, FILE_SHARE_READ, null,
-			CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null
-		);
-		
-		if (dump == INVALID_HANDLE_VALUE) {
-			OutputDebugString(TEXT("[Goblin Camp] Could not create crash dump."));
-			return false;
-		}
-		
-		OutputDebugString(TEXT("[Goblin Camp] Trying to write minidump."));
-		
-		MINIDUMP_EXCEPTION_INFORMATION dumpExcInfo;
-		MINIDUMP_CALLBACK_INFORMATION  dumpCallback;
-		
-		dumpExcInfo.ThreadId          = GetCurrentThreadId();
-		dumpExcInfo.ClientPointers    = FALSE;
-		dumpExcInfo.ExceptionPointers = exception;
-		
-		dumpCallback.CallbackRoutine  = DumpCallback;
-		dumpCallback.CallbackParam    = null; 
-		
-		MINIDUMP_TYPE type = static_cast<MINIDUMP_TYPE>(
-			MiniDumpWithDataSegs | MiniDumpWithHandleData |
-			MiniDumpWithFullMemoryInfo | MiniDumpWithThreadInfo |
-			MiniDumpWithUnloadedModules | MiniDumpIgnoreInaccessibleMemory |
-			MiniDumpWithPrivateReadWriteMemory | MiniDumpWithProcessThreadData
-		);
-		
-		bool result = !!MiniDumpWriteDump(
-			GetCurrentProcess(), GetCurrentProcessId(),
-			dump, type, ((exception != null) ? &dumpExcInfo : null), null, &dumpCallback
-		);
-		
-		if (!result) {
-			char buffer[256];
-			_snprintf(buffer, 256, "[Goblin Camp] MiniDumpWriteDump failed: 0x%X", HRESULT_FROM_WIN32(GetLastError()));
-			OutputDebugString(buffer);
-		}
-		
-		FlushFileBuffers(dump);
-		CloseHandle(dump);
-		return result;
-	}
-	
-	BOOL CALLBACK DumpCallback(void*, MINIDUMP_CALLBACK_INPUT * const input, MINIDUMP_CALLBACK_OUTPUT *output) {
-		if (input == null || output == null) return FALSE;
-		
-		switch (input.CallbackType) {
-			case IncludeThreadCallback:
-			case ThreadCallback:
-			case ThreadExCallback:
-			case MemoryCallback:
-			case IncludeModuleCallback: return TRUE;
-			case CancelCallback:        return FALSE;
-			case ModuleCallback:
-				{
-					wchar_t filename[_MAX_FNAME];
-					_wsplitpath_s(input.Module.FullPath, null, 0, null, 0, filename, _MAX_FNAME, null, 0);
-					
-					if (wcsicmp(filename, L"goblin-camp") != 0 && wcsicmp(filename, L"ntdll") != 0) {
-						output.ModuleWriteFlags = ModuleWriteModule;
-					}
-				}
-				return TRUE;
-			default: return FALSE;
-		}
-	}
-	
-	LONG ExecuteCrashReporter(char dumpFilename[MAX_PATH]) {
-		std.string crashExe = (Paths.Get(Paths.ExecutableDir) / "goblin-camp-crash.exe").string();
-		
-		PROCESS_INFORMATION procInfo;
-		STARTUPINFO startupInfo;
-		ZeroMemory(&startupInfo, sizeof(startupInfo));
-		startupInfo.cb = sizeof(startupInfo);
-		
-		std.string cmdLine = "\"" + crashExe + "\" " + dumpFilename;
-		char cmdLineBuffer[2048];
-		cmdLine.copy(cmdLineBuffer, 2048);
-		cmdLineBuffer[cmdLine.size()] = '\0';
-		
-		// We don't really care whether this succeeds at all. We're very happy if it does, though.
-		if (CreateProcess(
-			null, cmdLineBuffer, null, null, FALSE,
-			DETACHED_PROCESS, null, null, &startupInfo, &procInfo
-		)) {
-			CloseHandle(procInfo.hProcess);
-			CloseHandle(procInfo.hThread);
-		}
-		
-		// Don't let the system keep the process running, or the crash reporter
-		// may not be able to access some files.
-		return EXCEPTION_EXECUTE_HANDLER;
-	}
-	
-	// Debug builds:
-	//   - dumps are created only when there is no debugger attached, otherwise the exception is simply propagated upwards
-	//   - external crash handler is never called (as it's meant for end-users, developers are assumed to know the details of their work environment)
-	//
-	// Release builds:
-	//   - dumps are always created, and exceptions are never propagated upwards (process is always terminated immediately after the exception has been caught)
-	//   - external crash handler is called, if it's possible
-	//
-	// It's also possible to disable the dumping with -nodumps CLI argument in debug builds.
-	if /* if(def */ ( DEBUG){){
-	#	define GC_CREATE_DUMP(E, P) do { if (!IsDebuggerPresent() && !Globals.noDumpMode) CreateDump((E), (P)); } while (0)
-	#	define GC_REPORT_CRASH()    EXCEPTION_CONTINUE_SEARCH
-	else /*#else */{
-	#	define GC_CREATE_DUMP(E, P) CreateDump((E), (P))
-	#	define GC_REPORT_CRASH()    ExecuteCrashReporter(dumpFilename)
-	}/*#endif*/
-	
-	LONG CALLBACK ExceptionHandler(EXCEPTION_POINTERS *exception) {
-		OutputDebugString(TEXT("[Goblin Camp] Unhandled exception occured."));
-		
-		char dumpPath[MAX_PATH], dumpFilename[MAX_PATH];
-		GetDumpFilename(dumpPath, dumpFilename);
-		
-		GC_CREATE_DUMP(exception, dumpPath);
-		return GC_REPORT_CRASH();
-	}
-}
+    // Generates crash dump filename.
+    void GetDumpFilename(char dumpPath[MAX_PATH], char dumpFilename[MAX_PATH]) {
+        char date[20]; // DD-MM-YYYY-HH-MM-SS
+        struct tm * timeStruct;
+        __int64 timestamp;
 
-void GCInstallExceptionHandler() {
-	SetUnhandledExceptionFilter(ExceptionHandler);
-}
+        _time64( & timestamp);
+        timeStruct = _gmtime64( & timestamp);
+
+        SHGetFolderPathAndSubDir(
+            null, CSIDL_PERSONAL | CSIDL_FLAG_CREATE, null,
+            SHGFP_TYPE_CURRENT, "My Games\\Goblin Camp\\crashes", dumpPath
+        );
+
+        strftime(date, 20, "%Y-%m-%d_%H-%M-%S", timeStruct);
+        _snprintf(dumpFilename, MAX_PATH, "dump_%s.dmp", date);
+        _snprintf(dumpPath, MAX_PATH, "%s\\%s", dumpPath, dumpFilename);
+
+        char buffer[MAX_PATH + 200];
+        _snprintf(buffer, MAX_PATH + 200, "[Goblin Camp] Dump will be written to: %s", dumpFilename);
+        OutputDebugString(buffer);
+    }
+
+    BOOL CALLBACK DumpCallback(void * , MINIDUMP_CALLBACK_INPUT *
+        const input, MINIDUMP_CALLBACK_OUTPUT * output);
+
+    // Produces crash.dmp containing exception info and portions of process memory.
+    bool CreateDump(EXCEPTION_POINTERS * exception, char dumpPath[MAX_PATH]) {
+        HANDLE dump = CreateFile(
+            dumpPath, GENERIC_WRITE, FILE_SHARE_READ, null,
+            CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null
+        );
+
+        if (dump == INVALID_HANDLE_VALUE) {
+            OutputDebugString(TEXT("[Goblin Camp] Could not create crash dump."));
+            return false;
+        }
+
+        OutputDebugString(TEXT("[Goblin Camp] Trying to write minidump."));
+
+        MINIDUMP_EXCEPTION_INFORMATION dumpExcInfo;
+        MINIDUMP_CALLBACK_INFORMATION dumpCallback;
+
+        dumpExcInfo.ThreadId = GetCurrentThreadId();
+        dumpExcInfo.ClientPointers = FALSE;
+        dumpExcInfo.ExceptionPointers = exception;
+
+        dumpCallback.CallbackRoutine = DumpCallback;
+        dumpCallback.CallbackParam = null;
+
+        MINIDUMP_TYPE type = static_cast < MINIDUMP_TYPE > (
+            MiniDumpWithDataSegs | MiniDumpWithHandleData |
+            MiniDumpWithFullMemoryInfo | MiniDumpWithThreadInfo |
+            MiniDumpWithUnloadedModules | MiniDumpIgnoreInaccessibleMemory |
+            MiniDumpWithPrivateReadWriteMemory | MiniDumpWithProcessThreadData
+        );
+
+        bool result = !!MiniDumpWriteDump(
+            GetCurrentProcess(), GetCurrentProcessId(),
+            dump, type, ((exception != null) ? & dumpExcInfo : null), null, & dumpCallback
+        );
+
+        if (!result) {
+            char buffer[256];
+            _snprintf(buffer, 256, "[Goblin Camp] MiniDumpWriteDump failed: 0x%X", HRESULT_FROM_WIN32(GetLastError()));
+            OutputDebugString(buffer);
+        }
+
+        FlushFileBuffers(dump);
+        CloseHandle(dump);
+        return result;
+    }
+
+    BOOL CALLBACK DumpCallback(void * , MINIDUMP_CALLBACK_INPUT *
+        const input, MINIDUMP_CALLBACK_OUTPUT * output) {
+        if (input == null || output == null) return FALSE;
+
+        switch (input.CallbackType) {
+            case IncludeThreadCallback:
+            case ThreadCallback:
+            case ThreadExCallback:
+            case MemoryCallback:
+            case IncludeModuleCallback:
+                return TRUE;
+            case CancelCallback:
+                return FALSE;
+            case ModuleCallback:
+                {
+                    wchar_t filename[_MAX_FNAME];
+                    _wsplitpath_s(input.Module.FullPath, null, 0, null, 0, filename, _MAX_FNAME, null, 0);
+
+                    if (wcsicmp(filename, L "goblin-camp") != 0 && wcsicmp(filename, L "ntdll") != 0) {
+                        output.ModuleWriteFlags = ModuleWriteModule;
+                    }
+                }
+                return TRUE;
+            default:
+                return FALSE;
+        }
+    }
+
+    LONG ExecuteCrashReporter(char dumpFilename[MAX_PATH]) {
+        std.string crashExe = (Paths.Get(Path.ExecutableDir) / "goblin-camp-crash.exe").string();
+
+        PROCESS_INFORMATION procInfo;
+        STARTUPINFO startupInfo;
+        ZeroMemory( & startupInfo, sizeof(startupInfo));
+        startupInfo.cb = sizeof(startupInfo);
+
+        std.string cmdLine = "\"" + crashExe + "\" " + dumpFilename;
+        char cmdLineBuffer[2048];
+        cmdLine.copy(cmdLineBuffer, 2048);
+        cmdLineBuffer[cmdLine.size()] = '\0';
+
+        // We don't really care whether this succeeds at all. We're very happy if it does, though.
+        if (CreateProcess(
+                null, cmdLineBuffer, null, null, FALSE,
+                DETACHED_PROCESS, null, null, & startupInfo, & procInfo
+            )) {
+            CloseHandle(procInfo.hProcess);
+            CloseHandle(procInfo.hThread);
+        }
+
+        // Don't let the system keep the process running, or the crash reporter
+        // may not be able to access some files.
+        return EXCEPTION_EXECUTE_HANDLER;
+    }
+
+    // Debug builds:
+    //   - dumps are created only when there is no debugger attached, otherwise the exception is simply propagated upwards
+    //   - external crash handler is never called (as it's meant for end-users, developers are assumed to know the details of their work environment)
+    //
+    // Release builds:
+    //   - dumps are always created, and exceptions are never propagated upwards (process is always terminated immediately after the exception has been caught)
+    //   - external crash handler is called, if it's possible
+    //
+    // It's also possible to disable the dumping with -nodumps CLI argument in debug builds.
+    if /* if(def */ (DEBUG) {) {#
+        define GC_CREATE_DUMP(E, P) do { if (!IsDebuggerPresent() && !Globals.noDumpMode) CreateDump((E), (P)); } while (0)# define GC_REPORT_CRASH() EXCEPTION_CONTINUE_SEARCH
+        else /*#else */ {#
+            define GC_CREATE_DUMP(E, P) CreateDump((E), (P))# define GC_REPORT_CRASH() ExecuteCrashReporter(dumpFilename)
+        } /*#endif*/
+
+        LONG CALLBACK ExceptionHandler(EXCEPTION_POINTERS * exception) {
+            OutputDebugString(TEXT("[Goblin Camp] Unhandled exception occured."));
+
+            char dumpPath[MAX_PATH], dumpFilename[MAX_PATH];
+            GetDumpFilename(dumpPath, dumpFilename);
+
+            GC_CREATE_DUMP(exception, dumpPath);
+            return GC_REPORT_CRASH();
+        }
+    }
+
+    void GCInstallExceptionHandler() {
+        SetUnhandledExceptionFilter(ExceptionHandler);
+    }

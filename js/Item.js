@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Entity
+} from "./Entity.js";
+import {
     ItemPreset
 } from "./ItemPreset.js";
 import {
@@ -202,45 +205,45 @@ export class Item extends Entity {
         return this.graphic;
     }
     GetAttack() {
-        return this.attack;
-    }
-    /**
-     * 
-     * @param {ItemType} type 
-     * @returns {string} name of Item type
-     */
-    static ItemTypeToString(type) {
-        if (type >= 0 && type < Item.Presets.length)
-            return Item.Presets[this.type].name;
-        return "None";
-    }
-    /**
-     * 
-     * @param {string} str name of Item type
-     * @returns {ItemType}
-     */
-    static StringToItemType(str) {
-        str = str.toUpperCase();
-        if (!this.itemTypeNames.has(str)) {
-            return -1;
+            return this.attack;
         }
-        return this.itemTypeNames.get(str);
-    }
-    /**
-     * 
-     * @param {ItemCategory} category 
-     * @returns {string} name of category
-     */
+        /**
+         * 
+         * @param {ItemType} type 
+         * @returns {string} name of Item type
+         */
+    static ItemTypeToString(type) {
+            if (type >= 0 && type < Item.Presets.length)
+                return Item.Presets[this.type].name;
+            return "None";
+        }
+        /**
+         * 
+         * @param {string} str name of Item type
+         * @returns {ItemType}
+         */
+    static StringToItemType(str) {
+            str = str.toUpperCase();
+            if (!this.itemTypeNames.has(str)) {
+                return -1;
+            }
+            return this.itemTypeNames.get(str);
+        }
+        /**
+         * 
+         * @param {ItemCategory} category 
+         * @returns {string} name of category
+         */
     static ItemCategoryToString(category) {
-        if (category >= 0 && category < Item.Categories.length)
-            return Item.Categories[category].name;
-        return "None";
-    }
-    /**
-     * 
-     * @param {string} str name of Item Category
-     * @returns {ItemCategory}
-     */
+            if (category >= 0 && category < Item.Categories.length)
+                return Item.Categories[category].name;
+            return "None";
+        }
+        /**
+         * 
+         * @param {string} str name of Item Category
+         * @returns {ItemCategory}
+         */
     static StringToItemCategory(str) {
         boost.to_upper(str);
         if (!this.itemCategoryNames.has(str)) {
@@ -411,10 +414,9 @@ export class Item extends Entity {
     }
 
     static LoadPresets(filename) {
-        let itemListener = new ItemListener(Item);
-        itemListener.fetch(filename)
-            .then(function (data) {
-                itemListener.parse(data);
+        let itemListener = new ItemListener(Item, filename);
+        itemListener.fetch()
+            .then(function() {
                 itemListener.translateNames();
                 Item.UpdateEffectItems();
             });

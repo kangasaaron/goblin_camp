@@ -1,18 +1,21 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
-
-export const Season = defineEnum("Season", [
-    'EarlySpring',
-    'Spring',
-    'LateSpring',
-    'EarlySummer',
-    'Summer',
-    'LateSummer',
-    'EarlyFall',
-    'Fall',
-    'LateFall',
-    'EarlyWinter',
-    'Winter',
-    'LateWinter'
-]);
+/**
+ * @enum
+ */
+export class Season extends Enum {
+    static EarlySpring;
+    static Spring;
+    static LateSpring;
+    static EarlySummer;
+    static Summer;
+    static LateSummer;
+    static EarlyFall;
+    static Fall;
+    static LateFall;
+    static EarlyWinter;
+    static Winter;
+    static LateWinter;
+};
+Season.enumify();

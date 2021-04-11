@@ -1,7 +1,20 @@
-export class PreserParser {
-    fetch(filename) {
-        this.filename = filename;
-        return d3.json(filename);
+import { FilePath } from "./other/FilePath.js";
+import { Paths } from "./data/Paths.js";
+
+export class PresetParser extends EventTarget {
+    /** @type {FilePath} */
+    filename;
+    ready = false;
+    constructor(filename) {
+            this.filename = new FilePath(filename);
+        }
+        /** @returns {Promise} that resolves into this, with data having been parsed */
+    fetch() {
+        let me = this;
+        return Paths.GetFilePath(this.filename)
+            .then(function(data) {
+                return me.parse(data);
+            });
     }
     parse(data) {
         this.data = data;
@@ -17,6 +30,8 @@ export class PreserParser {
             }
             this.parserEndStruct(obj);
         }
+        this.ready = true;
+        return new Promise((resolve, reject) => { resolve(this) });
     }
     parserNewStruct() { return true; };
     parserFlag() { return true; };

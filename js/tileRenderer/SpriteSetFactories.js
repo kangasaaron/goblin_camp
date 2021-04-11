@@ -16,11 +16,11 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 
-import "tileRenderer/Sprite.js"
-import "tileRenderer/TileSetTexture.js"
-import "tileRenderer/TileSetRenderer.js"
-import "tileRenderer/ConstructionSprite.js"
-import "tileRenderer/NPCSprite.js"
+import "./tileRenderer/Sprite.js"
+import "./tileRenderer/TileSetTexture.js"
+import "./tileRenderer/TileSetRenderer.js"
+import "./tileRenderer/ConstructionSprite.js"
+import "./tileRenderer/NPCSprite.js"
 
 class ConstructionSpriteFactory {
     //public extends 
@@ -206,10 +206,8 @@ template < typename IterT > void TerrainSpriteFactory.SetSnowEdgeSpriteIndices(I
     You should have received a copy of the GNU General Public License 
     along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import "stdafx.js"
-import "tileRenderer/SpriteSetFactories.js"
-import "Logger.js"
-import "MathEx.js"
+import "./tileRenderer/SpriteSetFactories.js"
+import "./MathEx.js"
 
 ConstructionSpriteFactory.ConstructionSpriteFactory(): spriteIndices(),
     underConstructionSpriteIndices(),

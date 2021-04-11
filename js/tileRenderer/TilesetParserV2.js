@@ -15,20 +15,15 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-
-import "boost/noncopyable.js"
-import "boost/shared_ptr.js"
-import "boost/filesystem.js"
-import "libtcod.js"
-import "tileRenderer/TileSetLoader.js"
-import "tileRenderer/TileSet.js"
-import "tileRenderer/TileSetTexture.js"
-import "tileRenderer/SpriteSetFactories.js"
-import "tileRenderer/NPCSprite.js"
-import "tileRenderer/ItemSprite.js"
-import "tileRenderer/ConstructionSprite.js"
-import "tileRenderer/SpellSpriteSet.js"
-import "tileRenderer/StatusEffectSprite.js"
+import "./tileRenderer/TileSetLoader.js"
+import "./tileRenderer/TileSet.js"
+import "./tileRenderer/TileSetTexture.js"
+import "./tileRenderer/SpriteSetFactories.js"
+import "./tileRenderer/NPCSprite.js"
+import "./tileRenderer/ItemSprite.js"
+import "./tileRenderer/ConstructionSprite.js"
+import "./tileRenderer/SpellSpriteSet.js"
+import "./tileRenderer/StatusEffectSprite.js"
 
 class TileSetParserV2 extends /*public*/ ITCODParserListener, private boost.noncopyable {
     //public:
@@ -175,12 +170,8 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
 
-import "boost/algorithm/string.js"
-
-import "tileRenderer/TilesetParserV2.js"
-import "Logger.js"
+import "./tileRenderer/TilesetParserV2.js"
 
 const char * TileSetParserV2.uninitialisedTilesetError = "tileset must be defined and tileWidth & tileHeight must be provided first";
 

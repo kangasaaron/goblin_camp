@@ -38,10 +38,10 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import "./Config.js"
 
-import "../Entity.js"
+// import "../Entity.js"
 // import "../Game.js"
 // import "../JobManager.js"
-import "../Camp.js"
+// import "../Camp.js"
 // import "../StockManager.js"
 // import "../Map.js"
 
@@ -216,7 +216,7 @@ class SerializableObject extends SerializablePrimative {
         let result = {};
         if (ks.length == 0)
             return result;
-        ks.map(key => result[serializer.serializable(key)] = serializer.serializable(d[key]));
+        ks.map(key => result[serializer.serialize(key)] = serializer.serialize(d[key]));
         return result;
     }
     static deserialize(data, version, deserializer) {
@@ -256,7 +256,7 @@ class SerializableError extends SerializableObject {
             return {
                 "__type__": this.typeName,
                 "errorType": this.data.name,
-                "value": this.data.errors.map(item => serializer.serializable(item))
+                "value": this.data.errors.map(item => serializer.serialize(item))
             };
         }
         return {
@@ -277,7 +277,7 @@ class SerializableMap extends SerializableObject {
     serialize(serializer) {
         return {
             "__type__": this.typeName,
-            "values": Array.from(this.data.entries()).map(keyValue => [serializer.serializable(keyValue[0]), serializer.serializable(keyValue[1])])
+            "values": Array.from(this.data.entries()).map(keyValue => [serializer.serialize(keyValue[0]), serializer.serialize(keyValue[1])])
         };
     }
     static deserialize(data, version, deserializer) {
@@ -294,7 +294,7 @@ class SerializableSet extends SerializableObject {
     serialize(serializer) {
         return {
             "__type__": this.typeName,
-            "values": Array.from(this.data.values()).map(value => serializer.serializable(value))
+            "values": Array.from(this.data.values()).map(value => serializer.serialize(value))
         };
     }
     static deserialize(data, version, deserializer) {
@@ -308,7 +308,7 @@ class SerializableWeakMap extends SerializableObject { }
 class SerializableWeakSet extends SerializableObject { }
 class SerializableArray extends SerializableObject {
     serialize(serializer) {
-        return this.data.map(item => serializer.serializable(item));
+        return this.data.map(item => serializer.serialize(item));
     }
     static deserialize(data, version, deserializer) {
         return data.map(item => deserializer.deserialize(item));
@@ -393,14 +393,17 @@ export class JSONSerializer extends Serializable {
         this.register_type(SerializableArrayBuffer);
 
     }
+    isRegistered(klass) {
+        return this.registered_types.includes(klass);
+    }
     register_type(klass) {
-        if (!this.registered_types.includes(klass)) {
-            if (!"CLASS_VERSION" in klass) console.error("JSONSerializer register_type klass does not have CLASS_VERSION");
-            if (!"serialize" in klass.prototype) console.error("JSONSerializer register_type klass does not have serialize");
-            if (!"deserialize" in klass) console.error("JSONSerializer register_type klass does not have deserialize");
-            if (!"hashCode" in klass.prototype) console.error("JSONSerializer register_type klass does not have hashCode");
-            this.registered_types.push(klass);
-        }
+        if (this.isRegistered(klass)) return;
+
+        if (!"CLASS_VERSION" in klass) console.error("JSONSerializer register_type klass does not have CLASS_VERSION");
+        if (!"serialize" in klass.prototype) console.error("JSONSerializer register_type klass does not have serialize");
+        if (!"deserialize" in klass) console.error("JSONSerializer register_type klass does not have deserialize");
+        if (!"hashCode" in klass.prototype) console.error("JSONSerializer register_type klass does not have hashCode");
+        this.registered_types.push(klass);
     }
     determine_type(obj) {
         if (obj === null || obj === "__null__")

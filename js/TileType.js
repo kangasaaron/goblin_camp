@@ -1,15 +1,16 @@
 import {
-    defineEnum
+    Enum
 } from "./other/Enums.js";
 
-export const TileType = defineEnum('TileType', [
-    "TILENONE",
-    "TILEGRASS",
-    "TILEDITCH",
-    "TILERIVERBED",
-    "TILEBOG",
-    "TILEROCK",
-    "TILEMUD",
-    "TILESNOW",
-    "TILE_TYPE_COUNT"
-]);
+export class TileType extends Enum {
+    static TILENONE;
+    static TILEGRASS;
+    static TILEDITCH;
+    static TILERIVERBED;
+    static TILEBOG;
+    static TILEROCK;
+    static TILEMUD;
+    static TILESNOW;
+    static TILE_TYPE_COUNT;
+};
+TileType.enumify();

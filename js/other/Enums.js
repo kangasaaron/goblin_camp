@@ -1,17 +1,43 @@
-// import {
-//     Serializable
-// } from "./Serializable.js";
-
+/**
+ * @class
+ * @extends {number}
+ */
 export class Enum extends Number {
     name = "";
     value = 0;
     description = "";
     ordinal = 0;
-    constructor(value, name) {
+    constructor(value, name, ordinal) {
         super(value);
         this.name = name;
         this.value = value;
-        this.description = Object.getPrototypeOf(this).constructor.name + '.' + name;
+        this.description =
+            Object.getPrototypeOf(this).constructor.name + "." + name;
+        this.ordinal = ordinal;
+        Object.defineProperty(this, "name", {
+            writeable: false,
+            configurable: false,
+            enumerable: false,
+            value: this.name,
+        });
+        Object.defineProperty(this, "value", {
+            writeable: false,
+            configurable: false,
+            enumerable: false,
+            value: this.value,
+        });
+        Object.defineProperty(this, "description", {
+            writeable: false,
+            configurable: false,
+            enumerable: false,
+            value: this.description,
+        });
+        Object.defineProperty(this, "ordinal", {
+            writeable: false,
+            configurable: false,
+            enumerable: false,
+            value: this.ordinal,
+        });
     }
     hashCode() {
         return this.ordinal;
@@ -21,17 +47,21 @@ export class Enum extends Number {
     }
 
     [Symbol.toPrimitive](hint) {
-        if (hint === "number")
-            return this.value;
-        else if (hint == "string")
-            return super.toString(10);
+        if (hint === "number") return this.value;
+        else if (hint == "string") return super.toString(10);
         return this.value;
     }
     serialize(ar, version) {
         return {
             name: this.description,
-            value: this.value
+            value: this.value,
         };
+    }
+    hashCode() {
+        return this.description;
+    }
+    get enumName() {
+        return Object.getPrototypeOf(this).constructor.name;
     }
     static deserialize(data, version, deserializer) {
         return this.findByValue(data.value);
@@ -39,137 +69,78 @@ export class Enum extends Number {
     static findByValue(value) {
         return this.values.find((en) => en.value == value);
     }
-    hashCode() {
-        return this.description;
+    static[Symbol.iterator]() {
+        return this.values();
+    }
+    static get entries() {
+        return new EnumIterator(this, "entries");
     }
     static CLASS_VERSION = 0;
-}
+    static keys() { return this.ks; }
+    static values() { return this.vals; }
+    static entries() { return this.entrs; }
+    static vals = [];
+    static ks = [];
+    static entrs = [];
+    static enumify(freeze = true) {
+        let nextValue = 0,
+            ordinal = -1,
+            usedValues = [],
+            ks = [],
+            vals = [],
+            entrs = [];
+        for (let name of Object.keys(this)) {
+            let value = this[name];
+            ordinal++;
+            if (Number.isFinite(value)) nextValue = value;
+            while (
+                value === null ||
+                value === undefined ||
+                usedValues.includes(value)
+            ) {
+                value = nextValue;
+                nextValue++;
+            }
 
-export const defineEnumOpen = function defineEnumOpen(def, values) {
-    let newEnum;
-    if (def.klass) {
-        newEnum = def.klass;
-    } else {
-        newEnum = class extends Enum {};
-    }
-    Object.defineProperty(newEnum, 'name', {
-        "writable": false,
-        "configurable": false,
-        "enumerable": false,
-        "value": def.name
-    });
-
-    Object.defineProperty(newEnum.prototype, 'enumName', {
-        "configurable": false,
-        "enumerable": false,
-        "get": function () {
-            return Object.getPrototypeOf(this).constructor.name;
-        }
-    });
-    let vals = [],
-        ks = [],
-        nextValue = 0,
-        otherArgs = [];
-
-    for (let v of values) {
-        let name, value, enumValue;
-        if (typeof v === "object") {
-            name = Object.getOwnPropertyNames(v)[0];
-            value = v[name];
-            nextValue = value;
-            otherArgs = "args" in v ? v.args : [];
-        } else {
-            name = v;
-            value = nextValue;
-            otherArgs = [];
-        }
-        nextValue++;
-        enumValue = new newEnum(value, name, ...otherArgs);
-        Object.defineProperty(newEnum, name, {
-            "writeable": false,
-            "configurable": false,
-            "enumerable": true,
-            "value": enumValue
-        });
-        Object.defineProperty(enumValue, "ordinal", {
-            "writeable": false,
-            "configurable": false,
-            "enumerable": true,
-            "value": vals.length
-        });
-        vals.push(enumValue);
-        vals[name] = enumValue;
-        ks.push(name);
-        Object.freeze(enumValue);
-    }
-    Object.defineProperty(newEnum, 'values', {
-        "writeable": false,
-        "configurable": false,
-        "enumerable": false,
-        "value": vals
-    });
-    Object.defineProperty(newEnum, 'keys', {
-        "writeable": false,
-        "configurable": false,
-        "enumerable": false,
-        "value": ks
-    });
-
-    return newEnum;
-}
-
-export const defineEnum = function defineEnum(...args) {
-    let name = args.shift();
-    let newEnum = defineEnumOpen({
-            name
-        },
-        ...args);
-    Object.freeze(newEnum);
-    return newEnum;
-};
-
-export const aggregation = (baseClass, ...mixins) => {
-    class base extends baseClass {
-        constructor(...args) {
-            super(...args);
-            mixins.forEach((mixin) => {
-                copyProps(this, (new mixin));
+            let enumValue = new this(value, name, ordinal);
+            Object.defineProperty(this, name, {
+                writeable: false,
+                configurable: false,
+                enumerable: true,
+                value: enumValue,
             });
+
+            ks.push(name);
+            vals.push(enumValue);
+            entrs.push([name, value]);
+            if (freeze) Object.freeze(enumValue);
+        }
+
+        Object.defineProperty(this, "ks", {
+            writeable: freeze,
+            configurable: freeze,
+            enumerable: false,
+            value: ks,
+        });
+
+        Object.defineProperty(this, "vals", {
+            writeable: freeze,
+            configurable: freeze,
+            enumerable: false,
+            value: vals,
+        });
+
+        Object.defineProperty(this, entrs, {
+            writeable: freeze,
+            configurable: freeze,
+            enumerable: false,
+            value: entrs,
+        });
+        if (freeze) {
+            Object.freeze(this.ks);
+            Object.freeze(this.vals);
+            Object.freeze(this.entrs);
+            Object.freeze(this);
         }
     }
-    let copyProps = (target, source) => {
-        // this function copies all properties and symbols, filtering out some special ones
-        Object.getOwnPropertyNames(source)
-            .concat(Object.getOwnPropertySymbols(source))
-            .forEach((prop) => {
-                if (!prop.match(/^(?:constructor|prototype|argument|caller|name|bind|call|apply|toString|length)$/))
-                    Object.defineProperty(target, prop, Object.getOwnPropertyDescriptor(source, prop));
-            })
-    }
-    mixins.forEach((mixin) => {
-        // outside constuctor() to allow aggregaction(a,b,c).staticfunction() to be called, etc.
-        copyProps(base.prototype, mixin.prototype);
-        copyProps(base, mixin);
-    });
-    return base;
-}
-
-export const addStaticAbstractFunction = function addStaticAbstractFunction(klass, functionName) {
-    addAbstractFunctionToObject(klass, functionName);
-};
-
-export const addAbstractFunction = function addAbstractFunction(klass, functionName) {
-    addAbstractFunctionToObject(klass.prototype, functionName);
-};
-
-const addAbstractFunctionToObject = function addAbstractFunctionToObject(klass, functionName) {
-    if (functionName in klass) return;
-    Object.defineProperty(klass, functionName, {
-        writable: true,
-        enumerable: false,
-        configurable: true,
-        value: (() => {
-            throw new ReferenceError(`abstract function ${klass.name}.${functionName} called`);
-        })
-    })
 }

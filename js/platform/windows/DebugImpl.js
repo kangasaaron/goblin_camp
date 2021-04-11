@@ -28,62 +28,61 @@ import "sstream"
 const GC_SKIP_RC = 1;
 import "goblin-camp.rch"
 
-import "Logger.js"
 
 /**
 	Crashes the program. Obviously.
 	Uses the 0xC0FFEE exception code, raises noncontinuable exception.
 */
 void GCDebugInduceCrash() {
-	RaiseException(0xC0FFEE, EXCEPTION_NONCONTINUABLE, 0, null);
+    RaiseException(0xC0FFEE, EXCEPTION_NONCONTINUABLE, 0, null);
 }
 
 namespace {
-	struct AssertData {
-		const char *msg, *expr, *func, *file;
-		int line;
-	};
-	
-	INT_PTR CALLBACK AssertDialog(HWND dialog, UINT msg, WPARAM wParam, LPARAM lParam) {
-		switch (msg) {
-			case WM_INITDIALOG:
-			{
-				const AssertData& data = *((AssertData*)lParam);
-				std.stringstream msg;
-				
-				msg << "Expression:\r\n\t" << data.expr << "\r\n\r\n";
-				if (data.msg) {
-					msg << "Additional info:\r\n\t" << data.msg << "\r\n\r\n";
-				}
-				msg << "Function:\r\n\t" << data.func << "\r\n\r\n";
-				msg << "File:\r\n\t"     << data.file << "\r\n\r\n";
-				msg << "Line:\r\n\t"     << data.line << "\r\n\r\n";
-				
-				std.string msgStr = msg.str();
-				
-				HWND edit = GetDlgItem(dialog, IDC_REASON);
-				Edit_SetText(edit, msgStr.c_str());
-				SendMessage(edit, EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN, MAKELONG(4, 4));
-				//Edit_SetSel(edit, -1, -1);
-			}
-			break;
-			case WM_COMMAND:
-				switch (wParam) {
-					case ID_DEBUG:
-					case ID_CONTINUE:
-					case ID_EXIT:
-						EndDialog(dialog, wParam);
-					break;
-					default:
-						return FALSE;
-				}
-			break;
-			default:
-				return FALSE;
-		}
-		
-		return TRUE;
-	}
+    struct AssertData {
+        const char * msg, * expr, * func, * file;
+        int line;
+    };
+
+    INT_PTR CALLBACK AssertDialog(HWND dialog, UINT msg, WPARAM wParam, LPARAM lParam) {
+        switch (msg) {
+            case WM_INITDIALOG:
+                {
+                    const AssertData & data = * ((AssertData * ) lParam);
+                    std.stringstream msg;
+
+                    msg << "Expression:\r\n\t" << data.expr << "\r\n\r\n";
+                    if (data.msg) {
+                        msg << "Additional info:\r\n\t" << data.msg << "\r\n\r\n";
+                    }
+                    msg << "Function:\r\n\t" << data.func << "\r\n\r\n";
+                    msg << "File:\r\n\t" << data.file << "\r\n\r\n";
+                    msg << "Line:\r\n\t" << data.line << "\r\n\r\n";
+
+                    std.string msgStr = msg.str();
+
+                    HWND edit = GetDlgItem(dialog, IDC_REASON);
+                    Edit_SetText(edit, msgStr.c_str());
+                    SendMessage(edit, EM_SETMARGINS, EC_LEFTMARGIN | EC_RIGHTMARGIN, MAKELONG(4, 4));
+                    //Edit_SetSel(edit, -1, -1);
+                }
+                break;
+            case WM_COMMAND:
+                switch (wParam) {
+                    case ID_DEBUG:
+                    case ID_CONTINUE:
+                    case ID_EXIT:
+                        EndDialog(dialog, wParam);
+                        break;
+                    default:
+                        return FALSE;
+                }
+                break;
+            default:
+                return FALSE;
+        }
+
+        return TRUE;
+    }
 }
 
 /**
@@ -97,29 +96,33 @@ namespace {
 	@returns            True if 'Debug' button was pressed (or the dialog couldn't be created),
 	                    false if 'Continue' button was pressed.
 */
-bool GCAssert(const char* msg, const char* expr, const char* function, const char* file, int line) {
-	LOG("Assertion failed: '" << expr << "' (" << function << " in " << file << " at " << line << "): " << msg);
-	
-	SDL_SysWMinfo info;
-	HWND parent = null;
-	
-	/*SDL_VERSION(&info.version);
-	if (SDL_GetWMInfo(&info) > 0 && info.window) {
-		parent = info.window;
-	}*/
-	
-	AssertData data = { msg, expr, function, file, line };
-	DWORD ret = DialogBoxParam(GetModuleHandle(null), MAKEINTRESOURCE(IDD_ASSERT), parent, &AssertDialog, (LPARAM)&data);
-	
-	switch (ret) {
-		case ID_CONTINUE:
-			return false;
-		case ID_EXIT:
-			exit(424242);
-		default:
-			LOG("Assertion dialog failed, defaulting to 'break to debugger'.");
-			// passthrough
-		case ID_DEBUG:
-			return true;
-	}
+bool GCAssert(const char * msg,
+    const char * expr,
+        const char * function,
+            const char * file, int line) {
+    LOG("Assertion failed: '" << expr << "' (" << function << " in " << file << " at " << line << "): " << msg);
+
+    SDL_SysWMinfo info;
+    HWND parent = null;
+
+    /*SDL_VERSION(&info.version);
+    if (SDL_GetWMInfo(&info) > 0 && info.window) {
+    	parent = info.window;
+    }*/
+
+    AssertData data = { msg, expr,
+        function, file, line };
+    DWORD ret = DialogBoxParam(GetModuleHandle(null), MAKEINTRESOURCE(IDD_ASSERT), parent, & AssertDialog, (LPARAM) & data);
+
+    switch (ret) {
+        case ID_CONTINUE:
+            return false;
+        case ID_EXIT:
+            exit(424242);
+        default:
+            LOG("Assertion dialog failed, defaulting to 'break to debugger'.");
+            // passthrough
+        case ID_DEBUG:
+            return true;
+    }
 }

@@ -14,53 +14,27 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-// import "data/Config.js"
-// import "data/Data.js"
-// import "data/Paths.js"
-// import "Logger.js"
-// import "UI/MessageBox.js"
-// import "Game.js"
-// import "scripting/Event.js"
-// import "scripting/Engine.js"
+// import "./Config.js"
+// import "./Data.js"
+// import "./Paths.js"
+// import "../UI/MessageBox.js"
+// import "../Game.js"
+// import "../scripting/Event.js"
+// import "../scripting/Engine.js"
 
-/** 
- * saves
- */
-export class Save {
-    filename = "";
-    size = 0;
-    date = "";
-    timestamp = 0; // for sorting
+import { Save } from "./Save.js";
+import { Paths } from "./Paths.js";
+import { Path } from "./Path.js";
+import { FilePath } from "../other/FilePath.js";
 
-    constructor(filename, size, timestamp) {
-        this.filename = filename;
-        this.timestamexp = timestamp;
-        this.size = Data.FormatFileSize(size);
-        this.date = Data.FormatTimestamp(timestamp);
-    }
-
-    isLessThan(that) {
-        return this.timestamp < that.timestamp;
-    }
-    isGreaterThan(that) {
-        return this.timestamp > that.timestamp;
-    }
-    isLessThanOrEqualTo(that) {
-        return this.timestamp <= that.timestamp;
-    }
-    isGreaterThanOrEqualTo(that) {
-        return this.timestamp >= that.timestamp;
-    }
-}
-
-export class Data {
+class DataClass {
     /**
     	Converts an UNIX timestamp to ISO8601 date string (YYYY-MM-DDTHH:MM:SS.ssssZ).
     	
     	@param[in]  timestamp A source UNIX timestamp.
     	@returns  dest      A string buffer to receive formatted date.
     */
-    static FormatTimestamp(timestamp) {
+    FormatTimestamp(timestamp) {
         return timestamp.toISOString();
     }
 
@@ -71,7 +45,7 @@ export class Data {
     	@param[in]  filesize File size (in bytes).
     	@returns       A formatted file size.
     */
-    static FormatFileSize(filesize) {
+    FormatFileSize(filesize) {
         let result = "",
             unit = "B";
         if (filesize > 1000000000) { // 1 gb
@@ -104,7 +78,7 @@ export class Data {
     	@param[in] filename Filename as supplied by the user.
     	@returns            Sanitized filename.
     */
-    static SanitizeFilename(filename) {
+    SanitizeFilename(filename) {
         let sanitized = '';
         let invalid = new RegExp("\\/:*?\"<>|");
 
@@ -129,7 +103,7 @@ export class Data {
     	@param[in]  file   Full path to the save.
     	@param[out] result Boolean indicating success or failure.
     */
-    static DoSave(file, result) {
+    DoSave(file, result) {
         console.log("Saving game to " + file);
 
         if ((result = Game.SaveGame(file))) {
@@ -144,25 +118,33 @@ export class Data {
     	@see Paths
     	@param[in] target File to check for (full path).
     */
-    static CopyDefault(target) {
-        if (fs.exists(target)) return;
+    CopyDefault(target) {
+        let me = this,
+            filepath = new FilePath(target);
+        return filepath.GetCache(Paths).keys().then(function(keys) {
+                if (keys.includes(filepath.GetURL(Paths))) return true;
+                return false;
+            })
+            .then(function(exists) {
+                if (exists) return;
 
-        let file = target.filename();
-        let source = Paths.Get(Paths.GlobalData) + "/" + file;
+                let file = filepath.GetURL(Paths);
+                let source = Paths.GetName(Path.GlobalData) + "/" + file;
 
-        console.log("User's " + file + " does not exist -- trying to copy " + source);
+                console.log("User's " + file + " does not exist -- trying to copy " + source);
 
-        if (!fs.exists(source)) {
-            console.error("Global data file doesn't exist!");
-            throw new ReferenceError("Global data file doesn't exist");
-        }
+                if (!fs.exists(source)) {
+                    console.error("Global data file doesn't exist!");
+                    throw new ReferenceError("Global data file doesn't exist");
+                }
 
-        try {
-            fs.copy_file(source, target);
-        } catch (e) {
-            console.error("Error while copying: " + e.message);
-            throw e;
-        }
+                try {
+                    fs.copy_file(source, target);
+                } catch (e) {
+                    console.error("Error while copying: " + e.message);
+                    throw e;
+                }
+            });
     }
 
     /**
@@ -173,24 +155,29 @@ export class Data {
     	@param[in] target File to check for (full path).
     	@param[in] source Default content to use for the new file.
     */
-    static CreateDefault(target, source) {
-        if (fs.exists(target)) return;
-
-        console.log("Creating default " + target);
-
-        try {
-            let file = fs.newFile(target);
-            file.data = source;
-            file.close();
-        } catch (e) {
-            console.error("Error while writing to file: " + e.message());
-        }
+    CreateDefault(target, source) {
+        let me = this,
+            filepath = new FilePath(target);
+        return filepath.GetCache(Paths).keys().then(function(keys) {
+                if (keys.includes(filepath.GetURL(Paths))) return true;
+                return false;
+            })
+            .then(function(exists) {
+                if (exists) return;
+                console.log("Creating default " + target);
+                return filepath
+                    .GetCache(Paths)
+                    .put(filepath.GetURL(Paths), new Response(source));
+            })
+            .catch(function(e) {
+                console.error("Error while writing to file: " + e.message());
+            })
     }
 
     /**
     	Ensures that @ref Config.Save won't throw at exit.
     */
-    static SaveConfig() {
+    SaveConfig() {
         try {
             Config.Save();
         } catch (e) {
@@ -200,11 +187,11 @@ export class Data {
 
     /**
     	Retrieves a list of saved games.
-    	
-    	@param[out] list Storage for the list.
+    	@param {Array} @out list    Storage for the list.
     */
-    static GetSavedGames(list) {
-        for (let it of Paths.Get(Paths.Saves)) {
+    GetSavedGames(list) {
+
+        for (let it of Paths.Get(Path.Saves)) {
             let save = it.path();
             if (!save.endsWith(".sav")) continue;
 
@@ -223,7 +210,7 @@ export class Data {
     	
     	@returns Number of saved games found.
     */
-    static CountSavedGames() {
+    CountSavedGames() {
         let saves = [];
         this.GetSavedGames(saves);
         return saves.length;
@@ -235,8 +222,8 @@ export class Data {
     	@param[in] save Save filename.
     	@returns        Boolean indicating success or failure.
     */
-    static LoadGame(save) {
-        let file = (Paths.Get(Paths.Saves) + "/" + save) + ".sav";
+    LoadGame(save) {
+        let file = (Paths.Get(Path.Saves) + "/" + save) + ".sav";
         console.log("Loading game from " + file);
 
         if (!Game.LoadGame(file)) return false;
@@ -255,14 +242,14 @@ export class Data {
     	@param[in] confirm Boolean indicating whether to confirm overwriting an existing save
     	@returns           Boolean indicating success or failure.
     */
-    static SaveGame(save, confirm) {
+    SaveGame(save, confirm) {
         let file = this.SanitizeFilename(save);
 
         if (file.length == 0) {
             file = "_";
         }
 
-        file = (Paths.Get(Paths.Saves) + '/' + file) + ".sav";
+        file = (Paths.Get(Path.Saves) + '/' + file) + ".sav";
 
         let result = false;
 
@@ -280,44 +267,48 @@ export class Data {
     /**
     	Executes the user's configuration file.
     */
-    static LoadConfig() {
+    LoadConfig() {
+        let me = this;
         console.log("Loading user config.");
-        let config = Paths.Get(Paths.Config);
-        this.CreateDefault(config, "## Goblin Camp default empty configuration file");
-
-        let globals = py.import("_gcampconfig").attr("__dict__");
-        let locals = py.import("__gcuserconfig__").attr("__dict__");
-        try {
-            py.exec_file(config, globals, locals);
-        } catch (e) {
-            console.log("Cannot load user config.");
-            Script.LogException();
-            return;
-        }
-        setInterval(this.SaveConfig.bind(this), 6000);
-
+        let config = Paths.GetName(Path.Config);
+        me.CreateDefault(config + '/default.json', "{'name': 'Goblin Camp default empty configuration file'}")
+            .then(function(config) {
+                return me.SaveConfig();
+            })
+            /*
+                    let globals = py.import("_gcampconfig").attr("__dict__");
+                    let locals = py.import("__gcuserconfig__").attr("__dict__");
+                    try {
+                        py.exec_file(config, globals, locals);
+                    } catch (e) {
+                        console.log("Cannot load user config.");
+                        Script.LogException();
+                        return;
+                    }
+                    setTimeout(this.SaveConfig.bind(this), 6000);
+            */
     }
-    static again = false;
+    again = false;
     /**
     	Loads the user's bitmap font.
     */
-    static LoadFont() {
+    LoadFont() {
         console.log("Loading the font " + (this.again ? "(again)" : ""));
-        let font = Paths.Get(Paths.Font);
+        let font = Paths.GetName(Path.Font);
 
         this.CopyDefault(font);
-        TCODConsole.setCustomFont(font);
+        // TCODConsole.setCustomFont(font); // TODO! need to check this to set the font;
         this.again = true;
     }
 
     /**
     	Saves a screenshot of the game. Takes care of automatic numbering.
     */
-    static SaveScreenshot() {
+    SaveScreenshot() {
         // sadly, libtcod supports autonumbering only when saving to current dir
         let largest = 0;
 
-        for (let it of fs.readDirectory(Paths.Get(Paths.Screenshots))) {
+        for (let it of fs.readDirectory(Paths.Get(Path.Screenshots))) {
             let png = it;
             if (!it.endsWith(".png")) continue;
 
@@ -334,10 +325,12 @@ export class Data {
         }
 
         let png = (
-            Paths.Get(Paths.Screenshots) + `screen${largest+1}.png`
+            Paths.Get(Path.Screenshots) + `screen${largest+1}.png`
         );
 
         console.log("Saving screenshot to " + png);
         TCODSystem.saveScreenshot(png);
     }
 }
+
+export let Data = new DataClass();

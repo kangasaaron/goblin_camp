@@ -15,11 +15,10 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "libtcod.js"
-import "MapRenderer.js"
-import "tileRenderer/TileSetTexture.js"
-import "tileRenderer/TileSet.js"
-import "tileRenderer/PermutationTable.js"
+import "./MapRenderer.js"
+import "./tileRenderer/TileSetTexture.js"
+import "./tileRenderer/TileSet.js"
+import "./tileRenderer/PermutationTable.js"
 
 class TilesetRenderer extends /*public*/ MapRenderer {
     friend class DrawConstructionVisitor;
@@ -113,14 +112,14 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
 
-import "tileRenderer/TileSetRenderer.js"
-import "MapMarker.js"
-import "Game.js"
-import "MathEx.js"
 
-import "tileRenderer/DrawConstructionVisitor.js"
+import "./tileRenderer/TileSetRenderer.js"
+import "./MapMarker.js"
+import "./Game.js"
+import "./MathEx.js"
+
+import "./tileRenderer/DrawConstructionVisitor.js"
 
 TilesetRenderer.TilesetRenderer(int resolutionX, int resolutionY, TCODConsole * mapConsole): tcodConsole(mapConsole),
     permutationTable(10, 473 U),

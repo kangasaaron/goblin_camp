@@ -53,7 +53,6 @@ export class ConstructionDialog extends UIContainer {
     CancelJob(job);
     static constructionInfoDialog = null;
     static cachedConstruct = null;
-    static DrawJob(ItemType, int, int, int, int, bool, TCODConsole);
     static ConstructionInfoDialog(wcons) {
         if (letcons = wcons.lock()) {
             if (this.constructionInfoDialog && (!this.cachedConstruct.lock() || cons != this.cachedConstruct.lock())) {
@@ -139,7 +138,7 @@ export class ConstructionDialog extends UIContainer {
         }
     }
 
-    DrawJob(category, i, x, y, width, selected, the_console) {
+    static DrawJob(category, i, x, y, width, selected, the_console) {
         the_console.setDefaultForeground(i == 0 ? Color.white : Color.grey);
         the_console.print(x, y, Item.ItemTypeToString(category));
         the_console.setDefaultForeground(Color.white);

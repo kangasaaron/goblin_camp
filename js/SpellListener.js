@@ -2,7 +2,8 @@ import { PresetParser } from "./PresetParser.js";
 
 export class SpellListener extends PresetParser {
     spellIndex = 0;
-    constructor(Spell) {
+    constructor(Spell, filename) {
+        super(filename);
         this.Spell = Spell;
     }
     parserNewStruct(str, name) {

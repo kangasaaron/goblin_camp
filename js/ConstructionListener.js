@@ -1,13 +1,14 @@
 import {
     ConstructionPreset
-} from "./ConstructionPreset";
+} from "./ConstructionPreset.js";
 import {
     PresetParser
 } from "./PresetParser.js";
 
 export class ConstructionListener extends PresetParser {
     constructionIndex = 0;
-    constructor(Construction) {
+    constructor(Construction, filename) {
+        super(filename);
         this.Construction = Construction;
     }
     parserNewStruct(obj) {
@@ -108,7 +109,7 @@ export class ConstructionListener extends PresetParser {
         } else if (strName == "col") {
             preset.color = value.col;
         } else if (strName == "tileReqs") {
-            for (let i = 0; i < value.length++i) {
+            for (let i = 0; i < value.length; ++i) {
                 preset.tileReqs.add(Tile.StringToTileType(value[i]));
                 //TILEGRASS changes to TILESNOW in winter
                 if (Tile.StringToTileType(value[i]) == TileType.TILEGRASS) {

@@ -1,9 +1,16 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
 
-export const Skill = defineEnum("Skill", [
-    'MASONRY',
-    'CARPENTRY',
-    'SKILLAMOUNT'
-]);
+/**
+ * @enum
+ */
+export class Skill extends Enum {
+    /** @static @type {Skill} */
+    static MASONRY;
+    /** @static @type {Skill} */
+    static CARPENTRY;
+    /** @static @type {Skill} the number of skills */
+    static SKILLAMOUNT;
+}
+Skill.enumify();

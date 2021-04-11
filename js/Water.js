@@ -23,7 +23,7 @@ import {
 } from "Coordinate.js"
 import {
     Color
-} from "./other/Color";
+} from "./color/Color";
 
 const RIVERDEPTH = 5000;
 

@@ -15,47 +15,47 @@
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-	Color
-} from "../other/Color";
+    Color
+} from "../color/Color";
 
 class Tooltips {
-	entries = [];
-	offsetX = 0;
-	offsetY = 0;
-	Clear() {
-		this.entries = [];
-		this.offsetX = 0;
-		this.offsetY = 0;
-	}
-	AddEntry(entry) {
-		this.entries.push(entry);
-	}
-	OffsetPosition(x, y) {
-		this.offsetX = x;
-		this.offsetY = y;
-	}
-	Draw(x, y, the_console) {
-		x += offsetX;
-		y += offsetY;
-		the_console.setDefaultBackground(Color.darkestYellow);
-		let width = 0;
-		for (let it of this.entries) {
-			width = Math.max(width, it.text.length);
-		}
-		x = Math.min(Math.min(the_console.getWidth() - 1, x + 1), the_console.getWidth() - width);
-		y = Math.min(Math.max(0, y - 1), Math.max(0, the_console.getHeight() - this.entries.length));
-		if (width > 0) {
-			the_console.rect(x, y, width, this.entries.length, true, TCOD_BKGND_SET);
-			for (let i = 0; i < this.entries.length && y, the_console.getHeight(); i++) {
-				let entry = this.entries[i];
-				the_console.setDefaultForeground(entry.color);
-				the_console.printEx(x, y, TCOD_BKGND_SET, TCOD_LEFT, entry.text);
-				y++;
-			}
-		}
-		the_console.setDefaultBackground(Color.black);
-		the_console.setDefaultForeground(Color.white);
-	}
+    entries = [];
+    offsetX = 0;
+    offsetY = 0;
+    Clear() {
+        this.entries = [];
+        this.offsetX = 0;
+        this.offsetY = 0;
+    }
+    AddEntry(entry) {
+        this.entries.push(entry);
+    }
+    OffsetPosition(x, y) {
+        this.offsetX = x;
+        this.offsetY = y;
+    }
+    Draw(x, y, the_console) {
+        x += offsetX;
+        y += offsetY;
+        the_console.setDefaultBackground(Color.darkestYellow);
+        let width = 0;
+        for (let it of this.entries) {
+            width = Math.max(width, it.text.length);
+        }
+        x = Math.min(Math.min(the_console.getWidth() - 1, x + 1), the_console.getWidth() - width);
+        y = Math.min(Math.max(0, y - 1), Math.max(0, the_console.getHeight() - this.entries.length));
+        if (width > 0) {
+            the_console.rect(x, y, width, this.entries.length, true, TCOD_BKGND_SET);
+            for (let i = 0; i < this.entries.length && y, the_console.getHeight(); i++) {
+                let entry = this.entries[i];
+                the_console.setDefaultForeground(entry.color);
+                the_console.printEx(x, y, TCOD_BKGND_SET, TCOD_LEFT, entry.text);
+                y++;
+            }
+        }
+        the_console.setDefaultBackground(Color.black);
+        the_console.setDefaultForeground(Color.white);
+    }
 }
 
 export let Tooltip = new Tooltips();

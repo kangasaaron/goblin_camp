@@ -1,14 +1,14 @@
 import {
-    defineEnum
-} from "../other/Enums.js";
+    Enum
+} from "./other/Enums.js";
 
-
-export const MenuResult = defineEnum("MenuResult", [{
-    "MENUHIT": 1
-}, {
-    "NOMENUHIT": 2
-}, {
-    "KEYRESPOND": 4
-}, {
-    "DISMISS": 8
-}]);
+/**
+ * @enum
+ */
+export class MenuResult extends Enum {
+    static MENUHIT = 1;
+    static NOMENUHIT = 2;
+    static KEYRESPOND = 4;
+    static DISMISS = 8;
+}
+MenuResult.enumify();

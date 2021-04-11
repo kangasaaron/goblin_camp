@@ -1,35 +1,23 @@
 import {
-    defineEnum
+    Enum
 } from "./other/Enums.js";
 
-export const SpriteType = defineEnum("SpriteType", [{
-        SPRITE_Single: 0x0
-    },
-    {
-        SPRITE_Animated: 0x1
-    },
-    {
-        SPRITE_SimpleConnectionMap: 0x2
-    },
+export class SpriteType extends Enum {
+    static SPRITE_Single = 0x0;
+    static SPRITE_Animated = 0x1;
+    static SPRITE_SimpleConnectionMap = 0x2;
     /**
      * Two layered contains Simple
      */
-    {
-        SPRITE_TwoLayerConnectionMap: 0x6
-    },
-    {
-        SPRITE_NormalConnectionMap: 0x8
-    },
+    static SPRITE_TwoLayerConnectionMap = 0x6;
+    static SPRITE_NormalConnectionMap = 0x8;
     /**
      * Extended constains Normal
      */
-    {
-        SPRITE_ExtendedConnectionMap: 0x18
-    },
+    static SPRITE_ExtendedConnectionMap = 0x18;
     /**
      * Connection Map encompasses all variants
      */
-    {
-        SPRITE_ConnectionMap: 0x1E
-    }
-]);
+    static SPRITE_ConnectionMap = 0x1e;
+}
+SpriteType.enumify();

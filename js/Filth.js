@@ -23,7 +23,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 import {
     Random
 } from "./Random.js";
@@ -36,10 +36,11 @@ export class FilthNode extends Serializable {
     color = new Color();
     graphic = null;
     constructor(pos = Coordinate.zero, depth = 0) {
+        super();
         this.pos = pos;
         this.depth = depth;
     }
-    Update() {}
+    Update() { }
     GetGraphic() {
         return (this.depth < 5) ? '~' : '#';
     }

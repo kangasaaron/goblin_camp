@@ -16,84 +16,84 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 import {
-	Serializable
-} from "../data/Serialization.js";
+    Serializable
+} from "./data/Serialization.js";
 import {
-	Color
-} from "../other/Color.js";
+    Color
+} from "./color/Color.js";
 import {
-	Coordinate
+    Coordinate
 } from "./Coordinate.js";
 import {
-	MarkerType
+    MarkerType
 } from "./MarkerType.js";
 
 export class MapMarker extends Serializable {
-	static CLASS_VERSION = 0;
-	type = MarkerType.FLASHINGMARKER;
-	origColor = new Color();
-	color = new Color();
-	duration = 0;
-	graphic = 0;
-	pos = new Coordinate();
-	counter = 0;
-	constructor(t = MarkerType.FLASHINGMARKER, g = '?', pos = Coordinate.zero, duration = 1, color = Color.pink) {
-		this.type = t;
-		this.origColor = color;
-		this.color = color;
-		this.duration = duration;
-		this.graphic = g;
-		this.pos = pos.clone();
-	}
-	Update() {
-		if (this.duration > 0) --this.duration;
-		this.color = Color.lerp(this.origColor, Color.white, Math.abs(Math.sin(counter)));
-		this.counter += 0.1;
-		if (this.counter > Math.PI) counter = 0.0;
-		return this.duration != 0;
-	}
-	X() {
-		return this.pos.X();
-	}
-	Y() {
-		return this.pos.Y();
-	}
-	Position() {
-		this.pos;
-	}
-	Graphic() {
-		return this.graphic;
-	}
-	Color() {
-		return this.color;
-	}
-	serialize(ar, version) {
-		ar.register_type(Coordinate);
-		ar.register_type(Color);
-		ar.register_type(MarkerType);
-		return {
-			type: ar.serialize(this.type),
-			origColor: ar.serialize(this.origColor),
-			color: ar.serialize(this.color),
-			duration: this.duration,
-			graphic: this.graphic,
-			pos: ar.serialize(this.pos),
-			counter: this.counter
-		};
-	}
-	static deserialize(data, version, deserializer) {
-		deserializer.register_type(Coordinate);
-		deserializer.register_type(Color);
-		deserializer.register_type(MarkerType);
-		let result = new MapMarker(
-			deserializer.deserialize(data.type),
-			data.graphic,
-			deserializer.deserialize(data.pos),
-			data.duration,
-			deserializer.deserialize(data.color)
-		);
-		result.origColor = deserializer.deserialize(data.origColor)
-		result.counter = data.counter;
-		return result;
-	}
+    static CLASS_VERSION = 0;
+    type = MarkerType.FLASHINGMARKER;
+    origColor = new Color();
+    color = new Color();
+    duration = 0;
+    graphic = 0;
+    pos = new Coordinate();
+    counter = 0;
+    constructor(t = MarkerType.FLASHINGMARKER, g = '?', pos = Coordinate.zero, duration = 1, color = Color.pink) {
+        this.type = t;
+        this.origColor = color;
+        this.color = color;
+        this.duration = duration;
+        this.graphic = g;
+        this.pos = pos.clone();
+    }
+    Update() {
+        if (this.duration > 0) --this.duration;
+        this.color = Color.lerp(this.origColor, Color.white, Math.abs(Math.sin(counter)));
+        this.counter += 0.1;
+        if (this.counter > Math.PI) counter = 0.0;
+        return this.duration != 0;
+    }
+    X() {
+        return this.pos.X();
+    }
+    Y() {
+        return this.pos.Y();
+    }
+    Position() {
+        this.pos;
+    }
+    Graphic() {
+        return this.graphic;
+    }
+    Color() {
+        return this.color;
+    }
+    serialize(ar, version) {
+        ar.register_type(Coordinate);
+        ar.register_type(Color);
+        ar.register_type(MarkerType);
+        return {
+            type: ar.serialize(this.type),
+            origColor: ar.serialize(this.origColor),
+            color: ar.serialize(this.color),
+            duration: this.duration,
+            graphic: this.graphic,
+            pos: ar.serialize(this.pos),
+            counter: this.counter
+        };
+    }
+    static deserialize(data, version, deserializer) {
+        deserializer.register_type(Coordinate);
+        deserializer.register_type(Color);
+        deserializer.register_type(MarkerType);
+        let result = new MapMarker(
+            deserializer.deserialize(data.type),
+            data.graphic,
+            deserializer.deserialize(data.pos),
+            data.duration,
+            deserializer.deserialize(data.color)
+        );
+        result.origColor = deserializer.deserialize(data.origColor)
+        result.counter = data.counter;
+        return result;
+    }
 };

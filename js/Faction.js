@@ -332,11 +332,9 @@ export class Faction extends Serializable {
         }
     }
     static LoadPresets(filename) {
-        let listener = new FactionListener(this);
-        listener.fetch(filename)
-            .then(function(data) {
-                listener.parse(data);
-
+        let listener = new FactionListener(this, filename);
+        return listener.fetch()
+            .then(function() {
                 for (let faction of Faction.factions) {
                     faction.TranslateFriends();
                 }

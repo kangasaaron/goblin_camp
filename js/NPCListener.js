@@ -1,8 +1,9 @@
-import { PreserParser } from "./PresetParser.js";
+import { PresetParser } from "./PresetParser.js";
 
-export class NPCListener extends PreserParser {
+export class NPCListener extends PresetParser {
     npcIndex = 0;
-    constructor(NPC) {
+    constructor(NPC, filename) {
+        super(filename);
         this.NPC = NPC;
     }
     parserNewStruct(str, name) {

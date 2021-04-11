@@ -27,73 +27,62 @@ import "UIComponents.js"
 import "Dialog.js"
 import "Grid.js"
 
-class StockManagerDialog extends /*public*/ Dialog {
-    //private:
-    std.string filter;
-    Grid * grid;
+class StockManagerDialog extends Dialog {
+    filter = "";
+    /** @type {Grid *} */
+    grid;
+    static stocksDialog = 0;
+
+
+    constructor() {
+        super(0, "Stock Manager", 68, 75);
+
+        contents = new UIContainer([], 0, 0, 68, 75);
+
+        (contents).AddComponent(new Label("Filter", 34, 1));
+        (contents).AddComponent(new TextBox(1, 2, 66, filter));
+
+        let grid = new Grid([], 4, 0, 0, 68, 71);
+        for (let it = StockManager.Producables().begin(); it != StockManager.Producables().end(); it++) {
+            grid.AddComponent(new StockPanel(it, this));
+        }
+        (contents).AddComponent(new ScrollPanel(0, 3, 68, 72, grid, false, 4));
+    }
+
+    static StocksDialog() {
+        if (!stocksDialog)
+            stocksDialog = new StockManagerDialog();
+        return stocksDialog;
+    }
+
+    GetFilter() { return filter; }
+}
+
+
+class StockPanel extends UIContainer {
+    //ItemType 
+    itemType;
+    //StockManagerDialog * 
+    owner;
     //public:
-    StockManagerDialog();
-    static Dialog * stocksDialog;
-    static Dialog * StocksDialog();
-    std.string GetFilter();
-};
-/* Copyright 2010-2011 Ilkka Halila
- This file is part of Goblin Camp.
- 
- Goblin Camp is free software: you can redistribute it and/or modify
- it under the terms of the GNU General Public License as published by
- the Free Software Foundation, either version 3 of the License, or
- (at your option) any later version.
- 
- Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
- GNU General Public License for more details.
- 
- You should have received a copy of the GNU General Public License 
- along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
-import "stdafx.js"
-
-import "string "
-
-import "libtcod.js"
-import "boost/lexical_cast.js"
-import "boost/algorithm/string.js"
-import "boost/format.js"
-
-import "UI/StockManagerDialog.js"
-import "UI/ScrollPanel.js"
-import "StockManager.js"
-import "UI/Spinner.js"
-import "UI/Label.js"
-import "UI/TextBox.js"
-
-Dialog * StockManagerDialog.stocksDialog = 0;
-
-class StockPanel extends /*public*/ UIContainer {
-    //private:
-    ItemType itemType;
-    StockManagerDialog * owner;
-    //public:
-    bool ShowItem() {
+    ShowItem() {
         if (boost.icontains(Item.Presets[itemType].name, owner.GetFilter()))
             return StockManager.TypeQuantity(itemType) > -1;
         else {
-            for (std.set < ItemCategory > .iterator cati = Item.Presets[itemType].categories.begin(); cati != Item.Presets[itemType].categories.end(); ++cati) {
-                if (boost.icontains(Item.Categories[ * cati].name, owner.GetFilter()))
+            for (let cati = Item.Presets[itemType].categories.begin(); cati != Item.Presets[itemType].categories.end(); ++cati) {
+                if (boost.icontains(Item.Categories[cati].name, owner.GetFilter()))
                     return StockManager.TypeQuantity(itemType) > -1;
             }
         }
         return false;
     }
-
-    void _GetTooltip(int x, int y, Tooltip * tooltip) {
+    _GetTooltip(x, y, tooltip) {
         if (x >= _x && x < _x + width && y >= _y && y < _y + height - 2) { // subtract 2 from height so tooltip doesn't appear when mouse is over spinner
             tooltip.AddEntry(TooltipEntry(Item.ItemTypeToString(itemType), TCODColor.white));
-            std.string compName = "";
-            int compAmt = 0;
-            for (int compi = 0; compi < (signed int) Item.Components(itemType).size(); ++compi) {
-                std.string thisCompName = Item.ItemCategoryToString(Item.Components(itemType, compi));
+            let compName = "";
+            let compAmt = 0;
+            for (let compi = 0; compi < Item.Components(itemType).size(); ++compi) {
+                let thisCompName = Item.ItemCategoryToString(Item.Components(itemType, compi));
                 if (compName == thisCompName) {
                     compAmt++;
                 } else {
@@ -110,14 +99,17 @@ class StockPanel extends /*public*/ UIContainer {
         }
     }
 
-    StockPanel(ItemType nItemType, StockManagerDialog * nowner): UIContainer(std.vector < Drawable * > (), 0, 0, 16, 4), itemType(nItemType), owner(nowner) {
-        AddComponent(new Spinner(0, 2, 16, boost.bind( & StockManager.Minimum, StockManager.Inst(), itemType),
-            boost.bind( & StockManager.SetMinimum, StockManager.Inst(), itemType, _1)));
-        SetTooltip(boost.bind( & StockPanel._GetTooltip, this, _1, _2, _3));
-        visible = boost.bind( & StockPanel.ShowItem, this);
+    constructor(nItemType, nowner) {
+        super([], 0, 0, 16, 4);
+        itemType(nItemType);
+        owner(nowner);
+        AddComponent(new Spinner(0, 2, 16, boost.bind(StockManager.Minimum, StockManager.Inst(), itemType),
+            boost.bind(StockManager.SetMinimum, StockManager.Inst(), itemType, _1)));
+        SetTooltip(boost.bind(StockPanel._GetTooltip, this, _1, _2, _3));
+        visible = boost.bind(StockPanel.ShowItem, this);
     }
 
-    void Draw(int x, int y, TCODConsole * the_console) {
+    Draw(x, y, the_console) {
         the_console.setAlignment(TCOD_CENTER);
         the_console.setDefaultForeground(Item.Presets[itemType].color);
         the_console.print(x + 8, y, "%c %s", Item.Presets[itemType].graphic, Item.Presets[itemType].name.c_str());
@@ -126,25 +118,4 @@ class StockPanel extends /*public*/ UIContainer {
         UIContainer.Draw(x, y, the_console);
     }
 
-};
-
-
-StockManagerDialog.StockManagerDialog(): Dialog(0, "Stock Manager", 68, 75), filter("") {
-    contents = new UIContainer(std.vector < Drawable * > (), 0, 0, 68, 75);
-
-    static_cast < UIContainer * > (contents).AddComponent(new Label("Filter", 34, 1));
-    static_cast < UIContainer * > (contents).AddComponent(new TextBox(1, 2, 66, & filter));
-
-    Grid * grid = new Grid(std.vector < Drawable * > (), 4, 0, 0, 68, 71);
-    for (std.set < ItemType > .iterator it = StockManager.Producables().begin(); it != StockManager.Producables().end(); it++) {
-        grid.AddComponent(new StockPanel( * it, this));
-    }
-    static_cast < UIContainer * > (contents).AddComponent(new ScrollPanel(0, 3, 68, 72, grid, false, 4));
 }
-
-Dialog * StockManagerDialog.StocksDialog() {
-    if (!stocksDialog) stocksDialog = new StockManagerDialog();
-    return stocksDialog;
-}
-
-std.string StockManagerDialog.GetFilter() { return filter; }

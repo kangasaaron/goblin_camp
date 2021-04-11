@@ -1,11 +1,16 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
 
-export const Trait = defineEnum("Trait", [
-    'FRESH',
-    'CHICKENHEART',
-    'VETERAN',
-    'BOSS',
-    'CRACKEDSKULL'
-]);
+/**
+ * @constant
+ * @enum
+ */
+export class Trait extends Enum {
+    FRESH;
+    CHICKENHEART;
+    VETERAN;
+    BOSS;
+    CRACKEDSKULL;
+}
+Trait.enumify();

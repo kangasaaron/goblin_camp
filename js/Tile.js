@@ -22,7 +22,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 import {
     TileType

@@ -1,11 +1,11 @@
-import define, { extend } from "./define.js";
+import define, { extend } from "./d3_define.js";
 
 export function Color() {}
 
-export var darker = 0.7;
-export var brighter = 1 / darker;
+export let darker = 0.7;
+export let brighter = 1 / darker;
 
-var reI = "\\s*([+-]?\\d+)\\s*",
+let reI = "\\s*([+-]?\\d+)\\s*",
     reN = "\\s*([+-]?\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)\\s*",
     reP = "\\s*([+-]?\\d*\\.?\\d+(?:[eE][+-]?\\d+)?)%\\s*",
     reHex = /^#([0-9a-f]{3,8})$/,
@@ -16,7 +16,7 @@ var reI = "\\s*([+-]?\\d+)\\s*",
     reHslPercent = new RegExp("^hsl\\(" + [reN, reP, reP] + "\\)$"),
     reHslaPercent = new RegExp("^hsla\\(" + [reN, reP, reP, reN] + "\\)$");
 
-var named = {
+let named = {
     aliceblue: 0xf0f8ff,
     antiquewhite: 0xfaebd7,
     aqua: 0x00ffff,
@@ -194,7 +194,7 @@ function color_formatRgb() {
 }
 
 export default function color(format) {
-    var m, l;
+    let m, l;
     format = (format + "").trim().toLowerCase();
     return (m = reHex.exec(format)) ? (l = m[1].length, m = parseInt(m[1], 16), l === 6 ? rgbn(m) // #ff0000
             :
@@ -280,7 +280,7 @@ function rgb_formatHex() {
 }
 
 function rgb_formatRgb() {
-    var a = this.opacity;
+    let a = this.opacity;
     a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
     return (a === 1 ? "rgb(" : "rgba(") +
         Math.max(0, Math.min(255, Math.round(this.r) || 0)) + ", " +
@@ -307,7 +307,7 @@ export function hslConvert(o) {
     if (!o) return new Hsl;
     if (o instanceof Hsl) return o;
     o = o.rgb();
-    var r = o.r / 255,
+    let r = o.r / 255,
         g = o.g / 255,
         b = o.b / 255,
         min = Math.min(r, g, b),
@@ -348,7 +348,7 @@ define(Hsl, hsl, extend(Color, {
         return new Hsl(this.h, this.s, this.l * k, this.opacity);
     },
     rgb: function() {
-        var h = this.h % 360 + (this.h < 0) * 360,
+        let h = this.h % 360 + (this.h < 0) * 360,
             s = isNaN(h) || isNaN(this.s) ? 0 : this.s,
             l = this.l,
             m2 = l + (l < 0.5 ? l : 1 - l) * s,
@@ -366,7 +366,7 @@ define(Hsl, hsl, extend(Color, {
             (0 <= this.opacity && this.opacity <= 1);
     },
     formatHsl: function() {
-        var a = this.opacity;
+        let a = this.opacity;
         a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
         return (a === 1 ? "hsl(" : "hsla(") +
             (this.h || 0) + ", " +
@@ -378,12 +378,16 @@ define(Hsl, hsl, extend(Color, {
 
 /* From FvD 13.37, CSS Color Module Level 3 */
 function hsl2rgb(h, m1, m2) {
-    return (h < 60 ? m1 + (m2 - m1) * h / 60 :
-        h < 180 ? m2 :
-        h < 240 ? m1 + (m2 - m1) * (240 - h) / 60 :
-        m1) * 255;
+    return (
+        (h < 60 ?
+            m1 + ((m2 - m1) * h) / 60 :
+            h < 180 ?
+            m2 :
+            h < 240 ?
+            m1 + ((m2 - m1) * (240 - h)) / 60 :
+            m1) * 255
+    );
 }
-
 define(Hsl, hsl, extend(Color, {
     brighter: function(k) {
         k = k == null ? brighter : Math.pow(brighter, k);
@@ -394,7 +398,7 @@ define(Hsl, hsl, extend(Color, {
         return new Hsl(this.h, this.s, this.l * k, this.opacity);
     },
     rgb: function() {
-        var h = (this.h % 360) + (this.h < 0) * 360,
+        let h = (this.h % 360) + (this.h < 0) * 360,
             s = isNaN(h) || isNaN(this.s) ? 0 : this.s,
             l = this.l,
             m2 = l + (l < 0.5 ? l : 1 - l) * s,
@@ -416,7 +420,7 @@ define(Hsl, hsl, extend(Color, {
         );
     },
     formatHsl: function() {
-        var a = this.opacity;
+        let a = this.opacity;
         a = isNaN(a) ? 1 : Math.max(0, Math.min(1, a));
         return (
             (a === 1 ? "hsl(" : "hsla(") +
@@ -430,16 +434,3 @@ define(Hsl, hsl, extend(Color, {
         );
     },
 }));
-
-/* From FvD 13.37, CSS Color Module Level 3 */
-function hsl2rgb(h, m1, m2) {
-    return (
-        (h < 60 ?
-            m1 + ((m2 - m1) * h) / 60 :
-            h < 180 ?
-            m2 :
-            h < 240 ?
-            m1 + ((m2 - m1) * (240 - h)) / 60 :
-            m1) * 255
-    );
-}

@@ -2,6 +2,9 @@ import {
     Coordinate
 } from "../Coordinate.js";
 import {
+    Direction
+} from "../Direction.js";
+import {
     Enum
 } from "../other/Enums.js";
 
@@ -47,17 +50,17 @@ QUnit.module("Direction test", function () {
 
 QUnit.module("Zero test", function () {
     QUnit.test("zero", function (assert) {
-        assert.ok(zero instanceof Coordinate);
-        assert.equal(zero.x, 0);
-        assert.equal(zero.y, 0);
+        assert.ok(Coordinate.zero instanceof Coordinate);
+        assert.equal(Coordinate.zero.x, 0);
+        assert.equal(Coordinate.zero.y, 0);
     });
 });
 
 QUnit.module("Undefined Coordinate test", function () {
     QUnit.test("undefinedCoordinate", function (assert) {
-        assert.ok(undefinedCoordinate instanceof Coordinate);
-        assert.equal(undefinedCoordinate.x, -1);
-        assert.equal(undefinedCoordinate.y, -1);
+        assert.ok(Coordinate.undefinedCoordinate instanceof Coordinate);
+        assert.equal(Coordinate.undefinedCoordinate.x, -1);
+        assert.equal(Coordinate.undefinedCoordinate.y, -1);
     });
 });
 

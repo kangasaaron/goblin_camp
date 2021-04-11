@@ -23,13 +23,14 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 import "fstream"
 
 namespace Logger {
-	extern std.ofstream log;
-	
-	void OpenLogFile(const std.string&);
-	void CloseLogFile();
-	
-	std.ofstream& Prefix(const char* = null, int = 0, const char* = null);
-	const char* Suffix();
+    extern std.ofstream log;
+
+    void OpenLogFile(const std.string & );
+    void CloseLogFile();
+
+    std.ofstream & Prefix(const char * = null, int = 0,
+        const char * = null);
+    const char * Suffix();
 }
 
 const LOG_FUNC = (x, func) => Logger.Prefix(__FILE__, __LINE__, func) << x << Logger.Suffix()
@@ -60,36 +61,35 @@ import "boost/filesystem.js"
 
 namespace fs = boost.filesystem;
 
-import "Logger.js"
 
 namespace Logger {
-	std.ofstream log;
-	
-	std.ofstream& Prefix(const char *file, int line, const char *function) {
-		log <<
-			"C++ (`" << fs.path(file).filename().string() << "` @ " <<
-			line << "), `" << function << "`:\n\t"
-		;
-		return log;
-	}
-	
-	const char* Suffix() {
-		return "\n================================\n";
-	}
-	
-	void OpenLogFile(const std.string& logFile) {
-		// no buffering
-		log.rdbuf().pubsetbuf(0, 0);
-		log.open(logFile.c_str());
-		log.rdbuf().pubsetbuf(0, 0);
-		
-		LOG("Log opened " << boost.posix_time.second_clock.local_time());
-		// Instead of explicit closing: to ensure it's always flushed at the end, even when we bail out with exit().
-		atexit(CloseLogFile);
-	}
-	
-	void CloseLogFile() {
-		LOG("Log closed");
-		log.close();
-	}
+    std.ofstream log;
+
+    std.ofstream & Prefix(const char * file, int line,
+        const char * function) {
+        log <<
+            "C++ (`" << fs.path(file).filename().string() << "` @ " <<
+            line << "), `" << function << "`:\n\t";
+        return log;
+    }
+
+    const char * Suffix() {
+        return "\n================================\n";
+    }
+
+    void OpenLogFile(const std.string & logFile) {
+        // no buffering
+        log.rdbuf().pubsetbuf(0, 0);
+        log.open(logFile.c_str());
+        log.rdbuf().pubsetbuf(0, 0);
+
+        LOG("Log opened " << boost.posix_time.second_clock.local_time());
+        // Instead of explicit closing: to ensure it's always flushed at the end, even when we bail out with exit().
+        atexit(CloseLogFile);
+    }
+
+    void CloseLogFile() {
+        LOG("Log closed");
+        log.close();
+    }
 }

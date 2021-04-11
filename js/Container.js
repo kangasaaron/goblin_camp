@@ -15,18 +15,7 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "set"
-
-import "boost/weak_ptr.js"
-import "boost/shared_ptr.js"
-
-import "Item.js"
-import "data/Serialization.js"
-
-class ContainerListener {
-    ItemAdded() {}
-    ItemRemoved() {}
-}
+import { Item } from "./Item.js"
 
 export class Container extends Item {
     static CLASS_VERSION = 0;

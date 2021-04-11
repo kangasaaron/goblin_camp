@@ -1,6 +1,6 @@
 import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 import {
     Attack
 } from "./Attack.js";

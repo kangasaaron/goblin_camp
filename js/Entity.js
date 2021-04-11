@@ -21,14 +21,18 @@ import {
     FlightPath
 } from "./FlightPath.js";
 import {
+    Coordinate
+} from "./Coordinate.js";
+import {
     Color
-} from "./other/Color.js";
+} from "./color/Color.js";
 
 const ENTITYHEIGHT = 5;
 
 export class Entity extends Serializable {
     static CLASS_VERSION = 0;
     static uids = 0;
+    /** @type {Coordinate} */
     pos = null;
     uid = 0;
     zone = 0;
@@ -37,7 +41,9 @@ export class Entity extends Serializable {
     faction = -1;
     velocity = 0;
     nextVelocityMove = 0;
+    /** @type {Coordinate} */
     velocityTarget = new Coordinate();
+    /** @type {Array<FlightPath>} */
     flightPath = [];
     bulk = 0;
     strobe = 0;
@@ -49,11 +55,13 @@ export class Entity extends Serializable {
         return this.pos.X();
     }
     Y() {
-        return this.pos.Y();
-    }
+            return this.pos.Y();
+        }
+        /** @type {Coordinate} */
     Center() {
-        return this.Position();
-    }
+            return this.Position();
+        }
+        /** @type {Coordinate} */
     Position(p) {
         if (p !== undefined && p instanceof Coordinate)
             this.pos = p;
@@ -91,15 +99,24 @@ export class Entity extends Serializable {
         tooltip.AddEntry(new TooltipEntry(this.name, Color.white));
     }
     GetVelocity() {
-        return this.velocity;
-    }
+            return this.velocity;
+        }
+        /**
+         * 
+         * @param {number} value 
+         */
     SetVelocity(value) {
         this.velocity = value;
     }
 
+    /** @returns {Coordinate} */
     GetVelocityTarget() {
-        return this.velocityTarget;
-    }
+            return this.velocityTarget;
+        }
+        /**
+         * 
+         * @param {Coordinate} value 
+         */
     SetVelocityTarget(value) {
         this.velocityTarget = value;
     }
@@ -146,19 +163,26 @@ export class Entity extends Serializable {
         }
     }
     static deserialize(data, version, deserializer) {
-        let result = new Entity();
-        result.pos = deserializer.deserialize(data.pos);
-        result.uid = data.uid;
-        result.zone = data.zone;
-        result.reserved = data.reserved;
-        result.name = data.name;
-        result.faction = Faction.StringToFactionType(data.factionName);
-        result.velocity = data.velocity;
-        result.nextVelocityMove = data.nextVelocityMove;
-        result.velocityTarget = deserializer.deserialize(data.velocityTarget);
-        result.bulk = data.bulk;
-        return result;
-    }
+            let result = new Entity();
+            result.pos = deserializer.deserialize(data.pos);
+            result.uid = data.uid;
+            result.zone = data.zone;
+            result.reserved = data.reserved;
+            result.name = data.name;
+            result.faction = Faction.StringToFactionType(data.factionName);
+            result.velocity = data.velocity;
+            result.nextVelocityMove = data.nextVelocityMove;
+            result.velocityTarget = deserializer.deserialize(data.velocityTarget);
+            result.bulk = data.bulk;
+            return result;
+        }
+        /**
+         * 
+         * @param {Coordinate} target 
+         * @param {number} speed 
+         * @param {number} initialHeight 
+         * @returns 
+         */
     CalculateFlightPath(target, speed, initialHeight = 0) {
         if (DEBUG) {
             console.log(`Calculating flightpath for ${this.name} from ${this.pos.X()},${this.pos.Y()} to ${target.X()},${target.Y()} at v:${speed}`);
@@ -180,7 +204,7 @@ export class Entity extends Serializable {
         let h = 0;
         let hAdd = Math.max(1, 50 / speed);
         /* The lower the speed, the higher the entity has to arch in order
-        					   for it to fly the distance */
+                               for it to fly the distance */
 
         let begIt = 0;
         let endIt = this.flightPath.length;

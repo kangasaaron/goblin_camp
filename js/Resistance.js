@@ -1,14 +1,17 @@
 import {
-    defineEnum
+    Enum
 } from "./other/enums.js";
-
-export const Resistance = defineEnum("Resistance", [
-    "PHYSICAL_RES",
-    "MAGIC_RES",
-    "POISON_RES",
-    "COLD_RES",
-    "FIRE_RES",
-    "DISEASE_RES",
-    "BLEEDING_RES",
-    "RES_COUNT"
-]);
+/**
+ * @enum
+ */
+export class Resistance extends Enum {
+    static PHYSICAL_RES;
+    static MAGIC_RES;
+    static POISON_RES;
+    static COLD_RES;
+    static FIRE_RES;
+    static DISEASE_RES;
+    static BLEEDING_RES;
+    static RES_COUNT;
+}
+Resistance.enumify();

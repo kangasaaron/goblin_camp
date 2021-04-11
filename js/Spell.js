@@ -205,10 +205,7 @@ export class Spell extends Entity {
         return result;
     }
     static LoadPresets(filename) {
-        let listener = new SpellListener(this);
-        listener.fetch(filename)
-            .then(function (data) {
-                listener.parse(data);
-            });
+        let listener = new SpellListener(this, filename);
+        return listener.fetch();
     }
 }
