@@ -15,6 +15,7 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import { Paths } from "./Paths.js";
+import { Path } from "./Path.js";
 
 // Data refactoring: mods.
 // import "tileRenderer/TileSetLoader.js"
@@ -83,19 +84,19 @@ class Modifications {
         // load core data
         let me = this,
             modNames = [];
-        return this.LoadMod(Paths.GetName(Paths.GlobalData) + "gcamp_core", true)
-            .then(function() {
+        return me.LoadMod(Paths.GetName(Path.GlobalData) + "/gcamp_core", true)
+            .then(function () {
                 return me.loadedMods.push(new MetaData("Goblin Camp"));
-            }).then(function() {
+            }).then(function () {
                 return Paths.Mods.keys();
-            }).then(function(keys) {
+            }).then(function (keys) {
                 // load user mods
-                return Promise.all(keys.map(function(key) {
+                return Promise.all(keys.map(function (key) {
                     let modName = key.substring(0, key.indexOf("/"));
                     if (modNames.includes(modName)) return true;
                     return me.LoadMod(Paths.GetName(Paths.Mods) + modName);
                 }));
-            }).then(function() {
+            }).then(function () {
                 // now resolve containers and products
                 Item.ResolveContainers();
                 Construction.ResolveProducts();
@@ -117,19 +118,19 @@ class Modifications {
 
         // Removed magic apiVersion in favour of reusing already-hardcoded 'required' code path.
         let metadata = new Metadata(mod, mod, "", "1.0", (required ? Script.version : -1));
-        return mod.keys().then(function(keys) {
-                if (keys.includes(dir.GetURL() + "mod.dat")) {
-                    console.log("Loading metadata.", "LoadMod");
-                    return this.LoadMetadata(metadata, dir.GetURL() + "mod.dat");
-                }
-                return Promise.all([]);
-            }).then(function() {
-                return this.LoadModFiles(dir, required)
-            })
-            .then(function() {
+        return mod.keys().then(function (keys) {
+            if (keys.includes(dir.GetURL() + "mod.dat")) {
+                console.log("Loading metadata.", "LoadMod");
+                return this.LoadMetadata(metadata, dir.GetURL() + "mod.dat");
+            }
+            return Promise.all([]);
+        }).then(function () {
+            return this.LoadModFiles(dir, required)
+        })
+            .then(function () {
                 return TileSetLoader.LoadTilesetModMetadata(dir);
             })
-            .then(function(tilesetMods) {
+            .then(function (tilesetMods) {
                 for (let iter of tilesetMods)
                     this.availableTilesetMods.push(iter);
 
@@ -145,7 +146,7 @@ class Modifications {
                 if (p) return p;
                 return Promise.all([]);
             })
-            .catch(function(e) {
+            .catch(function (e) {
                 console.log("Failed to load mod due to std.runtime_error: " + e.message, "LoadMod");
                 if (required)
                     Game.ErrorScreen(); // FIXME: hangs
