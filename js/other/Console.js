@@ -2,15 +2,7 @@
 import { BlendMode } from "./BlendMode.js";
 import { Alignment } from "./Alignment.js";
 import { Color } from "../color/Color.js";
-
-const chars = {
-    "light_down_and_right": '&#9484;',
-    "light_down_and_left": '&#9488;',
-    "light_up_and_right": '&#9492;',
-    "light_up_and_left": '&#9496;',
-    "light_horizontal": '&#9472;',
-    "light_vertical": '&#9474;',
-};
+import { Chars } from "./Chars.js";
 
 class Tile {
     char = " ";
@@ -66,7 +58,7 @@ export class Console {
         let styleElement = document.createElement('style');
         styleElement.innerHTML = `
 .c_table {
-    font-family: 'Fira Mono', 'Courier New', 'Lucida Console', monospace;
+    font-family: ui-sans-serif,sans-serif;
     font-size: smaller
 }
 .c_row {
@@ -77,6 +69,7 @@ export class Console {
     height: 1em; 
     width: 1em;
     cursor: default;
+    text-align: center;
 }`;
 
         let tableElement = document.createElement("table");
@@ -162,12 +155,12 @@ export class Console {
     }
     hLine(x, y, l, flag) {
         for (let i = x; i < x + l; i++) {
-            this.putChar(i, y, chars.light_horizontal, flag)
+            this.putChar(i, y, Chars.light_horizontal, flag)
         }
     }
     vLine(x, y, l, flag) {
         for (let j = y; j < y + l; j++) {
-            this.putChar(x, j, chars.light_vertical, flag)
+            this.putChar(x, j, Chars.light_vertical, flag)
         }
     }
     rect(x, y, w, h, clear, flag) {
@@ -183,10 +176,10 @@ export class Console {
         this.hLine(x + 1, y + h, w - 1, flag);
         this.vLine(x, y + 1, h - 1, flag);
         this.vLine(x + w, y + 1, h - 1, flag);
-        this.putChar(x, y, chars.light_down_and_right, flag);
-        this.putChar(x + w, y, chars.light_down_and_left, flag);
-        this.putChar(x, y + h, chars.light_up_and_right, flag);
-        this.putChar(x + w, y + h, chars.light_up_and_left, flag);
+        this.putChar(x, y, Chars.light_down_and_right, flag);
+        this.putChar(x + w, y, Chars.light_down_and_left, flag);
+        this.putChar(x, y + h, Chars.light_up_and_right, flag);
+        this.putChar(x + w, y + h, Chars.light_up_and_left, flag);
         this.print(x, y, text);
     }
     print(x, y, text = "") {

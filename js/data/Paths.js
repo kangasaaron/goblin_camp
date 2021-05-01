@@ -21,7 +21,7 @@ import { Path } from "./Path.js";
  * Interface to manage platform-specific paths in a platform-agnostic way.
  * Basic building block of data handling code.
  */
-class PathsImplementation {
+export class Paths {
     /**
      * @var personalDir
      * Path to user's personal directory for Goblin %Camp.
@@ -81,6 +81,17 @@ class PathsImplementation {
      * Path to user's bitmap font.
      */
     font = "";
+
+    Reset() {
+        this.instance = null;
+        this.instance = new Paths();
+        return this.instance;
+    }
+    constructor() {
+        if (Paths.instance) return Paths.instance;
+
+        return this;
+    }
 
     /**
      * Finds current user's personal directory.
@@ -176,43 +187,43 @@ class PathsImplementation {
 
         let me = this;
         return Promise.all([
-            me.openCache(this.personalDir).then(function(cache) {
+            me.openCache(this.personalDir).then(function (cache) {
                 me.caches.personalDir = cache;
             }),
-            me.openCache(this.savesDir).then(function(cache) {
+            me.openCache(this.savesDir).then(function (cache) {
                 me.caches.savesDir = cache;
             }),
-            me.openCache(this.screensDir).then(function(cache) {
+            me.openCache(this.screensDir).then(function (cache) {
                 me.caches.screensDir = cache;
             }),
-            me.openCache(this.modsDir).then(function(cache) {
+            me.openCache(this.modsDir).then(function (cache) {
                 me.caches.modsDir = cache;
             }),
-            me.openCache(this.coreTilesetsDir).then(function(cache) {
+            me.openCache(this.coreTilesetsDir).then(function (cache) {
                 me.caches.coreTilesetsDir = cache;
             }),
-            me.openCache(this.tilesetsDir).then(function(cache) {
+            me.openCache(this.tilesetsDir).then(function (cache) {
                 me.caches.tilesetsDir = cache;
             }),
-            me.openCache(this.tilesetsDir).then(function(cache) {
+            me.openCache(this.tilesetsDir).then(function (cache) {
                 me.caches.tilesetsDir = cache;
             }),
-            me.openCache(this.execDir).then(function(cache) {
+            me.openCache(this.execDir).then(function (cache) {
                 me.caches.execDir = cache;
             }),
-            me.openCache(this.dataDir).then(function(cache) {
+            me.openCache(this.dataDir).then(function (cache) {
                 me.caches.dataDir = cache;
             }),
-            me.openCache(this.exec).then(function(cache) {
+            me.openCache(this.exec).then(function (cache) {
                 me.caches.exec = cache;
             }),
-            me.openCache(this.config).then(function(cache) {
+            me.openCache(this.config).then(function (cache) {
                 me.caches.config = cache;
             }),
-            me.openCache(this.font).then(function(cache) {
+            me.openCache(this.font).then(function (cache) {
                 me.caches.font = cache;
             }),
-        ]).then(function(caches) {
+        ]).then(function (caches) {
             me.ready = true;
         });
     }
@@ -268,9 +279,9 @@ class PathsImplementation {
         if (typeof filepath == "string") filepath = new FilePath(filepath);
         let cache = this.Get(filepath.GetCache(this));
         let url = filepath.GetURL();
-        return cache.keys(function(keys) {
+        return cache.keys(function (keys) {
             if (keys.includes(url) || !fetch)
-            // if we know it's in there, or we're not supposed to fetch it
+                // if we know it's in there, or we're not supposed to fetch it
                 return cache.match(url);
             return cache.add(url);
         });
@@ -316,4 +327,4 @@ class PathsImplementation {
     }
 }
 
-export let Paths = new PathsImplementation();
+

@@ -17,10 +17,10 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
     Serializable
-} from "data/Serialization.js"
+} from "./data/Serialization.js"
 import {
     Coordinate
-} from "Coordinate.js"
+} from "./Coordinate.js"
 import {
     Color
 } from "./color/Color";

@@ -263,8 +263,8 @@ class OGLTilesetRenderer extends TilesetRenderer {
         renderInProgress = true;
     }
 
-    PostDrawMap() {}
-    DrawNullTile(screenX, screenY) {}
+    PostDrawMap() { }
+    DrawNullTile(screenX, screenY) { }
 
     TilesetChanged() {
         if (!AssembleTextures()) {
@@ -464,92 +464,92 @@ class OGLTilesetRenderer extends TilesetRenderer {
         CheckGL_Error("render", __FILE__, __LINE__);
     }
     RenderGLSLViewport() {
-            for (let i = 0; i < viewportLayers.size(); ++i) {
-                glBindTexture(GL_TEXTURE_2D, viewportTextures[i]);
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2 * viewportW, 2 * viewportH, GL_RGBA, GL_UNSIGNED_BYTE, viewportLayers[i]);
-            }
+        for (let i = 0; i < viewportLayers.size(); ++i) {
+            glBindTexture(GL_TEXTURE_2D, viewportTextures[i]);
+            glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 2 * viewportW, 2 * viewportH, GL_RGBA, GL_UNSIGNED_BYTE, viewportLayers[i]);
+        }
 
-            let sizeX = 2.0 * viewportW * tileSet.TileWidth() / GetScreenWidth();
-            let sizeY = 2.0 * viewportH * tileSet.TileHeight() / GetScreenHeight();
+        let sizeX = 2.0 * viewportW * tileSet.TileWidth() / GetScreenWidth();
+        let sizeY = 2.0 * viewportH * tileSet.TileHeight() / GetScreenHeight();
 
-            let startX = 2.0 * startPixelX / GetScreenWidth();
-            let startY = 2.0 * startPixelY / GetScreenHeight();
+        let startX = 2.0 * startPixelX / GetScreenWidth();
+        let startY = 2.0 * startPixelY / GetScreenHeight();
 
-            let vertOffsetX = 2.0 * mapOffsetX / GetScreenWidth();
-            let vertOffsetY = 2.0 * mapOffsetY / GetScreenHeight();
+        let vertOffsetX = 2.0 * mapOffsetX / GetScreenWidth();
+        let vertOffsetY = 2.0 * mapOffsetY / GetScreenHeight();
 
-            glUseProgramObjectARB(viewportProgram);
+        glUseProgramObjectARB(viewportProgram);
 
-            glUniform2fARB(glGetUniformLocationARB(viewportProgram, "termsize"), viewportW, viewportH);
-            glUniform2fARB(glGetUniformLocationARB(viewportProgram, "termcoef"), 2.0 / viewportTexW, 2.0 / viewportTexH);
-            glUniform1fARB(glGetUniformLocationARB(viewportProgram, "tilew"), tilesTextureW);
-            glUniform2fARB(glGetUniformLocationARB(viewportProgram, "tilecoef"), 1.0 / tilesTextureW, 1.0 / tilesTextureH);
+        glUniform2fARB(glGetUniformLocationARB(viewportProgram, "termsize"), viewportW, viewportH);
+        glUniform2fARB(glGetUniformLocationARB(viewportProgram, "termcoef"), 2.0 / viewportTexW, 2.0 / viewportTexH);
+        glUniform1fARB(glGetUniformLocationARB(viewportProgram, "tilew"), tilesTextureW);
+        glUniform2fARB(glGetUniformLocationARB(viewportProgram, "tilecoef"), 1.0 / tilesTextureW, 1.0 / tilesTextureH);
 
-            for (let i = 0; i < viewportTextures.size(); ++i) {
-                glActiveTexture(GL_TEXTURE0);
-                glBindTexture(GL_TEXTURE_2D, tilesTexture);
-                glUniform1iARB(glGetUniformLocationARB(viewportProgram, "tilesheet"), 0);
-
-                glActiveTexture(GL_TEXTURE1);
-                glBindTexture(GL_TEXTURE_2D, viewportTextures[i]);
-                glUniform1iARB(glGetUniformLocationARB(viewportProgram, "tiles"), 1);
-
-                glBegin(GL_QUADS);
-                glTexCoord2f(0.0, 1.0);
-                glVertex3f(vertOffsetX + startX - 1.0, 1.0 - vertOffsetY - startY - sizeY, 0.0);
-                glTexCoord2f(1.0, 1.0);
-                glVertex3f(vertOffsetX + startX + sizeX - 1.0, 1.0 - vertOffsetY - startY - sizeY, 0.0);
-                glTexCoord2f(1.0, 0.0);
-                glVertex3f(vertOffsetX + startX + sizeX - 1.0, 1.0 - vertOffsetY - startY, 0.0);
-                glTexCoord2f(0.0, 0.0);
-                glVertex3f(vertOffsetX + startX - 1.0, 1.0 - vertOffsetY - startY, 0.0);
-                glEnd();
-            }
-
+        for (let i = 0; i < viewportTextures.size(); ++i) {
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glUseProgramObjectARB(0);
-
-            CheckGL_Error("Shader Render Viewport Layers", __FILE__, __LINE__);
-
-            let texCoordTileW = 0.5 / tilesTextureW;
-            let texCoordTileH = 0.5 / tilesTextureH;
-
-            sizeX = 0.5 * tileSet.TileWidth();
-            sizeY = 0.5 * tileSet.TileHeight();
-
-            let offsetX = boost.numeric_cast < float > (mapOffsetX + startPixelX);
-            let offsetY = boost.numeric_cast < float > (mapOffsetY + startPixelY);
-
-            let factorX = 1.0 / fontCharW;
-            let factorY = 1.0 / fontCharH;
-
             glBindTexture(GL_TEXTURE_2D, tilesTexture);
-            CheckGL_Error("glBindTexture", __FILE__, __LINE__);
+            glUniform1iARB(glGetUniformLocationARB(viewportProgram, "tilesheet"), 0);
+
+            glActiveTexture(GL_TEXTURE1);
+            glBindTexture(GL_TEXTURE_2D, viewportTextures[i]);
+            glUniform1iARB(glGetUniformLocationARB(viewportProgram, "tiles"), 1);
 
             glBegin(GL_QUADS);
-            glColor4f(1.0, 1.0, 1.0, 1.0);
-            for (letqueuedTile = renderQueue.begin(); queuedTile != renderQueue.end(); ++queuedTile) {
-                /**unsigned int*/
-                let srcX = 2 * (queuedTile.tile % tilesTextureW);
-                /**unsigned int*/
-                let srcY = 2 * (queuedTile.tile / tilesTextureH);
-                srcX += (queuedTile.x & 0x1);
-                srcY += (queuedTile.y & 0x1);
-                glTexCoord2f(srcX * texCoordTileW, srcY * texCoordTileH);
-                glVertex2f(factorX * (offsetX + queuedTile.x * sizeX), factorY * (GetScreenHeight() - queuedTile.y * sizeY - offsetY));
-                glTexCoord2f(srcX * texCoordTileW, (srcY + 1) * texCoordTileH);
-                glVertex2f(factorX * (offsetX + queuedTile.x * sizeX), factorY * (GetScreenHeight() - (queuedTile.y + 1) * sizeY - offsetY));
-                glTexCoord2f((srcX + 1) * texCoordTileW, (srcY + 1) * texCoordTileH);
-                glVertex2f(factorX * (offsetX + (queuedTile.x + 1) * sizeX), factorY * (GetScreenHeight() - (queuedTile.y + 1) * sizeY - offsetY));
-                glTexCoord2f((srcX + 1) * texCoordTileW, srcY * texCoordTileH);
-                glVertex2f(factorX * (offsetX + (queuedTile.x + 1) * sizeX), factorY * (GetScreenHeight() - queuedTile.y * sizeY - offsetY));
-            }
+            glTexCoord2f(0.0, 1.0);
+            glVertex3f(vertOffsetX + startX - 1.0, 1.0 - vertOffsetY - startY - sizeY, 0.0);
+            glTexCoord2f(1.0, 1.0);
+            glVertex3f(vertOffsetX + startX + sizeX - 1.0, 1.0 - vertOffsetY - startY - sizeY, 0.0);
+            glTexCoord2f(1.0, 0.0);
+            glVertex3f(vertOffsetX + startX + sizeX - 1.0, 1.0 - vertOffsetY - startY, 0.0);
+            glTexCoord2f(0.0, 0.0);
+            glVertex3f(vertOffsetX + startX - 1.0, 1.0 - vertOffsetY - startY, 0.0);
             glEnd();
-            CheckGL_Error("render", __FILE__, __LINE__);
         }
-        // void RenderGLSLTile(int tile, int x, int y);
-        // void RenderOGLTile(int tile, int x, int y);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, 0);
+        glUseProgramObjectARB(0);
+
+        CheckGL_Error("Shader Render Viewport Layers", __FILE__, __LINE__);
+
+        let texCoordTileW = 0.5 / tilesTextureW;
+        let texCoordTileH = 0.5 / tilesTextureH;
+
+        sizeX = 0.5 * tileSet.TileWidth();
+        sizeY = 0.5 * tileSet.TileHeight();
+
+        let offsetX = boost.numeric_cast < float > (mapOffsetX + startPixelX);
+        let offsetY = boost.numeric_cast < float > (mapOffsetY + startPixelY);
+
+        let factorX = 1.0 / fontCharW;
+        let factorY = 1.0 / fontCharH;
+
+        glBindTexture(GL_TEXTURE_2D, tilesTexture);
+        CheckGL_Error("glBindTexture", __FILE__, __LINE__);
+
+        glBegin(GL_QUADS);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
+        for (letqueuedTile = renderQueue.begin(); queuedTile != renderQueue.end(); ++queuedTile) {
+            /**unsigned int*/
+            let srcX = 2 * (queuedTile.tile % tilesTextureW);
+            /**unsigned int*/
+            let srcY = 2 * (queuedTile.tile / tilesTextureH);
+            srcX += (queuedTile.x & 0x1);
+            srcY += (queuedTile.y & 0x1);
+            glTexCoord2f(srcX * texCoordTileW, srcY * texCoordTileH);
+            glVertex2f(factorX * (offsetX + queuedTile.x * sizeX), factorY * (GetScreenHeight() - queuedTile.y * sizeY - offsetY));
+            glTexCoord2f(srcX * texCoordTileW, (srcY + 1) * texCoordTileH);
+            glVertex2f(factorX * (offsetX + queuedTile.x * sizeX), factorY * (GetScreenHeight() - (queuedTile.y + 1) * sizeY - offsetY));
+            glTexCoord2f((srcX + 1) * texCoordTileW, (srcY + 1) * texCoordTileH);
+            glVertex2f(factorX * (offsetX + (queuedTile.x + 1) * sizeX), factorY * (GetScreenHeight() - (queuedTile.y + 1) * sizeY - offsetY));
+            glTexCoord2f((srcX + 1) * texCoordTileW, srcY * texCoordTileH);
+            glVertex2f(factorX * (offsetX + (queuedTile.x + 1) * sizeX), factorY * (GetScreenHeight() - queuedTile.y * sizeY - offsetY));
+        }
+        glEnd();
+        CheckGL_Error("render", __FILE__, __LINE__);
+    }
+    // void RenderGLSLTile(int tile, int x, int y);
+    // void RenderOGLTile(int tile, int x, int y);
 
 
     RenderConsole() {
@@ -855,7 +855,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
     }
 
     static TCOD_con_vertex_shader = `
-            ${ (NDEBUG === undefined)  ? "#version 110\n" : ""} 
+            ${(NDEBUG === undefined) ? "#version 110\n" : ""} 
 uniform vec2 termsize; 
 
 void main(void) 
@@ -915,7 +915,7 @@ void main(void)
 } `;
 
     static tiles_frag_shader = `
-            ${ (NDEBUG === undefined) ? "#version 110\n" : ""}
+            ${(NDEBUG === undefined) ? "#version 110\n" : ""}
 uniform sampler2D tilesheet; 
 uniform sampler2D tiles; 
 

@@ -16,8 +16,8 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 import {
-    Serializeable
-} from "data/Serialization.js";
+    Serializable
+} from "./data/Serialization.js";
 import {
     WeatherType
 } from "./WeatherType.js";
@@ -25,7 +25,7 @@ import {
     Direction
 } from "./Direction.js";
 
-export class Weather extends Serializeable {
+export class Weather extends Serializable {
     static CLASS_VERSION = 0;
 
     map = null;

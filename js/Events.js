@@ -18,6 +18,9 @@ import {
     Color
 } from "./color/Color.js";
 import {
+    Config
+} from "./data/Config.js";
+import {
     Coordinate
 } from "./Coordinate.js";
 import {
@@ -41,6 +44,7 @@ export class Events {
     existingImmigrants = [];
     constructor(vmap) {
         this.map = vmap;
+        this.Config = new Config();
         for (let i = 0; i < NPC.Presets.length; ++i) {
             if (NPC.Presets[i].tags.has("attacksrandomly"))
                 this.hostileSpawningMonsters.push(i);
@@ -81,11 +85,11 @@ export class Events {
 
         let cSeason = Game.CurrentSeason();
         if ((cSeason == EarlySpring ||
-                cSeason == Spring ||
-                cSeason == LateSpring ||
-                cSeason == EarlyFall ||
-                cSeason == Fall ||
-                cSeason == LateFall) && Random.Generate(UPDATES_PER_SECOND * 60 * 30) == 0) {
+            cSeason == Spring ||
+            cSeason == LateSpring ||
+            cSeason == EarlyFall ||
+            cSeason == Fall ||
+            cSeason == LateFall) && Random.Generate(UPDATES_PER_SECOND * 60 * 30) == 0) {
             this.SpawnMigratingAnimals();
         }
     }
@@ -120,7 +124,7 @@ export class Events {
         Game.CreateNPCs(hostileSpawnCount, monsterType, a, b);
         Announce.AddMsg(msg, Color.red, new Coordinate((a.X() + b.X()) / 2, (a.Y() + b.Y()) / 2));
         this.timeSinceHostileSpawn = 0;
-        if (Config.GetCVar("pauseOnDanger"))
+        if (this.Config.GetCVar("pauseOnDanger"))
             Game.AddDelay(UPDATES_PER_SECOND, Game.Pause.bind(Game));
 
     }
@@ -357,7 +361,7 @@ export class Events {
             mgrnt.StartJob(migrateJob);
         }
 
-        let msg = `A ${NPC.Presets[monsterType].name} migration is occurring outside your ${ Camp.GetName()}.`;
+        let msg = `A ${NPC.Presets[monsterType].name} migration is occurring outside your ${Camp.GetName()}.`;
 
         Announce.AddMsg(msg, Color.green, (a + b) / 2);
         if (DEBUG) {

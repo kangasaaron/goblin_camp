@@ -6,13 +6,15 @@ export class PresetParser extends EventTarget {
     filename;
     ready = false;
     constructor(filename) {
-            this.filename = new FilePath(filename);
-        }
-        /** @returns {Promise} that resolves into this, with data having been parsed */
+        this.filename = new FilePath(filename);
+        this.Paths = new Paths();
+    }
+
+    /** @returns {Promise} that resolves into this, with data having been parsed */
     fetch() {
         let me = this;
-        return Paths.GetFilePath(this.filename)
-            .then(function(data) {
+        return this.Paths.GetFilePath(this.filename)
+            .then(function (data) {
                 return me.parse(data);
             });
     }

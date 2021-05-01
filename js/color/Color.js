@@ -26,6 +26,9 @@ export class Color extends Serializable {
     get opacity() {
         return this._storage.opacity;
     }
+    clone() {
+        return new Color(this.r, this.g, this.b, this.opacity);
+    }
     equals(that) {
         return this.r == that.r &&
             this.g == that.g &&

@@ -15,7 +15,6 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 // import "./Config.js"
-// import "./Data.js"
 // import "./Paths.js"
 // import "../UI/MessageBox.js"
 // import "../Game.js"
@@ -28,23 +27,35 @@ import { Paths } from "./Paths.js";
 import { Path } from "./Path.js";
 import { FilePath } from "../other/FilePath.js";
 
-class DataClass {
+export class Data {
+    static instance;
+    static Reset() {
+        this.instance = null;
+        this.instance = new Data();
+        return this.instance;
+    }
+    constructor() {
+        if (Data.instance) return Data.instance;
+
+        this.Paths = new Paths();
+        return this;
+    }
     /**
-    	Converts an UNIX timestamp to ISO8601 date string (YYYY-MM-DDTHH:MM:SS.ssssZ).
+        Converts an UNIX timestamp to ISO8601 date string (YYYY-MM-DDTHH:MM:SS.ssssZ).
     	
-    	@param[in]  timestamp A source UNIX timestamp.
-    	@returns  dest      A string buffer to receive formatted date.
+        @param[in]  timestamp A source UNIX timestamp.
+        @returns  dest      A string buffer to receive formatted date.
     */
     FormatTimestamp(timestamp) {
         return timestamp.toISOString();
     }
 
     /**
-    	Converts a file size in bytes into more human-readable larger units
-    	(NB: uses kB/MB/GB as 1024-based units).
+        Converts a file size in bytes into more human-readable larger units
+        (NB: uses kB/MB/GB as 1024-based units).
     	
-    	@param[in]  filesize File size (in bytes).
-    	@returns       A formatted file size.
+        @param[in]  filesize File size (in bytes).
+        @returns       A formatted file size.
     */
     FormatFileSize(filesize) {
         let result = "",
@@ -72,12 +83,12 @@ class DataClass {
     }
 
     /**
-    	Removes invalid (<tt>\\/:*?"\<\>|</tt>) characters from the
-    	filename (removes characters that are rejected by Windows,
-    	but allowed by *nixes for consistency).
+        Removes invalid (<tt>\\/:*?"\<\>|</tt>) characters from the
+        filename (removes characters that are rejected by Windows,
+        but allowed by *nixes for consistency).
     	
-    	@param[in] filename Filename as supplied by the user.
-    	@returns            Sanitized filename.
+        @param[in] filename Filename as supplied by the user.
+        @returns            Sanitized filename.
     */
     SanitizeFilename(filename) {
         let sanitized = '';
@@ -85,24 +96,24 @@ class DataClass {
 
         return filename;
         /* TODO: Check why the Mac side of things apparently needed a non-sanitizing filename-sanitizer
-        		std.remove_copy_if(
-        			filename.begin(), filename.end(),
-        			std.back_inserter(sanitized),
+                std.remove_copy_if(
+                    filename.begin(), filename.end(),
+                    std.back_inserter(sanitized),
 
-        			[&invalid](char x) . bool {
-        				return invalid.find(x) != std.string.npos;
-        			}
-        		);
-        		
-        		return sanitized;
+                    [&invalid](char x) . bool {
+                        return invalid.find(x) != std.string.npos;
+                    }
+                );
+            	
+                return sanitized;
         */
     }
 
     /**
-    	Saves current game to a given file. Emits onGameSaved scripting event.
+        Saves current game to a given file. Emits onGameSaved scripting event.
     	
-    	@param[in]  file   Full path to the save.
-    	@param[out] result Boolean indicating success or failure.
+        @param[in]  file   Full path to the save.
+        @param[out] result Boolean indicating success or failure.
     */
     DoSave(file, result) {
         console.log("Saving game to " + file);
@@ -113,24 +124,24 @@ class DataClass {
     }
 
     /**
-    	Checks whether given file exists in the user's personal directory, and if not,
-    	tries to copy it from the global data directory.
+        Checks whether given file exists in the user's personal directory, and if not,
+        tries to copy it from the global data directory.
     	
-    	@see Paths
-    	@param[in] target File to check for (full path).
+        @see Paths
+        @param[in] target File to check for (full path).
     */
     CopyDefault(target) {
         let me = this,
             filepath = new FilePath(target);
-        return filepath.GetCache(Paths).keys().then(function (keys) {
-            if (keys.includes(filepath.GetURL(Paths))) return true;
+        return filepath.GetCache(me.Paths).keys().then(function (keys) {
+            if (keys.includes(filepath.GetURL(me.Paths))) return true;
             return false;
         })
             .then(function (exists) {
                 if (exists) return;
 
                 let file = filepath.GetURL(Paths);
-                let source = Paths.GetName(Path.GlobalData) + "/" + file;
+                let source = me.Paths.GetName(Path.GlobalData) + "/" + file;
 
                 console.log("User's " + file + " does not exist -- trying to copy " + source);
 
@@ -149,26 +160,26 @@ class DataClass {
     }
 
     /**
-    	Checks whether given file exists in the user's personal directory, and if not,
-    	tries to create a new one.
+        Checks whether given file exists in the user's personal directory, and if not,
+        tries to create a new one.
     	
-    	@see Paths
-    	@param[in] target File to check for (full path).
-    	@param[in] source Default content to use for the new file.
+        @see Paths
+        @param[in] target File to check for (full path).
+        @param[in] source Default content to use for the new file.
     */
     CreateDefault(target, source) {
         let me = this,
             filepath = new FilePath(target);
-        return filepath.GetCache(Paths).keys().then(function (keys) {
-            if (keys.includes(filepath.GetURL(Paths))) return true;
+        return filepath.GetCache(me.Paths).keys().then(function (keys) {
+            if (keys.includes(filepath.GetURL(me.Paths))) return true;
             return false;
         })
             .then(function (exists) {
                 if (exists) return;
                 console.log("Creating default " + target);
                 return filepath
-                    .GetCache(Paths)
-                    .put(filepath.GetURL(Paths), new Response(source));
+                    .GetCache(me.Paths)
+                    .put(filepath.GetURL(me.Paths), new Response(source));
             })
             .catch(function (e) {
                 console.error("Error while writing to file: " + e.message());
@@ -176,7 +187,7 @@ class DataClass {
     }
 
     /**
-    	Ensures that @ref Config.Save won't throw at exit.
+        Ensures that @ref Config.Save won't throw at exit.
     */
     SaveConfig() {
         try {
@@ -187,11 +198,11 @@ class DataClass {
     }
 
     /**
-    	Retrieves a list of saved games.
-    	@param {Array} @out list    Storage for the list.
+        Retrieves a list of saved games.
+        @param {Array} @out list    Storage for the list.
     */
     async GetSavedGames(list) {
-        let keys = await Paths.Get(Path.Saves).keys();
+        let keys = await this.Paths.Get(Path.Saves).keys();
         for (let it of keys) {
             let save = it.path();
             if (!save.endsWith(".sav")) continue;
@@ -207,9 +218,9 @@ class DataClass {
     }
 
     /**
-    	Retrieves a count of saved games.
+        Retrieves a count of saved games.
     	
-    	@returns Number of saved games found.
+        @returns Number of saved games found.
     */
     CountSavedGames() {
         let saves = [];
@@ -218,13 +229,13 @@ class DataClass {
     }
 
     /**
-    	Loads the game from given file.
+        Loads the game from given file.
     	
-    	@param[in] save Save filename.
-    	@returns        Boolean indicating success or failure.
+        @param[in] save Save filename.
+        @returns        Boolean indicating success or failure.
     */
     LoadGame(save) {
-        let file = (Paths.Get(Path.Saves) + "/" + save) + ".sav";
+        let file = (this.Paths.Get(Path.Saves) + "/" + save) + ".sav";
         console.log("Loading game from " + file);
 
         if (!Game.LoadGame(file)) return false;
@@ -234,14 +245,14 @@ class DataClass {
     }
 
     /**
-    	Saves the game to given file. If it exists, prompts the user whether to override.
+        Saves the game to given file. If it exists, prompts the user whether to override.
     	
-    	@see DoSave
-    	@bug If sanitized filename is empty, will use @c _ instead. Should tell the user.
+        @see DoSave
+        @bug If sanitized filename is empty, will use @c _ instead. Should tell the user.
     	
-    	@param[in] save    Save filename.
-    	@param[in] confirm Boolean indicating whether to confirm overwriting an existing save
-    	@returns           Boolean indicating success or failure.
+        @param[in] save    Save filename.
+        @param[in] confirm Boolean indicating whether to confirm overwriting an existing save
+        @returns           Boolean indicating success or failure.
     */
     SaveGame(save, confirm) {
         let file = this.SanitizeFilename(save);
@@ -250,7 +261,7 @@ class DataClass {
             file = "_";
         }
 
-        file = (Paths.Get(Path.Saves) + '/' + file) + ".sav";
+        file = (this.Paths.Get(Path.Saves) + '/' + file) + ".sav";
 
         let result = false;
 
@@ -266,12 +277,12 @@ class DataClass {
     }
 
     /**
-    	Executes the user's configuration file.
+        Executes the user's configuration file.
     */
     LoadConfig() {
         let me = this;
         console.log("Loading user config.");
-        let config = Paths.GetName(Path.Config);
+        let config = me.Paths.GetName(Path.Config);
         me.CreateDefault(config + '/default.json', "{'name': 'Goblin Camp default empty configuration file'}")
             .then(function (config) {
                 return me.SaveConfig();
@@ -291,11 +302,11 @@ class DataClass {
     }
     again = false;
     /**
-    	Loads the user's bitmap font.
+        Loads the user's bitmap font.
     */
     LoadFont() {
         console.log("Loading the font " + (this.again ? "(again)" : ""));
-        let font = Paths.GetName(Path.Font);
+        let font = me.Paths.GetName(Path.Font);
 
         this.CopyDefault(font);
         // TCODConsole.setCustomFont(font); // TODO! need to check this to set the font;
@@ -303,13 +314,13 @@ class DataClass {
     }
 
     /**
-    	Saves a screenshot of the game. Takes care of automatic numbering.
+        Saves a screenshot of the game. Takes care of automatic numbering.
     */
     SaveScreenshot() {
         // sadly, libtcod supports autonumbering only when saving to current dir
         let largest = 0;
 
-        for (let it of fs.readDirectory(Paths.Get(Path.Screenshots))) {
+        for (let it of fs.readDirectory(this.Paths.Get(Path.Screenshots))) {
             let png = it;
             if (!it.endsWith(".png")) continue;
 
@@ -326,7 +337,7 @@ class DataClass {
         }
 
         let png = (
-            Paths.Get(Path.Screenshots) + `screen${largest + 1}.png`
+            this.Paths.Get(Path.Screenshots) + `screen${largest + 1}.png`
         );
 
         console.log("Saving screenshot to " + png);
@@ -334,4 +345,3 @@ class DataClass {
     }
 }
 
-export let Data = new DataClass();

@@ -47,7 +47,7 @@ class Metadata {
 /**
     Interface to load and query mods.
 */
-class Modifications {
+export class Mods {
     Metadata = Metadata;
     /**
      * List of loaded mods. NB: removing an entry from this list does not unload the mod.
@@ -62,6 +62,20 @@ class Modifications {
      * @type {FileSystem}
      */
     fs = null;
+
+    static Reset() {
+        this.instance = null;
+        this.instance = new Mods();
+        return this.instance;
+    }
+
+    constructor() {
+        if (Mods.instance) return Mods.instance;
+
+        this.Paths = new Paths();
+        return this;
+    }
+
     /**
      * Retrieves the list of loaded mods.
      * @returns {Array<Metadata>} Constant reference to list of mods metadata.
@@ -84,17 +98,17 @@ class Modifications {
         // load core data
         let me = this,
             modNames = [];
-        return me.LoadMod(Paths.GetName(Path.GlobalData) + "/gcamp_core", true)
+        return me.LoadMod(me.Paths.GetName(Path.GlobalData) + "/gcamp_core", true)
             .then(function () {
                 return me.loadedMods.push(new MetaData("Goblin Camp"));
             }).then(function () {
-                return Paths.Mods.keys();
+                return me.Paths.Mods.keys();
             }).then(function (keys) {
                 // load user mods
                 return Promise.all(keys.map(function (key) {
                     let modName = key.substring(0, key.indexOf("/"));
                     if (modNames.includes(modName)) return true;
-                    return me.LoadMod(Paths.GetName(Paths.Mods) + modName);
+                    return me.LoadMod(me.Paths.GetName(me.Paths.Mods) + modName);
                 }));
             }).then(function () {
                 // now resolve containers and products
@@ -205,4 +219,4 @@ class Modifications {
     }
 }
 
-export let Mods = new Modifications();
+

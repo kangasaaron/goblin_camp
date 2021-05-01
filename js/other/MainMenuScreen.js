@@ -80,7 +80,7 @@ export class MainMenuScreen extends GameScreen {
             new MainMenuEntry(
                 "Exit",
                 'q',
-                true,
+                false,
                 null
             )
         ];
@@ -90,8 +90,12 @@ export class MainMenuScreen extends GameScreen {
         this.entries[this.selected].selected = 1;
     }
     set selected(s) {
-        if (s >= 0 && s < this.entries.length)
+        if (s >= 0 && s < this.entries.length) {
             this.selected_index = s;
+            this.entries.forEach(function (entry, index) {
+                entry.selected = index === s;
+            });
+        }
         requestAnimationFrame(this.render.bind(this));
     }
     get selected() {
@@ -118,7 +122,7 @@ export class MainMenuScreen extends GameScreen {
         for (let idx = 0; idx < entryCount; ++idx) {
             const entry = this.entries[idx];
 
-            if (this.selected === (idx * 2)) {
+            if (entry.selected) {
                 this.Game.buffer.setDefaultForeground(Color.black);
                 this.Game.buffer.setDefaultBackground(Color.white);
             } else {
@@ -137,7 +141,7 @@ export class MainMenuScreen extends GameScreen {
         this.Game.buffer.flush();
     }
     eventHandler(e) {
-        console.log(e.type, e);
+        // console.log(e.type, e);
         // mouseover - highlight -- TODO
         // left-click, touch, point on active label line OR shortcut key of active label line - run function
         if (e instanceof PointerEvent && e.type === "pointerup") {
@@ -145,6 +149,22 @@ export class MainMenuScreen extends GameScreen {
         }
         else if (e instanceof PointerEvent && e.type === "pointermove") {
             this.hover(e);
+        }
+        else if (e instanceof KeyboardEvent && e.type === "keyup") {
+            if (e.key === "ArrowDown") {
+                this.selected = (this.selected + 1) % this.entries.length;
+                while (!this.entries[this.selected].isActive) {
+                    this.selected = (this.selected + 1) % this.entries.length;
+                }
+            }
+            else if (e.key === "ArrowUp") {
+                this.selected = (this.selected - 1);
+                if (this.selected < 0) this.selected = this.entries.length - 1;
+                while (!this.entries[this.selected].isActive) {
+                    this.selected = (this.selected - 1);
+                    if (this.selected < 0) this.selected = this.entries.length - 1;
+                }
+            }
         }
     }
     parseCellName(cell_name) {

@@ -19,19 +19,41 @@ const ANNOUNCE_MAX_LENGTH = 71;
 const ANNOUNCE_HEIGHT = 10;
 
 import {
+    Constants
+} from "./Constants.js";
+import {
+    Coordinate
+} from "./Coordinate.js";
+import {
     AnnounceMessage
 } from "./AnnounceMessage.js";
 import {
     Color
 } from "./color/Color.js";
 
-export class Announcer {
+export class Announce {
+    static instance;
     messageQueue = [];
     history = [];
     timer = 0;
     length = 0;
     height = 0;
     top = 0;
+    static getInstance() {
+        if (this.instance)
+            return this.instance;
+        return this.Reset();
+    }
+    static Reset() {
+        this.instance = null;
+        this.instance = new Announce();
+        return this.instance;
+    }
+    constructor() {
+        if (Announce.instance) return Announce.instance;
+
+        return this;
+    }
 
     AnnounceAmount() {
         return this.history.length + this.messageQueue.length;
@@ -39,9 +61,6 @@ export class Announcer {
 
     CurrentCoordinate() {
         return this.messageQueue[0].target;
-    }
-    static Reset() {
-        Announce = new Announcer();
     }
     AnnouncementClicked(arg) {
         if (arg && arg instanceof AnnounceMessage) {
@@ -91,7 +110,7 @@ export class Announcer {
             return;
         }
         ++this.timer;
-        if (this.timer <= 0.5 * UPDATES_PER_SECOND)
+        if (this.timer <= 0.5 * Constants.UPDATES_PER_SECOND)
             return;
         if (this.messageQueue.length <= ANNOUNCE_HEIGHT) {
             this.timer = 0;
@@ -128,7 +147,7 @@ export class Announcer {
             this.DrawWithFourArgs(...args);
     }
     DrawWithOneArg(the_console) {
-        the_console.setAlignment(TCOD_LEFT);
+        the_console.setAlignment(Alignment.LEFT);
 
         this.top = the_console.getHeight() - 1 - this.height;
         if (this.height <= 0) return;
@@ -163,4 +182,3 @@ export class Announcer {
         }
     }
 }
-export let Announce = new Announcer();

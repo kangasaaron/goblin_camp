@@ -14,12 +14,10 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import { Item } from "./Item.js";
+import { Serializable } from "./data/Serialization.js";
 
-
-
-class StockManager {
-    GC_SERIALIZABLE_CLASS
-
+export class StockManager extends Serializable {
 
     /** std.map <ItemCategory, int>**/
     categoryQuantities = new Map();
@@ -56,45 +54,47 @@ class StockManager {
 
 
     constructor() {
-        Init();
+        if (StockManager.instance) return StockManager.instance;
+        super();
+        this.Init();
     }
 
     Init() {
         //Initialize all quantities to -1 (== not visible in stocks screen)
-        for (let i = 0; i < Item.Categories.size(); ++i) {
-            categoryQuantities.insert(std.pair < ItemCategory, int > (i, -1));
+        for (let i = 0; i < Item.Categories.length; ++i) {
+            this.categoryQuantities.set(i, -1);
         }
-        for (let i = 0; i < Item.Presets.size(); ++i) {
-            typeQuantities.insert(std.pair < ItemType, int > (i, -1));
+        for (let i = 0; i < Item.Presets.length; ++i) {
+            this.typeQuantities.set(i, -1);
             if (DEBUG) {
-                std.cout << "Initializing typeQuantity " << Item.ItemTypeToString(i) << " to " << typeQuantities[i] << "\n";
+                console.log("Initializing typeQuantity ", Item.ItemTypeToString(i), " to ", typeQuantities[i]);
             }
         }
 
         //Figure out which items are producable, this is so that we won't show _all_ item types in the
         //stock manager screen. Things such as trash and plant mid-growth types won't show this way
-        for (let itemIndex = 0; itemIndex < Item.Presets.size(); ++itemIndex) {
-            let item = static_cast < ItemType > (itemIndex);
+        for (let itemIndex = 0; itemIndex < Item.Presets.length; ++itemIndex) {
+            let item = (itemIndex);
 
             //Now figure out if this item is producable either from a workshop, or designations
             let producerFound = false;
 
             //Bog iron is a hard coded special case, for now. TODO: Think about this
-            if (boost.iequals(Item.Presets[itemIndex].name, "Bog iron") ||
-                boost.iequals(Item.Presets[itemIndex].name, "Water")) {
-                producables.insert(item);
-                if (boost.iequals(Item.Presets[itemIndex].name, "Bog iron"))
-                    fromEarth.insert(item);
+            if (Item.Presets[itemIndex].name.toLowerCase() == "bog iron" ||
+                Item.Presets[itemIndex].name.toLowerCase() == "water") {
+                this.producables.add(item);
+                if (Item.Presets[itemIndex].name.toLowerCase == "bog iron")
+                    this.fromEarth.add(item);
                 producerFound = true;
-                UpdateQuantity(item, 0);
+                this.UpdateQuantity(item, 0);
             }
 
-            for (let cons = 0; cons < Construction.Presets.size(); ++cons) { //Look through all constructions
-                for (let prod = 0; prod < Construction.Presets[cons].products.size(); ++prod) { //Products
+            for (let cons = 0; cons < Construction.Presets.length; ++cons) { //Look through all constructions
+                for (let prod = 0; prod < Construction.Presets[cons].products.length; ++prod) { //Products
                     if (Construction.Presets[cons].products[prod] == item) {
                         //This construction has this itemtype as a product
-                        producables.insert(item);
-                        producers.insert(std.pair < ItemType, ConstructionType > (item, static_cast < ConstructionType > (cons)));
+                        this.producables.add(item);
+                        this.producers.set(item, cons);
                         producerFound = true;
                         break;
                     }
@@ -102,27 +102,26 @@ class StockManager {
             }
 
             if (!producerFound) { //Haven't found a producer, so check NatureObjects if a tree has this item as a component
-                for (let natObj = 0; natObj < NatureObject.Presets.size(); ++natObj) {
+                for (let natObj = 0; natObj < NatureObject.Presets.length; ++natObj) {
                     if (NatureObject.Presets[natObj].tree) {
-                        for (let compi = NatureObject.Presets[natObj].components.begin(); compi != NatureObject.Presets[natObj].components.end(); ++compi) {
+                        for (let compi of NatureObject.Presets[natObj].components) {
                             if (compi == item) {
-                                producables.insert(item);
-                                fromTrees.insert(item);
-                                UpdateQuantity(item, 0);
+                                this.producables.add(item);
+                                this.fromTrees.add(item);
+                                this.UpdateQuantity(item, 0);
                             }
                         }
                     }
                 }
 
                 //Anything not in the Misc. category can be shown in the stock manager dialog
-                if (Item.Presets[itemIndex].categories.find(Item.StringToItemCategory("Misc.")) == Item.Presets[itemIndex].categories.end())
-                    producables.insert(item);
+                if (!(Item.Presets[itemIndex].categories.find(Item.StringToItemCategory("Misc."))))
+                    this.producables.add(item);
             }
 
             //Flag all inorganic materials for dumping (except seeds which are technically not organic)
-            if (!Item.Presets[itemIndex].organic &&
-                Item.Presets[itemIndex].categories.find(Item.StringToItemCategory("Seed")) == Item.Presets[itemIndex].categories.end())
-                dumpables.insert(item);
+            if (!Item.Presets[itemIndex].organic && !(Item.Presets[itemIndex].categories.find(Item.StringToItemCategory("Seed"))))
+                this.dumpables.add(item);
         }
     }
 
@@ -370,9 +369,10 @@ class StockManager {
         }
     }
 
-    Reset() {
-        delete instance;
-        instance = 0;
+    static Reset() {
+        this.instance = null;
+        this.instance = new StockManager();
+        return this.instance;
     }
 
     save(ar, version) {
@@ -409,3 +409,4 @@ class StockManager {
         }
     }
 }
+

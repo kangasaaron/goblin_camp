@@ -15,19 +15,21 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import { Item } from "./Item.js"
+import { JobPriority } from "./JobPriority.js"
 import { Job } from "./Job.js"
 import { Serializable } from "./data/Serialization.js"
 
-export class JobManagerClass extends Serializable {
+export class JobManager extends Serializable {
     static CLASS_VERSION = 1;
+    static instance;
 
     /** @type {Array<Job>} */
-    availableList = new Array(JobPriority.JobPrority.PRIORITY_COUNT);
+    availableList = new Array(JobPriority.PRIORITY_COUNT);
     /** @type {Array<Job>} */
     waitingList = [];
     /** @type {Array<number>} */
     menialNPCsWaiting = []
-        /** @type {Array<number>} */
+    /** @type {Array<number>} */
     expertNPCsWaiting = [];
     /** @type {Array<Array<Job>>} */
     toolJobs = [];
@@ -35,11 +37,15 @@ export class JobManagerClass extends Serializable {
     failList = [];
 
     static Reset() {
-        delete JobManager;
-        JobManager = new JobManagerClass();
+        this.instance = null;
+        this.instance = new JobManager();
+        return this.instance;
     }
 
     constructor() {
+        if (JobManager.instance) return JobManager.instance;
+
+        super();
         for (let i of Item.Categories) {
             this.toolJobs.push([]);
         }
@@ -66,7 +72,7 @@ export class JobManagerClass extends Serializable {
 
         for (let i = 0; i <= JobPriority.JobPrority.PRIORITY_COUNT; i++) {
             the_console.setDefaultForeground(color_mappings[i]);
-            for (let jobi of(i < JobPriority.JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
+            for (let jobi of (i < JobPriority.JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
                 if (skip < from) {
                     ++skip;
                     continue;
@@ -127,21 +133,21 @@ export class JobManagerClass extends Serializable {
         let job;
 
         outer:
-            for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
-                for (let jobi of this.availableList[i]) {
-                    let npc = Game.GetNPC(uid);
-                    if (npc && jobi.Menial() != npc.Expert()) {
-                        if (jobi.Assigned() == -1 && !jobi.Removable()) {
-                            job = jobi;
-                            //goto FoundJob;
-                            break outer;
-                        }
+        for (let i = 0; i < JobPriority.JobPrority.PRIORITY_COUNT; ++i) {
+            for (let jobi of this.availableList[i]) {
+                let npc = Game.GetNPC(uid);
+                if (npc && jobi.Menial() != npc.Expert()) {
+                    if (jobi.Assigned() == -1 && !jobi.Removable()) {
+                        job = jobi;
+                        //goto FoundJob;
+                        break outer;
                     }
                 }
             }
+        }
 
         FoundJob:
-            if (job.lock()) job.lock().Assign(uid);
+        if (job.lock()) job.lock().Assign(uid);
 
         return job;
     }
@@ -236,7 +242,7 @@ export class JobManagerClass extends Serializable {
             } else {
                 if (!(jobIter).Parent().lock() && (jobIter).PreReqs().length) {
                     //Job has unfinished prereqs, itsn't removable and is NOT a prereq itself
-                    for (let pri of(jobIter).PreReqs()) {
+                    for (let pri of (jobIter).PreReqs()) {
                         if (pri.lock()) {
                             pri.lock().Paused(false);
                         }
@@ -429,9 +435,9 @@ export class JobManagerClass extends Serializable {
      */
     RemoveJobByActionAndCoordinate(action, location) {
         for (let i = 0; i <= JobPrority.PRIORITY_COUNT; ++i) {
-            for (let jobi of(i < JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
+            for (let jobi of (i < JobPrority.PRIORITY_COUNT ? this.availableList[i] : this.waitingList)) {
                 let remove = false;
-                for (let taski of(jobi).tasks) {
+                for (let taski of (jobi).tasks) {
                     if (taski.action == action && taski.target == location) {
                         remove = true;
                         break;
@@ -466,7 +472,7 @@ export class JobManagerClass extends Serializable {
         };
     }
     static deserialize(data, version, deserializer) {
-        let result = new JobManagerClass();
+        let result = new JobManager();
         result.availableList = deserializer.deserialize(data.availableList);
         result.waitingList = deserializer.deserialize(data.waitingList);
         result.menialNPCsWaiting = deserializer.deserialize(data.menialNPCsWaiting);
@@ -476,4 +482,3 @@ export class JobManagerClass extends Serializable {
         return result;
     }
 }
-export let JobManager = new JobManagerClass();

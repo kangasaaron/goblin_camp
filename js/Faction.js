@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Constants
+} from "./Constants.js";
+import {
     FactionGoal
 } from "./FactionGoal.js";
 import {
@@ -22,7 +25,7 @@ import {
 } from "./FactionType.js";
 import {
     Serializable
-} from "data/Serialization.js"
+} from "./data/Serialization.js"
 import {
     Item
 } from "./Item.js";
@@ -57,7 +60,7 @@ export class Faction extends Serializable {
     trapVisibleMutex = null;
     currentGoal = 0;
     activeTime = 0;
-    maxActiveTime = MONTH_LENGTH / 2;
+    maxActiveTime = Constants.MONTH_LENGTH / 2;
     active = false;
     aggressive = false;
     coward = false;
@@ -91,7 +94,7 @@ export class Faction extends Serializable {
         if (this.active && this.members.length == 0)
             this.active = false;
     }
-    CancelJob(oldJob, msg, result) {}
+    CancelJob(oldJob, msg, result) { }
 
     MakeFriendsWith(otherFaction) {
         this.friends.add(otherFaction);
@@ -104,7 +107,7 @@ export class Faction extends Serializable {
         //Inform friends
         if (propagate) {
             for (let friendi of this.friends) {
-                if (friendi != this.index)
+                if (friendi !== this.index)
                     Faction.factions[friendi].TrapDiscovered(trapLocation, false);
             }
         }
@@ -119,13 +122,13 @@ export class Faction extends Serializable {
         this.trapVisible.set(trapLocation.hashCode(), visible);
     }
     Update() {
-            if (this.active && this.maxActiveTime >= 0) {
-                ++this.activeTime;
-            }
+        if (this.active && this.maxActiveTime >= 0) {
+            ++this.activeTime;
         }
-        /**
-         * Reset() does not erase names or goals because these are defined at startup and remain constant
-         */
+    }
+    /**
+     * Reset() does not erase names or goals because these are defined at startup and remain constant
+     */
     Reset() {
         this.members.clear();
         this.membersAsUids = [];
@@ -136,13 +139,13 @@ export class Faction extends Serializable {
         this.active = false;
     }
     GetCurrentGoal() {
-            let i = this.currentGoal;
-            if (i < this.goals.length) return this.goals[i];
-            return FactionGoal.FACTIONIDLE;
-        }
-        /**
-         * One way transfer, not used for sharing trap data between friendly factions
-         */
+        let i = this.currentGoal;
+        if (i < this.goals.length) return this.goals[i];
+        return FactionGoal.FACTIONIDLE;
+    }
+    /**
+     * One way transfer, not used for sharing trap data between friendly factions
+     */
     TransferTrapInfo(otherFaction) {
         for (let entry of this.trapVisible) {
             otherFaction.trapVisible.set(entry[0], entry[1]);
@@ -236,12 +239,12 @@ export class Faction extends Serializable {
         if ("friends" in preset)
             result.friendNames.push(...preset.friends);
         if ("goals" in preset) {
-            preset.goals.map(function(goal) {
+            preset.goals.map(function (goal) {
                 result.goals.push(Faction.StringToFactionGoal(goal));
             });
         }
         if ("goalSpecifiers" in preset) {
-            preset.goalSpecifiers.map(function(spec) {
+            preset.goalSpecifiers.map(function (spec) {
                 result.goalSpecifiers.push(Item.StringToItemCategory(spec));
             });
         }
@@ -300,28 +303,28 @@ export class Faction extends Serializable {
         return "idle";
     }
     static FactionTypeToString(faction) {
-            if (faction >= 0 && faction < this.factions.length) {
-                return this.factions[faction].name;
-            }
-            return "Faction name not found";
+        if (faction >= 0 && faction < this.factions.length) {
+            return this.factions[faction].name;
         }
-        /**
-         * Initialize faction names, required before loading npcs from a save file
-         */
+        return "Faction name not found";
+    }
+    /**
+     * Initialize faction names, required before loading npcs from a save file
+     */
     static InitAfterLoad() {
-            this.factionNames.clear();
-            for (let i = 0; i < this.factions.length; ++i)
-                this.factionNames.set(this.factions[i].name, i);
+        this.factionNames.clear();
+        for (let i = 0; i < this.factions.length; ++i)
+            this.factionNames.set(this.factions[i].name, i);
 
-            for (let i = 0; i < this.factions.length; ++i) {
-                this.factions[i].index = i;
-                this.factions[i].MakeFriendsWith(i);
-                this.factions[i].TranslateFriends();
-            }
+        for (let i = 0; i < this.factions.length; ++i) {
+            this.factions[i].index = i;
+            this.factions[i].MakeFriendsWith(i);
+            this.factions[i].TranslateFriends();
         }
-        /**
-         * Translate member uids into pointers _after_ loading npcs from a save
-         */
+    }
+    /**
+     * Translate member uids into pointers _after_ loading npcs from a save
+     */
     static TranslateMembers() {
         for (let faction of this.factions) {
             for (let uidi of faction.membersAsUids) {
@@ -334,7 +337,7 @@ export class Faction extends Serializable {
     static LoadPresets(filename) {
         let listener = new FactionListener(this, filename);
         return listener.fetch()
-            .then(function() {
+            .then(function () {
                 for (let faction of Faction.factions) {
                     faction.TranslateFriends();
                 }
@@ -358,7 +361,7 @@ export class Faction extends Serializable {
             coward: this.coward,
             aggressive: this.aggressive,
             friends: this.friends.map(factionIter => Faction.FactionTypeToString(factionIter)),
-            members: this.members.map(function(membi) {
+            members: this.members.map(function (membi) {
                 let uid = -1;
                 if (membi.lock()) uid = membi.lock().Uid()
                 return uid;
@@ -419,7 +422,7 @@ function GenerateDestroyJob(map, job, npc) {
 
         construction = Game.GetConstruction(constructionID).lock();
         if (construction && (construction.HasTag(ConstructionTag.PERMANENT) ||
-                (!construction.HasTag(ConstructionTag.WORKSHOP) && !construction.HasTag(ConstructionTag.WALL))))
+            (!construction.HasTag(ConstructionTag.WORKSHOP) && !construction.HasTag(ConstructionTag.WALL))))
             construction.reset();
 
     } while (index < path.length && !construction);

@@ -14,18 +14,25 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
+import { Weather } from "./Weather.js";
+import { Tile } from "./Tile.js";
+import { TileType } from "./TileType.js";
+import { Coordinate } from "./Coordinate.js";
+import { CacheTile } from "./CacheTile.js";
+import { HeightMap } from "./other/HeightMap.js";
+import { Serializable } from "./data/Serialization.js";
 
 const TERRITORY_OVERLAY = (1 << 0);
 const TERRAIN_OVERLAY = (2 << 0);
 const HARDCODED_WIDTH = 500;
 const HARDCODED_HEIGHT = 500;
 
-class MapClass extends ITCODPathCallback {
+export class GameMap extends Serializable {
     static CLASS_VERSION = 2;
 
-    /** @type {boost.multi_array < Tile, 2 >} */
+    /** @type {Tile[][]} */
     tileMap;
-    /** @type {boost.multi_array < CacheTile, 2 >} */
+    /** @type {CacheTile[][]} */
     cachedTileMap;
     /** @type {Coordinate} */
     extent; //X.width, Y.height
@@ -33,9 +40,9 @@ class MapClass extends ITCODPathCallback {
     waterlevel = 0;
     //int 
     overlayFlags = 0
-        // std.list < std.pair < unsigned int, MapMarker > > 
+    // std.list < std.pair < unsigned int, MapMarker > > 
     mapMarkers = []
-        // unsigned int 
+    // unsigned int 
     markerids = 0;
     // boost.unordered_set < Coordinate > 
     changedTiles = new Set();
@@ -51,37 +58,49 @@ class MapClass extends ITCODPathCallback {
     cacheMutex;
 
     tile(p) {
-        return tileMap[p.X()][p.Y()];
+        return this.tileMap[p.X()][p.Y()];
     }
     cachedTile(p) {
-        return cachedTileMap[p.X()][p.Y()];
+        return this.cachedTileMap[p.X()][p.Y()];
     }
     tile(p) {
-        return tileMap[p.X()][p.Y()];
+        return this.tileMap[p.X()][p.Y()];
     }
     cachedTile(p) {
-        return cachedTileMap[p.X()][p.Y()];
+        return this.cachedTileMap[p.X()][p.Y()];
     }
 
-    constructor() {
+    static instance;
 
-        tileMap.resize(boost.extents[HARDCODED_WIDTH][HARDCODED_HEIGHT]);
-        cachedTileMap.resize(boost.extents[HARDCODED_WIDTH][HARDCODED_HEIGHT]);
-        heightMap = new TCODHeightMap(HARDCODED_WIDTH, HARDCODED_HEIGHT);
-        extent = Coordinate(HARDCODED_WIDTH, HARDCODED_HEIGHT);
-        for (let i = 0; i < HARDCODED_WIDTH; ++i) {
-            for (let e = 0; e < HARDCODED_HEIGHT; ++e) {
-                tileMap[i][e].ResetType(TILEGRASS);
-                cachedTileMap[i][e].x = i;
-                cachedTileMap[i][e].y = e;
+    constructor() {
+        if (GameMap.instance) return GameMap.instance;
+        super();
+        this.tileMap = [];
+        this.cachedTileMap = [];
+
+        for (let x = 0; x < HARDCODED_WIDTH; x++) {
+            this.tileMap.push([]);
+            this.cachedTileMap.push([]);
+            for (let y = 0; y < HARDCODED_HEIGHT; y++) {
+                this.tileMap[x].push(new Tile());
+                this.cachedTileMap[x].push(new CacheTile());
             }
         }
-        waterlevel = -0.8;
-        weather = new Weather(this);
+        this.heightMap = new HeightMap(HARDCODED_WIDTH, HARDCODED_HEIGHT);
+        this.extent = new Coordinate(HARDCODED_WIDTH, HARDCODED_HEIGHT);
+        for (let i = 0; i < HARDCODED_WIDTH; ++i) {
+            for (let e = 0; e < HARDCODED_HEIGHT; ++e) {
+                this.tileMap[i][e].ResetType(TileType.TILEGRASS);
+                this.cachedTileMap[i][e].x = i;
+                this.cachedTileMap[i][e].y = e;
+            }
+        }
+        this.waterlevel = -0.8;
+        this.weather = new Weather(this);
     }
 
     destructor() {
-        delete heightMap;
+        this.heightMap = null;
     }
     Extent() { return extent; }
     Width() { return extent.X(); }
@@ -93,18 +112,24 @@ class MapClass extends ITCODPathCallback {
         return p.shrinkExtent(zero, extent);
     }
 
-    //we must keep the int-version of getWalkCost as an override of ITCODPathCallback, otherwise Map is virtual
-    getWalkCost(from, to, ptr) {
+    //we must keep the int-version of getWalkCost as an override of ITCODPathCallback, otherwise this is virtual
+    getWalkCost_Coordinate_Coordinate_Ptr(from, to, ptr) {
         if ((ptr).IsFlying()) return 1.0;
-        return cachedTile(to).GetMoveCost(ptr);
+        return this.cachedTile(to).GetMoveCost(ptr);
     }
-    getWalkCost(fx, fy, tx, ty, ptr) {
-        return Map.getWalkCost(Coordinate(fx, fy), Coordinate(tx, ty), ptr);
+    getWalkCost_int_int_int_int_ptr(fx, fy, tx, ty, ptr) {
+        return this.getWalkCost(new Coordinate(fx, fy), new Coordinate(tx, ty), ptr);
+    }
+    getWalkCost(...args) {
+        if (typeof args[0] === "number" && typeof args[1] === "number" && typeof args[2] === "number" && typeof args[3] === "number")
+            return this.getWalkCost_int_int_int_int_ptr(...args);
+        else
+            return this.getWalkCost_Coordinate_Coordinate_Ptr(...args);
     }
 
     //Simple version that doesn't take npc information into account
     IsWalkable(p) {
-        return (Map.IsInside(p) && tile(p).IsWalkable());
+        return (this.IsInside(p) && tile(p).IsWalkable());
     }
 
     IsWalkable(p, ptr) {
@@ -123,161 +148,161 @@ class MapClass extends ITCODPathCallback {
         return IsWalkable(p);
     }
     SetWalkable(p, value) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetWalkable(value);
             changedTiles.insert(p);
         }
     }
 
     IsBuildable(p) {
-        return Map.IsInside(p) && tile(p).IsBuildable();
+        return this.IsInside(p) && tile(p).IsBuildable();
     }
 
     SetBuildable(p, value) {
-        if (Map.IsInside(p))
+        if (this.IsInside(p))
             tile(p).SetBuildable(value);
     }
 
     GetType(p) {
-            if (Map.IsInside(p)) return tile(p).GetType();
-            return TILENONE;
-        }
-        //ResetType() resets all tile variables to defaults
+        if (this.IsInside(p)) return tile(p).GetType();
+        return TILENONE;
+    }
+    //ResetType() resets all tile variables to defaults
     ResetType(p, ntype, tileHeight = 0.0) {
-            if (Map.IsInside(p)) {
-                tile(p).ResetType(ntype, tileHeight);
-                changedTiles.insert(p);
-            }
+        if (this.IsInside(p)) {
+            tile(p).ResetType(ntype, tileHeight);
+            changedTiles.insert(p);
         }
-        //ChangeType() preserves information such as buildability
+    }
+    //ChangeType() preserves information such as buildability
     ChangeType(p, ntype, tileHeight = 0.0) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).ChangeType(ntype, tileHeight);
             changedTiles.insert(p);
         }
     }
 
     MoveTo(p, uid) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).MoveTo(uid);
         }
     }
 
     MoveFrom(p, uid) {
-        if (Map.IsInside(p)) tile(p).MoveFrom(uid);
+        if (this.IsInside(p)) tile(p).MoveFrom(uid);
     }
 
     SetConstruction(p, uid) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetConstruction(uid);
             changedTiles.insert(p);
         }
     }
     GetConstruction(p) {
-        if (Map.IsInside(p)) return tile(p).GetConstruction();
+        if (this.IsInside(p)) return tile(p).GetConstruction();
         return -1;
     }
 
     GetWater(p) {
-        if (Map.IsInside(p)) return tile(p).GetWater();
+        if (this.IsInside(p)) return tile(p).GetWater();
         return null;
     }
     SetWater(p, value) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetWater(value);
             changedTiles.insert(p);
         }
     }
 
     IsLow(p) {
-        return Map.IsInside(p) && tile(p).IsLow();
+        return this.IsInside(p) && tile(p).IsLow();
     }
     SetLow(p, value) {
-        if (Map.IsInside(p)) tile(p).SetLow(value);
+        if (this.IsInside(p)) tile(p).SetLow(value);
     }
 
     BlocksWater(p) {
-        return !Map.IsInside(p) || tile(p).BlocksWater();
+        return !this.IsInside(p) || tile(p).BlocksWater();
     }
     SetBlocksWater(p, value) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetBlocksWater(value);
         }
     }
 
     NPCList(p) {
-        if (Map.IsInside(p)) return tile(p).npcList;
+        if (this.IsInside(p)) return tile(p).npcList;
         return tileMap[0][0].npcList;
     }
     ItemList(p) {
-        if (Map.IsInside(p)) return tile(p).itemList;
+        if (this.IsInside(p)) return tile(p).itemList;
         return tileMap[0][0].itemList;
     }
 
     GetGraphic(p) {
-        if (Map.IsInside(p)) return tile(p).GetGraphic();
+        if (this.IsInside(p)) return tile(p).GetGraphic();
         return '?';
     }
     GetForeColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetForeColor();
+        if (this.IsInside(p)) return tile(p).GetForeColor();
         return TCODColor.pink;
     }
 
     ForeColor(p, color) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).originalForeColor = color;
             tile(p).foreColor = color;
         }
     }
 
     GetBackColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetBackColor();
+        if (this.IsInside(p)) return tile(p).GetBackColor();
         return TCODColor.yellow;
     }
     SetNatureObject(p, val) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetNatureObject(val);
         }
     }
     GetNatureObject(p) {
-        if (Map.IsInside(p)) return tile(p).GetNatureObject();
+        if (this.IsInside(p)) return tile(p).GetNatureObject();
         return -1;
     }
 
     GetFilth(p) {
-        if (Map.IsInside(p)) return tile(p).GetFilth();
+        if (this.IsInside(p)) return tile(p).GetFilth();
         return null;
     }
     SetFilth(p, value) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetFilth(value);
             changedTiles.insert(p);
         }
     }
     GetBlood(p) {
-        if (Map.IsInside(p)) return tile(p).GetBlood();
+        if (this.IsInside(p)) return tile(p).GetBlood();
         return null;
     }
     SetBlood(p, value) {
-        if (Map.IsInside(p)) tile(p).SetBlood(value);
+        if (this.IsInside(p)) tile(p).SetBlood(value);
     }
 
     GetFire(p) {
-        if (Map.IsInside(p)) return tile(p).GetFire();
+        if (this.IsInside(p)) return tile(p).GetFire();
         return null;
     }
     SetFire(p, value) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).SetFire(value);
             changedTiles.insert(p);
         }
     }
     BlocksLight(p) {
-        if (Map.IsInside(p)) return tile(p).BlocksLight();
+        if (this.IsInside(p)) return tile(p).BlocksLight();
         return true;
     }
     SetBlocksLight(p, val) {
-        if (Map.IsInside(p)) tile(p).SetBlocksLight(val);
+        if (this.IsInside(p)) tile(p).SetBlocksLight(val);
     }
     LineOfSight(a, b) {
         TCODLine.init(a.X(), a.Y(), b.X(), b.Y());
@@ -288,10 +313,6 @@ class MapClass extends ITCODPathCallback {
         return true;
     }
 
-    static Reset() {
-        delete Map;
-        Map = new MapClass();
-    }
 
     Mark(p) { tile(p).Mark(); }
     Unmark(p) { tile(p).Unmark(); }
@@ -325,15 +346,15 @@ class MapClass extends ITCODPathCallback {
         return modifier;
     }
     GetWaterlevel() { return waterlevel; }
-    WalkOver(p) { if (Map.IsInside(p)) tile(p).WalkOver(); }
+    WalkOver(p) { if (this.IsInside(p)) tile(p).WalkOver(); }
     Naturify(p) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             if (tile(p).walkedOver > 0) --tile(p).walkedOver;
             if (tile(p).burnt > 0) tile(p).Burn(-1);
             if (tile(p).walkedOver == 0 && tile(p).natureObject < 0 && tile(p).construction < 0) {
                 let natureObjects = 0;
-                let begin = Map.Shrink(p - 2);
-                let end = Map.Shrink(p + 2);
+                let begin = this.Shrink(p - 2);
+                let end = this.Shrink(p + 2);
                 for (let ix = begin.X(); ix <= end.X(); ++ix) {
                     for (let iy = begin.Y(); iy <= end.Y(); ++iy) {
                         if (tileMap[ix][iy].natureObject >= 0) ++natureObjects;
@@ -372,15 +393,15 @@ class MapClass extends ITCODPathCallback {
         }
     }
     GetCorruption(p) {
-        if (Map.IsInside(p)) return tile(p).corruption;
+        if (this.IsInside(p)) return tile(p).corruption;
         return 0;
     }
     IsTerritory(p) {
-        return Map.IsInside(p) && tile(p).territory;
+        return this.IsInside(p) && tile(p).territory;
     }
 
     SetTerritory(p, value) {
-        if (Map.IsInside(p)) tile(p).territory = value;
+        if (this.IsInside(p)) tile(p).territory = value;
     }
 
     SetTerritoryRectangle(a, b, value) {
@@ -400,8 +421,8 @@ class MapClass extends ITCODPathCallback {
         //We need to find a tile that is walkable, and adjacent to all 3 given tiles but not the same as move
 
         //Find the edges of a (low,high) bounding box for current, move and next
-        let low = Map.Shrink(Coordinate.min(Coordinate.min(current, move), next) - 1);
-        let high = Map.Shrink(Coordinate.max(Coordinate.max(current, move), next) + 1);
+        let low = this.Shrink(Coordinate.min(Coordinate.min(current, move), next) - 1);
+        let high = this.Shrink(Coordinate.max(Coordinate.max(current, move), next) + 1);
 
         //Find a suitable target
         for (let x = low.X(); x <= high.X(); ++x) {
@@ -420,7 +441,7 @@ class MapClass extends ITCODPathCallback {
         }
     }
     IsUnbridgedWater(p) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             let water;
             if (water = tile(p).water) {
                 let construction = Game.GetConstruction(tile(p).construction).lock();
@@ -450,18 +471,18 @@ class MapClass extends ITCODPathCallback {
         }
     }
     GetColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetForeColor();
+        if (this.IsInside(p)) return tile(p).GetForeColor();
         return TCODColor.white;
     }
 
     Burn(p, magnitude = 1) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             tile(p).Burn(magnitude);
         }
     }
 
     Burnt(p) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             return tile(p).burnt;
         }
         return 0;
@@ -616,7 +637,7 @@ class MapClass extends ITCODPathCallback {
            For algorithmic reason, we build a "cache" of the water
            tiles list as a vector : picking a random water tile was
            O(N) with the water list, causing noticeable delays during
-           map creation -- one minute or more -- while it is O(1) on
+           this creation -- one minute or more -- while it is O(1) on
            water arrays.
          */
         /**std.vector < boost.weak_ptr < WaterNode > > */
@@ -692,7 +713,7 @@ class MapClass extends ITCODPathCallback {
 
 
     GetFlow(p) {
-        if (Map.IsInside(p))
+        if (this.IsInside(p))
             return tile(p).flow;
         return NODIRECTION;
     }
@@ -700,14 +721,14 @@ class MapClass extends ITCODPathCallback {
 
 
     IsDangerous(p, faction) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             if (tile(p).fire) return true;
             return Faction.factions[faction].IsTrapVisible(p);
         }
         return false;
     }
     IsDangerousCache(p, faction) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             if (cachedTile(p).fire) return true;
             if (faction >= 0 && faction < Faction.factions.size())
                 return Faction.factions[faction].IsTrapVisible(p);
@@ -717,7 +738,7 @@ class MapClass extends ITCODPathCallback {
 
 
     GetTerrainMoveCost(p) {
-        if (Map.IsInside(p))
+        if (this.IsInside(p))
             return tile(p).GetTerrainMoveCost();
         return 0;
     }
@@ -739,7 +760,7 @@ class MapClass extends ITCODPathCallback {
         for (let x = center.X() - 5; x <= center.X() + 5; ++x) {
             for (let y = center.Y() - 5; y <= center.Y() + 5; ++y) {
                 let p = new Coordinate(x, y);
-                if (Map.IsInside(p) &&
+                if (this.IsInside(p) &&
                     tile(p).construction >= 0 &&
                     !tile(p).fire &&
                     Game.GetConstruction(tile(p).construction).lock() &&
@@ -751,7 +772,7 @@ class MapClass extends ITCODPathCallback {
         }
         if (!potentialPositions.empty())
             return Random.ChooseElement(potentialPositions);
-        return Coordinate(-1, -1);
+        return new Coordinate(-1, -1);
     }
 
     UpdateCache() {
@@ -765,7 +786,7 @@ class MapClass extends ITCODPathCallback {
 
 
     TileChanged(p) {
-        if (Map.IsInside(p)) {
+        if (this.IsInside(p)) {
             changedTiles.insert(p);
         }
     }
@@ -817,10 +838,15 @@ class MapClass extends ITCODPathCallback {
                     ar & heightMapValue;
                     heightMap.setValue(x, y, heightMapValue);
 
-                    //Mark every tile as changed so the cached map gets completely updated on load
+                    //Mark every tile as changed so the cached this gets completely updated on load
                     changedTiles.insert(Coordinate(x, y));
                 }
             }
         }
     }
+    static Reset() {
+        this.instance = null;
+        this.instance = new GameMap();
+    }
 }
+

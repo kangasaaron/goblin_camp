@@ -33,10 +33,22 @@ function LogBootstrapException() {
     }
 }
 
-class ScriptingEngine {
+export class Engine {
     // Only mods with apiVersion property that equals to this will have their scripts loaded.
     version = 0;
+    static instance;
+    static Reset() {
+        this.instance = null;
+        this.instance = new Engine();
+        return this.instance;
+    }
+    constructor() {
+        if (Engine.instance) return Engine.instance;
 
+        this.Paths = new Paths();
+
+        return this;
+    }
     // Initialises the engine.
     Init(args) {
         console.log("Initialising the engine.");
@@ -62,7 +74,7 @@ class ScriptingEngine {
         // else {
         pathsep = ":";
         // } /*#endif*/
-        let libDir = Paths.GetName(Path.GlobalData) + "/" + "lib";
+        let libDir = this.Paths.GetName(Path.GlobalData) + "/" + "lib";
 
         let path = libDir.toString();
         path += pathsep;
@@ -104,7 +116,7 @@ class ScriptingEngine {
             modImp.attr("load_source")(
                 "__gcdevthe_console__",
                 (
-                    Paths.Get(Path.GlobalData) /
+                    this.Paths.Get(Path.GlobalData) /
                     "lib" /
                     "__gcdevthe_console__.py"
                 ).string()
@@ -193,5 +205,3 @@ class ScriptingEngine {
         }
     }
 }
-
-export let Engine = new ScriptingEngine();

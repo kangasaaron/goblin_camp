@@ -21,8 +21,14 @@ import { BlendMode } from "./other/BlendMode.js";
 import { Config } from "./data/Config.js";
 import { Console } from "./other/Console.js";
 import { Alignment } from "./other/Alignment.js";
+import { Announce } from "./Announce.js";
+import { Camp } from "./Camp.js";
 import { Coordinate } from "./Coordinate.js";
 import { Events } from "./Events.js";
+import { Faction } from "./Faction.js";
+import { GameMap } from "./GameMap.js";
+import { JobManager } from "./JobManager.js";
+import { StockManager } from "./StockManager.js";
 import {
     Season
 } from "./Season.js";
@@ -47,9 +53,9 @@ let saving = [
 const loadingSize = loading.length;
 const savingSize = saving.length;
 
-class GameClass {
+export class Game {
     static CLASS_VERSION() { return 1; }
-
+    static instance;
     //boost.mutex 
     loadingScreenMutex;
     screenWidth = 0;
@@ -77,6 +83,9 @@ class GameClass {
     the_console = null;
     /** @type {boost.shared_ptr<MapRenderer>} */
     renderer = null;
+    staticConstructionList = new Map();
+    dynamicConstructionList = new Map();
+
     // friend class ConfigListener;
     // friend void SettingsMenu();
     // friend class TCODMapRenderer;
@@ -104,8 +113,6 @@ class GameClass {
     // boost.shared_ptr < MapRenderer > renderer;
     // bool gameOver;
 
-    // std.map < int, boost.shared_ptr < Construction > > staticConstructionList;
-    // std.map < int, boost.shared_ptr < Construction > > dynamicConstructionList;
     // std.map < int, boost.shared_ptr < NPC > > npcList;
 
     // static bool initializedOnce;
@@ -310,6 +317,10 @@ class GameClass {
     static devMode = false;
 
     constructor() {
+        if (Game.instance) return Game.instance;
+
+        this.Config = new Config();
+
         for (let i = 0; i < 12; i++) {
             this.marks[i] = Coordinate.undefinedCoordinate;
         }
@@ -794,9 +805,9 @@ class GameClass {
     }
 
     Init(firstTime) {
-        let width = Config.GetCVar('int', "resolutionX");
-        let height = Config.GetCVar('int', "resolutionY");
-        let fullscreen = Config.GetCVar('bool', "fullscreen");
+        let width = this.Config.GetCVar('int', "resolutionX");
+        let height = this.Config.GetCVar('int', "resolutionY");
+        let fullscreen = this.Config.GetCVar('bool', "fullscreen");
 
         if (width <= 0 || height <= 0) {
             if (fullscreen) {
@@ -850,8 +861,8 @@ class GameClass {
         if (this.renderer && "reset" in this.renderer)
             this.renderer.reset();
 
-        if (Config.GetCVar("bool", "useTileset")) {
-            let tilesetName = Config.GetStringCVar("tileset");
+        if (this.Config.GetCVar("bool", "useTileset")) {
+            let tilesetName = this.Config.GetStringCVar("tileset");
             if (tilesetName.length === 0) tilesetName = "default";
 
             let tilesetRenderer = this.CreateTilesetRenderer(width, height, buffer, tilesetName);
@@ -870,7 +881,7 @@ class GameClass {
         if (this.running) {
             this.renderer.PreparePrefabs();
         }
-        this.renderer.SetTranslucentUI(Config.GetCVar("bool", "translucentUI"));
+        this.renderer.SetTranslucentUI(this.Config.GetCVar("bool", "translucentUI"));
     }
 
     RemoveConstruction(cons) {
@@ -1181,18 +1192,18 @@ class GameClass {
 
             switch (season) {
                 case EarlySpring:
-                    Announce.AddMsg("Spring has begun");
+                    this.Announce.AddMsg("Spring has begun");
                     ++age;
-                    if (Config.GetCVar("bool", "autosave")) {
+                    if (this.Config.GetCVar("bool", "autosave")) {
                         let saveName = "autosave" + std.string(age % 2 ? "1" : "2");
                         if (Data.SaveGame(saveName, false))
-                            Announce.AddMsg("Autosaved");
+                            this.Announce.AddMsg("Autosaved");
                         else
-                            Announce.AddMsg("Failed to autosave! Refer to the logfile", Color.red);
+                            this.Announce.AddMsg("Failed to autosave! Refer to the logfile", Color.red);
                     }
                 case Spring:
                 case LateSpring:
-                    SpawnTillageJobs();
+                    this.SpawnTillageJobs();
                 case Summer:
                 case LateSummer:
                 case Fall:
@@ -1379,7 +1390,7 @@ class GameClass {
             }
         }
 
-        for (let i = 1; i < Faction.factions.size(); ++i) {
+        for (let i = 1; i < Faction.factions.length; ++i) {
             Faction.factions[i].Update();
         }
     }
@@ -1595,8 +1606,8 @@ class GameClass {
             //This conditional ensures that the river's beginning and end are at least 100 units apart
         } while (std.sqrt(std.pow(px[0] - px[3], 2) + std.pow(py[0] - py[3], 2)) < 100);
 
-        let depth = Config.GetCVar("riverDepth");
-        let width = Config.GetCVar("riverWidth");
+        let depth = this.Config.GetCVar("riverDepth");
+        let width = this.Config.GetCVar("riverWidth");
         map.heightMap.digBezier(px, py, width, -depth, width, -depth);
 
         let hills = 0;
@@ -2196,7 +2207,7 @@ class GameClass {
         if (npc = wnpc.lock()) {
             npcList.erase(npc.uid);
             let faction = npc.GetFaction();
-            if (faction >= 0 && faction < (Faction.factions.size()))
+            if (faction >= 0 && faction < (Faction.factions.length))
                 Faction.factions[faction].RemoveMember(npc);
         }
     }
@@ -2317,13 +2328,13 @@ class GameClass {
 
         this.staticConstructionList.clear();
         this.dynamicConstructionList.clear();
-        
-        Map.Reset();
+
+        GameMap.Reset();
         JobManager.Reset();
         StockManager.Reset();
         Announce.Reset();
         Camp.Reset();
-        for (let i = 0; i < Faction.factions.size(); ++i) {
+        for (let i = 0; i < Faction.factions.length; ++i) {
             Faction.factions[i].Reset();
         }
         Stats.Reset();
@@ -2613,18 +2624,15 @@ class GameClass {
     }
 
     GameOver() {
-        running = false;
+        this.running = false;
     }
 
-    CreateFire(pos) {
-        CreateFire(pos, 10);
-    }
 
-    CreateFire(pos, temperature) {
+    CreateFire(pos, temperature = 10) {
         if (fireList.empty()) {
-            Announce.AddMsg("Fire!", Color.red, pos);
-            if (Config.GetCVar("bool", "pauseOnDanger"))
-                Game.AddDelay(UPDATES_PER_SECOND, boost.bind(Game.Pause, Game));
+            this.Announce.AddMsg("Fire!", Color.red, pos);
+            if (this.Config.GetCVar("bool", "pauseOnDanger"))
+                this.Game.AddDelay(Constants.UPDATES_PER_SECOND, boost.bind(this.Game.Pause, this.Game));
         }
 
         // boost.weak_ptr < FireNode > 
@@ -2956,7 +2964,7 @@ class GameClass {
         //a list of current factions here, and make sure they all exist after loading
         {
             std.list < std.string > factionNames;
-            for (let i = 0; i < Faction.factions.size(); ++i) {
+            for (let i = 0; i < Faction.factions.length; ++i) {
                 factionNames.push_back(Faction.FactionTypeToString(i));
             }
             if (version < 1) {
@@ -2999,12 +3007,12 @@ class GameClass {
         }
     }
     static Reset() {
-        let instance = new GameClass();
-        instance.Init(!GameClass.initializedOnce);
-        GameClass.initializedOnce = true;
+        this.instance = null;
+        this.instance = new Game();
+        this.instance.Init(!Game.initializedOnce);
+        Game.initializedOnce = true;
 
-        return instance;
+        return this.instance;
     }
 }
 
-export let Game = GameClass.Reset();

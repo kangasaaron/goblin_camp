@@ -21,9 +21,9 @@ import { Path } from "./Path.js";
 
 
 /**
-	Interface to manage game's configuration.
+    Interface to manage game's configuration.
 */
-class Configuration {
+export class Config {
     /**
     @var cvars
     A map of configuration variables.
@@ -58,9 +58,9 @@ class Configuration {
     }
 
     /**
-    	Saves current configuration to user's configuration file.
+        Saves current configuration to user's configuration file.
     	
-    	@see Paths
+        @see Paths
     */
     Save() {
         let configObj = {
@@ -79,13 +79,24 @@ class Configuration {
             configObj.keys[pair[0]] = pair[1];
         }
 
-        localStorage.setItem(Paths.Get(Path.Config), JSON.stringify(configObj));
+        localStorage.setItem(this.Paths.Get(Path.Config), JSON.stringify(configObj));
+    }
+
+    static instance;
+    static Reset() {
+        this.instance = null;
+        this.instance = new Config();
+        return this.instance;
     }
 
     /**
-    	Creates configuration variables, and default key bindings.
+        Creates configuration variables, and default key bindings.
     */
     constructor() {
+        if (Config.instance) return Config.instance;
+
+        this.Paths = new Paths();
+
         this.cvars = new Map([
             ["resolutionX", "800"],
             ["resolutionY", "600"],
@@ -123,10 +134,10 @@ class Configuration {
     }
 
     /**
-    	Changes value of a configuration variable.
+        Changes value of a configuration variable.
     	
-    	@param[in] name  Name of the variable.
-    	@param[in] value New value for the variable.
+        @param[in] name  Name of the variable.
+        @param[in] value New value for the variable.
     */
     SetStringCVar(nm, value) {
         console.log(`Setting ${nm} to ${value}`);
@@ -134,11 +145,11 @@ class Configuration {
     }
 
     /**
-    	Retrieves value of a configuration variable. If the variable doesn't exist,
-    	it will be created, set to empty string and then returned.
+        Retrieves value of a configuration variable. If the variable doesn't exist,
+        it will be created, set to empty string and then returned.
     	
-    	@param[in] name Name of the variable.
-    	@returns        Value of the variable.
+        @param[in] name Name of the variable.
+        @returns        Value of the variable.
     */
     GetStringCVar(nm) {
         if (!(this.cvars.has(nm))) {
@@ -150,20 +161,20 @@ class Configuration {
 
 
     /**
-    	Retrieves all defined configuration variables.
+        Retrieves all defined configuration variables.
     	
-    	@returns A constant reference to the configuration variables map.
+        @returns A constant reference to the configuration variables map.
     */
     GetCVarMap() {
         return this.cvars;
     }
 
     /**
-    	Retrieves keycode bound to a named key. If the key doesn't exist,
-    	null keycode (\c 0) will be returned and warning will be logged.
+        Retrieves keycode bound to a named key. If the key doesn't exist,
+        null keycode (\c 0) will be returned and warning will be logged.
     	
-    	@param[in] name Name of the key.
-    	@returns        Currently bound keycode, or 0.
+        @param[in] name Name of the key.
+        @returns        Currently bound keycode, or 0.
     */
     GetKey(nm) {
         if (!(this.keys.has(nm))) {
@@ -175,11 +186,11 @@ class Configuration {
     }
 
     /**
-    	Changes keycode bound to a named key. If the key doesn't exist,
-    	a warning will be logged (but the binding will be saved).
+        Changes keycode bound to a named key. If the key doesn't exist,
+        a warning will be logged (but the binding will be saved).
     	
-    	@param[in] name  Name of the key.
-    	@param[in] value New keycode for the key.
+        @param[in] name  Name of the key.
+        @param[in] value New keycode for the key.
     */
     SetKey(nm, value) {
         console.log(`Setting ${nm} to '${value}'`);
@@ -192,14 +203,15 @@ class Configuration {
     }
 
     /**
-    	Retrieves all key bindings.
+        Retrieves all key bindings.
     	
-    	@returns Non-constant reference to the key bindings map. Callers should be careful not to introduce new keys this way.
+        @returns Non-constant reference to the key bindings map. Callers should be careful not to introduce new keys this way.
     */
     GetKeyMap() {
         return this.keys;
     }
-    Init() {}
+    static Init() {
+        if (this.instance) return this.instance;
+        return this.Reset();
+    }
 }
-
-export const Config = new Configuration();

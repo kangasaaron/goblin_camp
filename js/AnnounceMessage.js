@@ -1,6 +1,9 @@
 import {
     Color
 } from "./color/Color.js";
+import {
+    Coordinate
+} from "./Coordinate.js";
 
 export class AnnounceMessage {
     result = "";
