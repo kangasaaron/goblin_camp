@@ -17,9 +17,18 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 import { Color } from "./libtcod.js";
+import { BlendMode } from "./other/BlendMode.js";
 import { Config } from "./data/Config.js";
+import { Console } from "./other/Console.js";
+import { Alignment } from "./other/Alignment.js";
+import { Announce } from "./Announce.js";
+import { Camp } from "./Camp.js";
 import { Coordinate } from "./Coordinate.js";
 import { Events } from "./Events.js";
+import { Faction } from "./Faction.js";
+import { GameMap } from "./GameMap.js";
+import { JobManager } from "./JobManager.js";
+import { StockManager } from "./StockManager.js";
 import {
     Season
 } from "./Season.js";
@@ -44,9 +53,9 @@ let saving = [
 const loadingSize = loading.length;
 const savingSize = saving.length;
 
-class GameClass {
+export class Game {
     static CLASS_VERSION() { return 1; }
-
+    static instance;
     //boost.mutex 
     loadingScreenMutex;
     screenWidth = 0;
@@ -69,10 +78,14 @@ class GameClass {
     camY = 180;
     /** @type {Console} */
     buffer = null;
+    /** @type {Coordinate[]}*/
     marks = new Array(12);
     the_console = null;
     /** @type {boost.shared_ptr<MapRenderer>} */
     renderer = null;
+    staticConstructionList = new Map();
+    dynamicConstructionList = new Map();
+
     // friend class ConfigListener;
     // friend void SettingsMenu();
     // friend class TCODMapRenderer;
@@ -92,7 +105,6 @@ class GameClass {
     // int safeMonths;
     // bool refreshStockpiles;
     // static bool devMode;
-    // Coordinate marks[12];
 
     // boost.shared_ptr < Events > events;
 
@@ -101,8 +113,6 @@ class GameClass {
     // boost.shared_ptr < MapRenderer > renderer;
     // bool gameOver;
 
-    // std.map < int, boost.shared_ptr < Construction > > staticConstructionList;
-    // std.map < int, boost.shared_ptr < Construction > > dynamicConstructionList;
     // std.map < int, boost.shared_ptr < NPC > > npcList;
 
     // static bool initializedOnce;
@@ -302,11 +312,15 @@ class GameClass {
     static ItemCatCount = 0;
 
     static initializedOnce = false;
-    static instance = 0;
+    // static instance = 0;
 
     static devMode = false;
 
     constructor() {
+        if (Game.instance) return Game.instance;
+
+        this.Config = new Config();
+
         for (let i = 0; i < 12; i++) {
             this.marks[i] = Coordinate.undefinedCoordinate;
         }
@@ -675,13 +689,13 @@ class GameClass {
                 }
             }
         }
-        if /* if(def */ (DEBUG) {} else {
+        if /* if(def */ (DEBUG) { } else {
             std.cout << "\nTried to bump nonexistant entity.";
         }
     } /*#endif*/
 
 
-    DoNothing() {}
+    DoNothing() { }
 
     Exit(confirm) {
         //boost.function<void()> exitFunc = boost.bind(&Game.Running, Game, false);
@@ -711,11 +725,14 @@ class GameClass {
 
         let loadingMsg = (isLoading ? loading : saving)[spin % (isLoading ? loadingSize : savingSize)];
 
+        this.buffer.setDefaultForeground(Color.white);
+        this.buffer.setDefaultBackground(Color.black);
+        this.buffer.setAlignment(Alignment.CENTER);
         // this.the_console.setDefaultForeground(Color.white);
         // this.the_console.setDefaultBackground(Color.black);
         // this.the_console.setAlignment(TCOD_CENTER); //TODO
         this.buffer.clear();
-        this.buffer.draw(Math.round(x), Math.round(y), loadingMsg, Color.white, Color.black);
+        this.buffer.print(x, y, loadingMsg);
         // this.buffer.flush();
     }
 
@@ -749,11 +766,17 @@ class GameClass {
         //     promise.set_exception(boost.copy_exception(e));
         // }
 
+        let me = this;
+        let intervalID = 0
         let spin = 0;
-        setInterval(function() {
+        intervalID = setInterval(function () {
             this.DrawProgressScreen(x, y, ++spin, isLoading);
         }.bind(this), 500);
-        return new Promise(() => true).then(blockingCall);
+        return new Promise(function (resolve, reject) {
+            blockingCall();
+            clearInterval(intervalID);
+            resolve();
+        });
         // do {
         //     this.DrawProgressScreen(x, y, ++spin, isLoading);
         // } while (!future.timed_wait(boost.posix_time.millisec(500)));
@@ -782,9 +805,9 @@ class GameClass {
     }
 
     Init(firstTime) {
-        let width = Config.GetCVar('int', "resolutionX");
-        let height = Config.GetCVar('int', "resolutionY");
-        let fullscreen = Config.GetCVar('bool', "fullscreen");
+        let width = this.Config.GetCVar('int', "resolutionX");
+        let height = this.Config.GetCVar('int', "resolutionY");
+        let fullscreen = this.Config.GetCVar('bool', "fullscreen");
 
         if (width <= 0 || height <= 0) {
             if (fullscreen) {
@@ -813,11 +836,11 @@ class GameClass {
         // TCODMouse.showCursor(true);
         //	TCODConsole.setKeyboardRepeat(500, 10);
 
-        this.buffer = new ROT.Display({ width: this.screenWidth, height: this.screenHeight });
+
         if (firstTime) {
+            this.buffer = new Console(this.screenWidth, this.screenHeight, "Goblin Camp", fullscreen);
+            // this.buffer = new ROT.Display({ width: this.screenWidth, height: this.screenHeight });
             // TCODConsole.initRoot(screenWidth, screenHeight, "Goblin Camp", fullscreen, renderer_type);
-            document.body.appendChild(this.buffer.getContainer());
-            document.title = "Goblin Camp";
         }
         this.ResetRenderer();
 
@@ -838,8 +861,8 @@ class GameClass {
         if (this.renderer && "reset" in this.renderer)
             this.renderer.reset();
 
-        if (Config.GetCVar("bool", "useTileset")) {
-            let tilesetName = Config.GetStringCVar("tileset");
+        if (this.Config.GetCVar("bool", "useTileset")) {
+            let tilesetName = this.Config.GetStringCVar("tileset");
             if (tilesetName.length === 0) tilesetName = "default";
 
             let tilesetRenderer = this.CreateTilesetRenderer(width, height, buffer, tilesetName);
@@ -858,7 +881,7 @@ class GameClass {
         if (this.running) {
             this.renderer.PreparePrefabs();
         }
-        this.renderer.SetTranslucentUI(Config.GetCVar("bool", "translucentUI"));
+        this.renderer.SetTranslucentUI(this.Config.GetCVar("bool", "translucentUI"));
     }
 
     RemoveConstruction(cons) {
@@ -880,8 +903,8 @@ class GameClass {
                 let p = new Coordinate(x, y);
                 let construction = Map.GetConstruction(p);
                 if (construction >= 0) {
-                    if (instance.GetConstruction(construction).lock()) {
-                        instance.GetConstruction(construction).lock().Dismantle(p);
+                    if (this.GetConstruction(construction).lock()) {
+                        this.GetConstruction(construction).lock().Dismantle(p);
                     } else {
                         Map.SetConstruction(p, -1);
                     }
@@ -1169,18 +1192,18 @@ class GameClass {
 
             switch (season) {
                 case EarlySpring:
-                    Announce.AddMsg("Spring has begun");
+                    this.Announce.AddMsg("Spring has begun");
                     ++age;
-                    if (Config.GetCVar("bool", "autosave")) {
+                    if (this.Config.GetCVar("bool", "autosave")) {
                         let saveName = "autosave" + std.string(age % 2 ? "1" : "2");
                         if (Data.SaveGame(saveName, false))
-                            Announce.AddMsg("Autosaved");
+                            this.Announce.AddMsg("Autosaved");
                         else
-                            Announce.AddMsg("Failed to autosave! Refer to the logfile", Color.red);
+                            this.Announce.AddMsg("Failed to autosave! Refer to the logfile", Color.red);
                     }
                 case Spring:
                 case LateSpring:
-                    SpawnTillageJobs();
+                    this.SpawnTillageJobs();
                 case Summer:
                 case LateSummer:
                 case Fall:
@@ -1367,7 +1390,7 @@ class GameClass {
             }
         }
 
-        for (let i = 1; i < Faction.factions.size(); ++i) {
+        for (let i = 1; i < Faction.factions.length; ++i) {
             Faction.factions[i].Update();
         }
     }
@@ -1482,23 +1505,23 @@ class GameClass {
     // namespace {
     //     template < typename MapT >
     InternalDrawMapItems(name, map, upleft, buffer) {
-            for (let it = map.begin(); it !== map.end();) {
-                let ptr = it.second;
+        for (let it = map.begin(); it !== map.end();) {
+            let ptr = it.second;
 
-                if (ptr.get() !== null) {
-                    ptr.Draw(upleft, buffer);
-                    ++it;
-                } else {
-                    if /* if(def */ (DEBUG) {
-                        std.cout << "!!! null POINTER !!! " << name << " ; id " << it.first << std.endl;
-                    } /*#endif*/
-                    let tmp = it;
-                    ++it;
-                    map.erase(tmp);
-                }
+            if (ptr.get() !== null) {
+                ptr.Draw(upleft, buffer);
+                ++it;
+            } else {
+                if /* if(def */ (DEBUG) {
+                    std.cout << "!!! null POINTER !!! " << name << " ; id " << it.first << std.endl;
+                } /*#endif*/
+                let tmp = it;
+                ++it;
+                map.erase(tmp);
             }
         }
-        // }
+    }
+    // }
 
     Draw(the_console, focusX, focusY, drawUI, posX, posY, sizeX, sizeY) {
         the_console.setBackgroundFlag(TCOD_BKGND_SET);
@@ -1583,8 +1606,8 @@ class GameClass {
             //This conditional ensures that the river's beginning and end are at least 100 units apart
         } while (std.sqrt(std.pow(px[0] - px[3], 2) + std.pow(py[0] - py[3], 2)) < 100);
 
-        let depth = Config.GetCVar("riverDepth");
-        let width = Config.GetCVar("riverWidth");
+        let depth = this.Config.GetCVar("riverDepth");
+        let width = this.Config.GetCVar("riverWidth");
         map.heightMap.digBezier(px, py, width, -depth, width, -depth);
 
         let hills = 0;
@@ -2184,7 +2207,7 @@ class GameClass {
         if (npc = wnpc.lock()) {
             npcList.erase(npc.uid);
             let faction = npc.GetFaction();
-            if (faction >= 0 && faction < (Faction.factions.size()))
+            if (faction >= 0 && faction < (Faction.factions.length))
                 Faction.factions[faction].RemoveMember(npc);
         }
     }
@@ -2252,10 +2275,10 @@ class GameClass {
     }
 
     Running(value) {
-        running = value;
+        this.running = value;
     }
     Running() {
-        return running;
+        return this.running;
     }
 
     FindConstructionByTag(tag, closeTo) {
@@ -2299,23 +2322,19 @@ class GameClass {
 
     Reset() {
         //TODO: ugly
-        instance.npcList.clear();
-        instance.natureList.clear(); //Ice decays into ice objects and water, so clear this before items and water
-        instance.itemList.clear(); //Destroy current items, that way ~Construction() won't have items to try and stockpile
+        this.npcList = [];
+        this.natureList = []; //Ice decays into ice objects and water, so clear this before items and water
+        this.itemList = []; //Destroy current items, that way ~Construction() won't have items to try and stockpile
 
-        while (!instance.staticConstructionList.empty()) {
-            instance.staticConstructionList.erase(instance.staticConstructionList.begin());
-        }
-        while (!instance.dynamicConstructionList.empty()) {
-            instance.dynamicConstructionList.erase(instance.dynamicConstructionList.begin());
-        }
+        this.staticConstructionList.clear();
+        this.dynamicConstructionList.clear();
 
-        Map.Reset();
+        GameMap.Reset();
         JobManager.Reset();
         StockManager.Reset();
         Announce.Reset();
         Camp.Reset();
-        for (let i = 0; i < Faction.factions.size(); ++i) {
+        for (let i = 0; i < Faction.factions.length; ++i) {
             Faction.factions[i].Reset();
         }
         Stats.Reset();
@@ -2357,13 +2376,13 @@ class GameClass {
     }
 
     SetMark(i) {
-        marks[i] = Coordinate(FloorToInt.convert(camX), FloorToInt.convert(camY));
+        this.marks[i] = Coordinate(FloorToInt.convert(camX), FloorToInt.convert(camY));
         Announce.AddMsg("Mark set");
     }
 
     ReturnToMark(i) {
-        camX = marks[i].X() + 0.5;
-        camY = marks[i].Y() + 0.5;
+        camX = this.marks[i].X() + 0.5;
+        camY = this.marks[i].Y() + 0.5;
     }
 
     TranslateContainerListeners() {
@@ -2372,7 +2391,7 @@ class GameClass {
                 boost.static_pointer_cast < Container > (it.second).TranslateContainerListeners();
             }
         }
-        for (let it = staticConstructionList.begin(); it != staticConstructionList.end(); ++it) {
+        for (let it = this.staticConstructionList.begin(); it != this.staticConstructionList.end(); ++it) {
             if (boost.dynamic_pointer_cast < Stockpile > (it.second)) {
                 boost.static_pointer_cast < Stockpile > (it.second).TranslateInternalContainerListeners();
             }
@@ -2605,18 +2624,15 @@ class GameClass {
     }
 
     GameOver() {
-        running = false;
+        this.running = false;
     }
 
-    CreateFire(pos) {
-        CreateFire(pos, 10);
-    }
 
-    CreateFire(pos, temperature) {
+    CreateFire(pos, temperature = 10) {
         if (fireList.empty()) {
-            Announce.AddMsg("Fire!", Color.red, pos);
-            if (Config.GetCVar("bool", "pauseOnDanger"))
-                Game.AddDelay(UPDATES_PER_SECOND, boost.bind(Game.Pause, Game));
+            this.Announce.AddMsg("Fire!", Color.red, pos);
+            if (this.Config.GetCVar("bool", "pauseOnDanger"))
+                this.Game.AddDelay(Constants.UPDATES_PER_SECOND, boost.bind(this.Game.Pause, this.Game));
         }
 
         // boost.weak_ptr < FireNode > 
@@ -2774,9 +2790,9 @@ class GameClass {
 
     GetRandomConstruction() {
         if (dynamicConstructionList.empty() ||
-            (Random.GenerateBool() && !staticConstructionList.empty())) {
-            let index = Random.Generate(staticConstructionList.size() - 1);
-            for (let consi = staticConstructionList.begin(); consi != staticConstructionList.end(); ++consi) {
+            (Random.GenerateBool() && !this.staticConstructionList.empty())) {
+            let index = Random.Generate(this.staticConstructionList.size() - 1);
+            for (let consi = this.staticConstructionList.begin(); consi != this.staticConstructionList.end(); ++consi) {
                 if (index-- == 0) return consi.second;
             }
         } else if (!dynamicConstructionList.empty()) {
@@ -2845,7 +2861,7 @@ class GameClass {
 
     //Check each stockpile for empty not-needed containers, and see if some other pile needs them
     RebalanceStockpiles(requiredCategory, excluded) {
-        for (let stocki = staticConstructionList.begin(); stocki != staticConstructionList.end(); ++stocki) {
+        for (let stocki = this.staticConstructionList.begin(); stocki != this.staticConstructionList.end(); ++stocki) {
             if (stocki.second.stockpile) {
                 // boost.shared_ptr < Stockpile > 
                 let sp = (boost.static_pointer_cast < Stockpile > (stocki.second));
@@ -2870,7 +2886,7 @@ class GameClass {
         for (let npcIterator = npcList.begin(); npcIterator != npcList.end(); ++npcIterator) {
             npcIterator.second.SetMap(Map);
         }
-        for (let consIterator = staticConstructionList.begin(); consIterator != staticConstructionList.end(); ++consIterator) {
+        for (let consIterator = this.staticConstructionList.begin(); consIterator != staticConstructionList.end(); ++consIterator) {
             consIterator.second.SetMap(Map);
         }
         for (let consIterator = dynamicConstructionList.begin(); consIterator != dynamicConstructionList.end(); ++consIterator) {
@@ -2897,14 +2913,14 @@ class GameClass {
         ar & goblinCount;
         ar & peacefulFaunaCount;
         ar & safeMonths;
-        ar & marks;
+        ar & this.marks;
         ar & camX;
         ar & camY;
         ar & Faction.factions;
         ar & npcList;
         ar & squadList;
         ar & hostileSquadList;
-        ar & staticConstructionList;
+        ar & this.staticConstructionList;
         ar & dynamicConstructionList;
         ar & itemList;
         ar & freeItems;
@@ -2917,7 +2933,7 @@ class GameClass {
         ar & fireList;
         ar & spellList;
         ar & age;
-        ar & Stats.instance;
+        ar & Stats.this;
     }
 
     load(ar, version) {
@@ -2940,7 +2956,7 @@ class GameClass {
         ar & goblinCount;
         ar & peacefulFaunaCount;
         ar & safeMonths;
-        ar & marks;
+        ar & this.marks;
         ar & camX;
         ar & camY;
 
@@ -2948,12 +2964,12 @@ class GameClass {
         //a list of current factions here, and make sure they all exist after loading
         {
             std.list < std.string > factionNames;
-            for (let i = 0; i < Faction.factions.size(); ++i) {
+            for (let i = 0; i < Faction.factions.length; ++i) {
                 factionNames.push_back(Faction.FactionTypeToString(i));
             }
             if (version < 1) {
                 /* Earlier versions didn't use factions for more than storing trap data, 
-                			   so transfer that and use the new defaults otherwise */
+                               so transfer that and use the new defaults otherwise */
                 // std.vector < boost.shared_ptr < Faction > > 
                 let oldFactionData = [];
                 ar & oldFactionData;
@@ -2973,7 +2989,7 @@ class GameClass {
 
         ar & squadList;
         ar & hostileSquadList;
-        ar & staticConstructionList;
+        ar & this.staticConstructionList;
         ar & dynamicConstructionList;
         ar & itemList;
         ar & freeItems;
@@ -2987,16 +3003,16 @@ class GameClass {
         ar & spellList;
         ar & age;
         if (version >= 1) {
-            ar & Stats.instance;
+            ar & Stats.this;
         }
     }
     static Reset() {
-        let instance = new GameClass();
-        instance.Init(!GameClass.initializedOnce);
-        GameClass.initializedOnce = true;
+        this.instance = null;
+        this.instance = new Game();
+        this.instance.Init(!Game.initializedOnce);
+        Game.initializedOnce = true;
 
-        return instance;
+        return this.instance;
     }
 }
 
-export let Game = GameClass.Reset();

@@ -1,6 +1,6 @@
 import {
     Enum
-} from "./other/enums.js";
+} from "./other/Enums.js";
 
 export class WeatherType extends Enum {
     static NORMALWEATHER;

@@ -22,7 +22,20 @@ import {
     fs
 } from "../other/fakefs.js";
 
-class TilesetsData {
+export class Tilesets {
+    static instance;
+    static Reset() {
+        this.instance = null;
+        this.instance = new Tilesets();
+        return this.instance();
+    }
+    constructor() {
+        if (Tilesets.instance) return Tilesets.instance;
+
+        this.Paths = new Paths();
+
+        return this;
+    }
     /**
      * Reads in the metadata for the given tileset.
      * @param[in] dir      Tileset's directory.
@@ -43,7 +56,7 @@ class TilesetsData {
     LoadTilesetMetadata() {
         let metadata = [];
         return this.loadCoreTilesets(metadata)
-            .then(function() {
+            .then(function () {
                 return this.loadUserTilesets(metadata);
             });
     }
@@ -52,7 +65,7 @@ class TilesetsData {
      * load core tilesets
      * */
     loadCoreTilesets(metadata) {
-        return Paths.Get(Path.CoreTilesets).keys()
+        return this.Paths.Get(Path.CoreTilesets).keys()
             .then(keys => this.loadDirectoryTilesets(keys, metadata));
     };
 
@@ -60,7 +73,7 @@ class TilesetsData {
      * load user tilesets
      * */
     loadUserTilesets(metadata) {
-        return Paths.Get(Path.Tilesets).keys()
+        return this.Paths.Get(Path.Tilesets).keys()
             .then((keys) => this.loadDirectoryTilesets(keys, metadata));
     }
 
@@ -75,5 +88,3 @@ class TilesetsData {
         }
     }
 }
-
-export let Tilesets = new TilesetsData();

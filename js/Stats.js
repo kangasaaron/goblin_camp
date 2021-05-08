@@ -19,7 +19,8 @@ import {
 } from "./data/Serialization.js";
 
 
-class Statistics extends Serializable {
+export class Stats extends Serializable {
+	static instance;
 	static CLASS_VERSION = 0;
 	points = 0;
 	itemsBurned = 0;
@@ -31,6 +32,11 @@ class Statistics extends Serializable {
 	constructionsBuilt = new Map();
 	itemsBuilt = new Map();
 
+	constructor() {
+		if (Stats.instance) return Stats.instance;
+		super();
+		return this;
+	}
 	AddPoints(amount = 1) {
 		this.points += amount;
 	}
@@ -74,7 +80,8 @@ class Statistics extends Serializable {
 		return this.itemBurned;
 	}
 	static Reset() {
-		Stats = new Statistics();
+		this.instance = null;
+		this.instance = new Stats();
 	}
 	serialize(ar, version) {
 		return {
@@ -104,4 +111,4 @@ class Statistics extends Serializable {
 	}
 }
 
-export let Stats = new Statistics();
+

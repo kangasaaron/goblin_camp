@@ -1,14 +1,14 @@
 import {
     Drawable
-} from "./Drawable";
+} from "./Drawable.js";
 
 export class Panel extends Drawable {
     constructor(nwidth, nheight) {
         super(0, 0, nwidth, nheight);
     }
 
-    selected(newSel) {}
-    Open() {}
+    selected(newSel) { }
+    Open() { }
     Close() {
         UI.SetTextMode(false);
     }

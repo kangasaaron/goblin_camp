@@ -15,13 +15,27 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 export class TileSetLoader {
+    static instance;
+    static Reset(){
+        this.instance = null;
+        this.instance = new TileSetLoader();
+        return this.instance;
+    }
+    constructor(){
+        if(TileSetLoader.instance) return TileSetLoader.instance;
+
+        this.Paths = new Paths();
+
+        return this;
+    }
+    
     // boost.shared_ptr < TileSet > LoadTileSet(boost.shared_ptr < TilesetRenderer > spriteFactory, std.string name);
     // boost.shared_ptr < TileSet > TileSetLoader.LoadTileSet(boost.shared_ptr < TilesetRenderer > spriteFactory, std.string tilesetName) {
     LoadTileSet(spriteFactory, tilesetName) {
         // Resolve path
-        let tilesetPath = (Paths.Get(Path.CoreTilesets) + "/" + tilesetName);
+        let tilesetPath = (this.Paths.Get(Path.CoreTilesets) + "/" + tilesetName);
         if (!boost.filesystem.is_directory(tilesetPath)) {
-            tilesetPath = Paths.Get(Path.Tilesets) + "/" + tilesetName;
+            tilesetPath = this.Paths.Get(Path.Tilesets) + "/" + tilesetName;
         }
         return LoadTileSet(spriteFactory, tilesetPath);
     }

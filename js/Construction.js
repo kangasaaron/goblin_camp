@@ -135,48 +135,48 @@ export class Construction extends Entity {
      * @returns {Coordinate}
      */
     static Blueprint(construct) {
-            return this.Presets[construct].blueprint;
-        }
-        /**
-         * 
-         * @param {ConstructionType} construct 
-         * @returns {Coordinate}
-         */
+        return this.Presets[construct].blueprint;
+    }
+    /**
+     * 
+     * @param {ConstructionType} construct 
+     * @returns {Coordinate}
+     */
     static ProductionSpot(construct) {
         return this.Presets[construct].productionSpot;
     }
     static ResolveProducts() {
-            for (let itemPreset of Item.Presets) {
-                if (ItemPreset.constructedInRaw == "") continue;
-                let conPreset = Construction.Presets.find(function(preset) {
-                    return preset.name == itemPreset.constructedInRaw;
-                });
-                if (conPreset) {
-                    conPreset.producer = conPreset.tags[ConstructionTag.WORKSHOP] = true;
-                    conPreset.products.push(Item.StringToItemType(itemPreset.name));
-                    itemPreset.constructionInRaw = "";
-                } else {
-                    console.log("Item " + itemPreset.name + " refers to nonexistant construction " + itemPreset.constructedInRaw + ".");
-                }
+        for (let itemPreset of Item.Presets) {
+            if (ItemPreset.constructedInRaw == "") continue;
+            let conPreset = Construction.Presets.find(function (preset) {
+                return preset.name == itemPreset.constructedInRaw;
+            });
+            if (conPreset) {
+                conPreset.producer = conPreset.tags[ConstructionTag.WORKSHOP] = true;
+                conPreset.products.push(Item.StringToItemType(itemPreset.name));
+                itemPreset.constructionInRaw = "";
+            } else {
+                console.log("Item " + itemPreset.name + " refers to nonexistant construction " + itemPreset.constructedInRaw + ".");
             }
         }
-        /**
-         * 
-         * @param {string} nm - name of the Construction Preset
-         * @returns {ConstructionType} the Construction type for the preset
-         */
+    }
+    /**
+     * 
+     * @param {string} nm - name of the Construction Preset
+     * @returns {ConstructionType} the Construction type for the preset
+     */
     static StringToConstructionType(nm) {
-            nm = nm.toUpperCase();
-            if (!this.constructionNames.has(nm)) {
-                return -1;
-            }
-            return this.constructionNames.get(nm);
+        nm = nm.toUpperCase();
+        if (!this.constructionNames.has(nm)) {
+            return -1;
         }
-        /**
-         * 
-         * @param {ConstructionType} type 
-         * @returns {string} name of the Construction Preset
-         */
+        return this.constructionNames.get(nm);
+    }
+    /**
+     * 
+     * @param {ConstructionType} type 
+     * @returns {string} name of the Construction Preset
+     */
     static ConstructionTypeToString(type) {
         return this.Presets[type].name;
     }
@@ -197,6 +197,7 @@ export class Construction extends Entity {
      */
     constructor(vtype = new ConstructionType(0), target = Coordinate.zero) {
         super();
+        this.Config = new Config();
         this.type = vtype;
         this.preset = Construction.Presets[this.type];
         this.container = new Container(this.preset.productionSpot + target, -1, 1000, -1);
@@ -563,11 +564,11 @@ export class Construction extends Entity {
     }
     UpdateWallGraphic(recurse = true, updateSelf = true) {
         let dirs = [
-                Direction.WEST,
-                Direction.EAST,
-                Direction.NORTH,
-                Direction.SOUTH
-            ],
+            Direction.WEST,
+            Direction.EAST,
+            Direction.NORTH,
+            Direction.SOUTH
+        ],
             posDir = new Array(4),
             consId = new Array(4).fill(0),
             wod = new Array(4).fill(false);
@@ -620,14 +621,14 @@ export class Construction extends Entity {
         let friendly = NPC.Presets[monsterType].tags.has("friendly");
         let announceColor = friendly ? Color.green : Color.red;
 
-        if (!friendly && Config.GetCVar("pauseOnDanger"))
+        if (!friendly && this.Config.GetCVar("pauseOnDanger"))
             Game.AddDelay(UPDATES_PER_SECOND, Game.Pause.bind(Game));
 
         let amount = Game.DiceToInt(NPC.Presets[monsterType].group);
         if (amount == 1) {
-            Announce.AddMsg("A " + NPC.NPCTypeToString(monsterType) + " emerges from the " + this.name + "!", announceColor, this.Position());
+            this.Announce.AddMsg("A " + NPC.NPCTypeToString(monsterType) + " emerges from the " + this.name + "!", announceColor, this.Position());
         } else {
-            Announce.AddMsg(NPC.Presets[monsterType].plural + " emerge from the " + this.name + "!", announceColor, this.Position());
+            this.Announce.AddMsg(NPC.Presets[monsterType].plural + " emerge from the " + this.name + "!", announceColor, this.Position());
         }
         for (let i = 0; i < amount; ++i) {
             Game.CreateNPC(this.Position() + this.ProductionSpot(this.type), monsterType);

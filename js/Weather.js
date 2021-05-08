@@ -25,7 +25,7 @@ import { TileType } from "./TileType.js";
 import { Coordinate } from "./Coordinate.js";
 import { Constants } from "./Constants.js";
 
-export class Weather extends Serializeable {
+export class Weather extends Serializable {
     static CLASS_VERSION = 0;
 
     map = null;

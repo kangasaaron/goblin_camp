@@ -1,6 +1,6 @@
 import {
     Enum
-} from "./other/Enums.js";
+} from "../other/Enums.js";
 
 /**
  * @enum

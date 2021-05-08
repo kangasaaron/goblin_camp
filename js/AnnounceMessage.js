@@ -1,6 +1,9 @@
 import {
     Color
-} from "../../../libtcod/js/src/libtcod/color__cpp.js";
+} from "./libtcod.js";
+import {
+    Coordinate
+} from "./Coordinate.js";
 
 export class AnnounceMessage {
     result = "";

@@ -9,6 +9,7 @@
   },
   "author": "",
   "dependencies": {
+    "http-server": "^0.12.3",
     "jshint": "^2.12.0"
   }
 }

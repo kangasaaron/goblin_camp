@@ -19,7 +19,6 @@ import {
 	Drawable
 } from "./Drawable.js";
 
-import "libtcod.js"
 
 export class Label extends Drawable {
 	text = '';

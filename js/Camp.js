@@ -23,9 +23,10 @@ import {
     Color
 } from "./libtcod.js";
 
-class Encampment extends Serializable {
+export class Camp extends Serializable {
     //Version 2 = 0.2 - diseaseChance
     static CLASS_VERSION = 2;
+    static instance;
 
     centerX = 220.0;
     centerY = 220.0;
@@ -46,6 +47,12 @@ class Encampment extends Serializable {
     diseaseModifier = 0;
     spawningPool = null;
 
+    constructor() {
+        if (Camp.instance) return Camp.instance;
+        super();
+        this.Announce = Announce.getInstance();
+        return this;
+    }
     Center() {
         return this.locked ? this.lockedCenter : Coordinate(this.centerX, this.centerY);
     }
@@ -89,10 +96,12 @@ class Encampment extends Serializable {
     }
     ToggleAutoTerritory() {
         this.autoTerritory = !this.autoTerritory;
-        Announce.AddMsg((boost.format("Automatic territory handling %s") % (this.autoTerritory ? "enabled" : "disabled")).str(), Color.cyan);
+        this.Announce.AddMsg((boost.format("Automatic territory handling %s") % (this.autoTerritory ? "enabled" : "disabled")).str(), Color.cyan);
     }
     static Reset() {
-        Camp = new Encampment();
+        this.instance = null;
+        this.instance = new Camp();
+        return this.instance;
     }
     Update() {
         this.UpdateTier();
@@ -284,7 +293,7 @@ class Encampment extends Serializable {
                 this.name = "Citadel";
                 break;
         }
-        Announce.AddMsg(`Your ${oldName} is now ${article} ${name}!`,
+        this.Announce.AddMsg(`Your ${oldName} is now ${article} ${name}!`,
             positive ? Color.lightGreen : Color.yellow);
         Script.Event.TierChanged(this.tier, this.name);
     }
@@ -341,4 +350,3 @@ class Encampment extends Serializable {
     }
 }
 
-export let Camp = new Encampment();

@@ -15,6 +15,9 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
+    Direction
+} from "./Direction.js";
+import {
     CacheTile
 } from "./CacheTile.js";
 import {
@@ -23,7 +26,9 @@ import {
 import {
     Color
 } from "./libtcod.js";
-
+import {
+    Random
+} from "./Random.js";
 import {
     TileType
 } from "./TileType.js";
@@ -66,6 +71,7 @@ export class Tile extends Serializable {
     flow = Direction.NODIRECTION;
 
     constructor(newType = TileType.TILEGRASS, newCost = 1) {
+        super();
         this.moveCost = newCost;
         this.ResetType(newType);
     }
@@ -105,7 +111,7 @@ export class Tile extends Serializable {
     MoveFrom(uid) {
         if (this.npcList.indexOf(uid) === -1) {
             if (DEBUG) {
-                console.log `NPC ${uid} moved off of empty list`;
+                console.log`NPC ${uid} moved off of empty list`;
             }
             return;
         }
@@ -262,7 +268,7 @@ export class Tile extends Serializable {
         if (this.burnt == 0) {
             this.Corrupt(0);
             /*Corruption changes the color, and by corrupting by 0 we just return to what color the tile
-            			would be without any burning*/
+                        would be without any burning*/
             return;
         }
 
@@ -381,119 +387,119 @@ export class Tile extends Serializable {
         let colorNum = Random.Generate(195, 250);
         this.originalForeColor = new Color(colorNum + Random.Generate(-5, 5), colorNum + Random.Generate(-5, 5),
             colorNum + Random.Generate(-5, 5));
-    ];
-    this.backColor = [0, 0, 0];
-    switch (Random.Generate(9)) {
-        case 0:
-        case 1:
-        case 2:
-        case 3:
-            this.graphic = '.';
-            break;
-        case 4:
-        case 5:
-        case 6:
-        case 7:
-            this.graphic = ',';
-            break;
-        case 8:
-            this.graphic = ':';
-            break;
-        case 9:
-            this.graphic = '\'';
-            break;
+
+        this.backColor = [0, 0, 0];
+        switch (Random.Generate(9)) {
+            case 0:
+            case 1:
+            case 2:
+            case 3:
+                this.graphic = '.';
+                break;
+            case 4:
+            case 5:
+            case 6:
+            case 7:
+                this.graphic = ',';
+                break;
+            case 8:
+                this.graphic = ':';
+                break;
+            case 9:
+                this.graphic = '\'';
+                break;
+        }
     }
-}
-ResetType(newType, height = 0.0) {
-    this.type = newType;
-    if (type == TileType.TILEGRASS) {
-        this.ResetTypeToGrass(height);
-    } else if (type == TileType.TILEDITCH || type == TileType.TILERIVERBED) {
-        this.ResetTypeToDitchOrRiverbed(height);
-    } else if (type == TileType.TILEBOG) {
-        this.ResetTypeToBog(height);
-    } else if (type == TileType.TILEROCK) {
-        this.ResetTypeToRock(height);
-    } else if (type == TileType.TILEMUD) {
-        this.ResetTypeToMud(height);
-    } else if (type == TileType.TILESNOW) {
-        this.ResetTypeToSnow(height);
-    } else {
-        this.vis = false;
-        this.walkable = false;
-        this.buildable = false;
+    ResetType(newType, height = 0.0) {
+        this.type = newType;
+        if (this.type == TileType.TILEGRASS) {
+            this.ResetTypeToGrass(height);
+        } else if (this.type == TileType.TILEDITCH || this.type == TileType.TILERIVERBED) {
+            this.ResetTypeToDitchOrRiverbed(height);
+        } else if (this.type == TileType.TILEBOG) {
+            this.ResetTypeToBog(height);
+        } else if (this.type == TileType.TILEROCK) {
+            this.ResetTypeToRock(height);
+        } else if (this.type == TileType.TILEMUD) {
+            this.ResetTypeToMud(height);
+        } else if (this.type == TileType.TILESNOW) {
+            this.ResetTypeToSnow(height);
+        } else {
+            this.vis = false;
+            this.walkable = false;
+            this.buildable = false;
+        }
+        this.foreColor = this.originalForeColor.clone();
     }
-    this.foreColor = this.originalForeColor.clone();
-}
-serialize(ar, version) {
-    ar.register_type(TileType);
-    ar.register_type(Color);
-    ar.register_type(Direction);
-    ar.register_type(WaterNode);
-    ar.register_type(FireNode);
-    ar.register_type(BloodNode);
-    return {
-        "type": ar.serialize(this.type),
-        "vis": this.vis,
-        "walkable": this.walkable,
-        "buildable": this.buildable,
-        "moveCost": this.moveCost,
-        "construction": this.construction,
-        "low": this.low,
-        "blocksWater": this.blocksWater,
-        "water": ar.serialize(this.water),
-        "graphic": this.graphic,
-        "foreColor": ar.serialize(this.foreColor),
-        "originalForeColor": this.ar.serialize(this.originalForeColor),
-        "backColor": ar.serialize(this.backColor),
-        "natureObject": this.natureObject,
-        "npcList": this.npcList,
-        "itemList": this.itemList,
-        "filth": ar.serialize(this.filth),
-        "blood": ar.serialize(this.blood),
-        "marked": this.marked,
-        "walkedOver": this.walkedOver,
-        "corruption": this.corruption,
-        "territory": this.territory,
-        "burnt": this.burnt,
-        "fire": ar.serialize(this.fire),
-        "flow": this.flow,
-    };
-}
-static deserialize(data, version, deserializer) {
-    ar.register_type(Color);
-    ar.register_type(TileType);
-    ar.register_type(Direction);
-    ar.register_type(WaterNode);
-    ar.register_type(FireNode);
-    ar.register_type(BloodNode);
-    let result = new Tile(
-        deserializer.deserialize(data.type),
-        data.cost
-    );
-    result.vis = data.vis;
-    result.walkable = data.walkable;
-    result.buildable = data.buildable;
-    result.construction = data.construction;
-    result.low = data.low;
-    result.blocksWater = data.blocksWater;
-    result.water = deserialzier.deserializable(data.water);
-    result.graphic = data.graphic;
-    result.foreColor = deserialzier.deserializable(data.foreColor);
-    result.originalForeColor = deserialzier.deserializable(data.originalForeColor);
-    result.backColor = deserialzier.deserializable(data.backColor);
-    result.natureObject = data.natureObject;
-    result.npcList = data.npcList;
-    result.itemList = data.itemList;
-    result.filth = deserialzier.deserializable(data.filth);
-    result.blood = deserialzier.deserializable(data.blood);
-    result.marked = data.marked;
-    result.walkedOver = data.walkedOver;
-    result.corruption = data.corruption;
-    result.territory = data.territory;
-    result.burnt = data.burnt;
-    result.fire = deserialzier.deserializable(data.fire);
-    result.flow = data.flow;
-    return result;
-}
+    serialize(ar, version) {
+        ar.register_type(TileType);
+        ar.register_type(Color);
+        ar.register_type(Direction);
+        ar.register_type(WaterNode);
+        ar.register_type(FireNode);
+        ar.register_type(BloodNode);
+        return {
+            "type": ar.serialize(this.type),
+            "vis": this.vis,
+            "walkable": this.walkable,
+            "buildable": this.buildable,
+            "moveCost": this.moveCost,
+            "construction": this.construction,
+            "low": this.low,
+            "blocksWater": this.blocksWater,
+            "water": ar.serialize(this.water),
+            "graphic": this.graphic,
+            "foreColor": ar.serialize(this.foreColor),
+            "originalForeColor": this.ar.serialize(this.originalForeColor),
+            "backColor": ar.serialize(this.backColor),
+            "natureObject": this.natureObject,
+            "npcList": this.npcList,
+            "itemList": this.itemList,
+            "filth": ar.serialize(this.filth),
+            "blood": ar.serialize(this.blood),
+            "marked": this.marked,
+            "walkedOver": this.walkedOver,
+            "corruption": this.corruption,
+            "territory": this.territory,
+            "burnt": this.burnt,
+            "fire": ar.serialize(this.fire),
+            "flow": this.flow,
+        };
+    }
+    static deserialize(data, version, deserializer) {
+        ar.register_type(Color);
+        ar.register_type(TileType);
+        ar.register_type(Direction);
+        ar.register_type(WaterNode);
+        ar.register_type(FireNode);
+        ar.register_type(BloodNode);
+        let result = new Tile(
+            deserializer.deserialize(data.type),
+            data.cost
+        );
+        result.vis = data.vis;
+        result.walkable = data.walkable;
+        result.buildable = data.buildable;
+        result.construction = data.construction;
+        result.low = data.low;
+        result.blocksWater = data.blocksWater;
+        result.water = deserialzier.deserializable(data.water);
+        result.graphic = data.graphic;
+        result.foreColor = deserialzier.deserializable(data.foreColor);
+        result.originalForeColor = deserialzier.deserializable(data.originalForeColor);
+        result.backColor = deserialzier.deserializable(data.backColor);
+        result.natureObject = data.natureObject;
+        result.npcList = data.npcList;
+        result.itemList = data.itemList;
+        result.filth = deserialzier.deserializable(data.filth);
+        result.blood = deserialzier.deserializable(data.blood);
+        result.marked = data.marked;
+        result.walkedOver = data.walkedOver;
+        result.corruption = data.corruption;
+        result.territory = data.territory;
+        result.burnt = data.burnt;
+        result.fire = deserialzier.deserializable(data.fire);
+        result.flow = data.flow;
+        return result;
+    }
 }
