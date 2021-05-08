@@ -1,6 +1,6 @@
 import {
     Color
-} from "./color/Color.js";
+} from "../../../libtcod/js/src/libtcod/color__cpp.js";
 
 export class AnnounceMessage {
     result = "";

@@ -1,6 +1,5 @@
-import {
-    OrganicItem
-} from "./OrganicItem.js";
+import { Game } from "./Game.js";
+import { OrganicItem } from "./OrganicItem.js";
 
 export class WaterItem extends OrganicItem {
     static CLASS_VERSION = 0;

@@ -15,15 +15,15 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import {
-    Serializeable
-} from "data/Serialization.js";
-import {
-    WeatherType
-} from "./WeatherType.js";
-import {
-    Direction
-} from "./Direction.js";
+import { Serializeable } from "data/Serialization.js";
+import { WeatherType } from "./WeatherType.js";
+import { Direction } from "./Direction.js";
+import { Random } from "./Random.js";
+import { Season } from "./Season.js";
+import { Game } from "./Game.js";
+import { TileType } from "./TileType.js";
+import { Coordinate } from "./Coordinate.js";
+import { Constants } from "./Constants.js";
 
 export class Weather extends Serializeable {
     static CLASS_VERSION = 0;
@@ -53,15 +53,15 @@ export class Weather extends Serializeable {
     ShiftWind() {
         if (Random.Generate(2) !== 0) return;
 
-        this.windDirection = Direction.values[windDirection + Random.Generate(-1, 1)];
+        this.windDirection = Direction.values[this.windDirection + Random.Generate(-1, 1)];
         if (this.windDirection < 0) this.windDirection = Direction.NORTHWEST;
         if (this.windDirection > Direction.NORTHWEST) this.windDirection = Direction.NORTH;
 
         let distanceFromPrevailing = this.windDirection - this.prevailingWindDirection;
 
-        if (distanceFromPrevailing == 3 || distanceFromPrevailing == 4 || distanceFromPrevailing == -5)
+        if (distanceFromPrevailing === 3 || distanceFromPrevailing === 4 || distanceFromPrevailing === -5)
             this.windDirection = Direction.values[this.windDirection - 1];
-        else if (distanceFromPrevailing == -3 || distanceFromPrevailing == -4 || distanceFromPrevailing == 5)
+        else if (distanceFromPrevailing === -3 || distanceFromPrevailing === -4 || distanceFromPrevailing === 5)
             this.windDirection = Direction.values[this.windDirection + 1];
         if (this.windDirection < 0) this.windDirection = Direction.NORTHWEST;
         if (this.windDirection > Direction.NORTHWEST) this.windDirection = Direction.NORTH;
@@ -168,7 +168,7 @@ export class Weather extends Serializeable {
             tileChangeRate: this.tileChangeRate,
             changePosition: this.changePosition,
             currentTemperature: this.currentTemperature,
-        }
+        };
     }
     static deserialize(data, version, deserializer) {
         deserializer.register_type(Map);
@@ -177,7 +177,7 @@ export class Weather extends Serializeable {
         let result = new Weather(deserializer.deserialize(data.map));
         result.windDirection = deserializer.deserialize(data.windDirection);
         result.prevailingWindDirection = deserializer.deserialize(data.prevailingWindDirection);
-        result.currentWeather = eserializer.deserializable(data.currentWeather);
+        result.currentWeather = deserializer.deserializable(data.currentWeather);
         result.tileChange = data.tileChange;
         result.changeAll = data.changeAll;
         result.tileChangeRate = data.tileChangeRate;
@@ -185,16 +185,16 @@ export class Weather extends Serializeable {
         result.currentTemperature = data.currentTemperature;
     }
     Update() {
-        if (Random.Generate(MONTH_LENGTH) == 0) this.ShiftWind();
-        if (Random.Generate(MONTH_LENGTH) == 0) {
+        if (Random.Generate(Constants.MONTH_LENGTH) === 0) this.ShiftWind();
+        if (Random.Generate(Constants.MONTH_LENGTH) === 0) {
             if (Random.Generate(2) < 2) {
                 this.currentWeather = WeatherType.NORMALWEATHER;
             } else this.currentWeather = WeatherType.RAIN;
         }
-        if (!this.tileChange && this.currentTemperature >= 0 && this.currentWeather == WeatherType.RAIN)
-            Game.CreateWater(Coordinate(Random.Generate(this.map.Width() - 1), Random.Generate(this.map.Height() - 1)), 1);
+        if (!this.tileChange && this.currentTemperature >= 0 && this.currentWeather === WeatherType.RAIN)
+            Game.CreateWater(new Coordinate(Random.Generate(this.map.Width() - 1), Random.Generate(this.map.Height() - 1)), 1);
 
-        if (Game.CurrentSeason() != this.currentSeason) {
+        if (Game.CurrentSeason() !== this.currentSeason) {
             this.currentSeason = Game.CurrentSeason();
             this.SeasonChange();
         }
@@ -202,7 +202,7 @@ export class Weather extends Serializeable {
             this.ChangeTiles();
     }
     ChangeTile(p, tile) {
-        if (this.map.GetType(p) == TileType.TILEGRASS || this.map.GetType(p) == TileType.TILESNOW) {
+        if (this.map.GetType(p) === TileType.TILEGRASS || this.map.GetType(p) === TileType.TILESNOW) {
             this.map.ChangeType(p, tile, this.map.heightMap.getValue(p.X(), p.Y()));
         }
         if (this.currentTemperature < 0) {
@@ -222,10 +222,10 @@ export class Weather extends Serializeable {
             let r = Random.ChooseInExtent(this.map.Extent());
             this.ChangeTile(r, tile);
         }
-        if (this.tileChangeRate < 300 && Random.Generate(200) == 0) ++this.tileChangeRate;
+        if (this.tileChangeRate < 300 && Random.Generate(200) === 0) ++this.tileChangeRate;
     }
     ChangeAll(tile) {
-        for (let i = 0; i < tileChangeRate; ++i) {
+        for (let i = 0; i < this.tileChangeRate; ++i) {
             for (let x = 0; x < 500; ++x) {
                 let p = new Coordinate(x, this.changePosition);
                 this.ChangeTile(p, tile);

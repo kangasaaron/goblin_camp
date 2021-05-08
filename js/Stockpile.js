@@ -54,7 +54,7 @@ export class Stockpile extends Construction {
     reserved = new Map();
     /** std.map <Coordinate, boostshared_ptr < Container > >*/
     containers = new Map();
-    /** std.map <Coordinate, TCODColor>*/
+    /** std.map <Coordinate, Color>*/
     colors = new Map();
     /** std.map <ItemCategory, int>*/
     limits = new Map();
@@ -120,7 +120,7 @@ export class Stockpile extends Construction {
     Build() { return 1; }
     SetMap(map) {
         Construction.SetMap(map);
-        colors.insert(std.pair < Coordinate, TCODColor > (pos, TCODColor.lerp(color, map.GetColor(pos), 0.75)));
+        colors.insert(std.pair < Coordinate, Color > (pos, Color.lerp(color, map.GetColor(pos), 0.75)));
     }
 
     //TODO: Remove repeated code
@@ -349,7 +349,7 @@ export class Stockpile extends Construction {
                         containers.insert(p, container);
 
                         //Update color
-                        colors.insert(std.pair < Coordinate, TCODColor > (p, TCODColor.lerp(color, map.GetColor(p), 0.75)));
+                        colors.insert(std.pair < Coordinate, Color > (p, Color.lerp(color, map.GetColor(p), 0.75)));
                         ++expansion;
                     }
                 }
@@ -370,10 +370,10 @@ export class Stockpile extends Construction {
                     screeny = y - upleft.Y();
                     if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 &&
                         screeny < the_console.getHeight()) {
-                        if (dismantle) the_console.setCharBackground(screenx, screeny, TCODColor.darkGrey);
+                        if (dismantle) the_console.setCharBackground(screenx, screeny, Color.darkGrey);
                         else {
                             let gray = static_cast < int > (50 - cos(strobe) * 50);
-                            the_console.setCharBackground(screenx, screeny, TCODColor(gray, gray, gray));
+                            the_console.setCharBackground(screenx, screeny, Color(gray, gray, gray));
                         }
 
                         the_console.setCharForeground(screenx, screeny, colors[p]);
@@ -650,7 +650,7 @@ export class Stockpile extends Construction {
             }
         }
 
-        tooltip.AddEntry(TooltipEntry(name, TCODColor.white));
+        tooltip.AddEntry(TooltipEntry(name, Color.white));
         let vecView = [];
         for (let it = amount.begin(); it != amount.end(); it++) {
             if (Item.Categories[it.first].parent < 0 && it.second > 0) {
@@ -662,20 +662,20 @@ export class Stockpile extends Construction {
             let count = 0;
             for (let i = 0; i < vecView.size(); i++) {
                 if (++count > 30) {
-                    tooltip.AddEntry(TooltipEntry(" ...", TCODColor.grey));
+                    tooltip.AddEntry(TooltipEntry(" ...", Color.grey));
                     return;
                 }
-                tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % Item.ItemCategoryToString(vecView[i].first) % vecView[i].second).str(), TCODColor.grey));
+                tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % Item.ItemCategoryToString(vecView[i].first) % vecView[i].second).str(), Color.grey));
 
                 for (let cati = Item.Categories.begin(); cati != Item.Categories.end(); cati++) {
                     if (cati.parent >= 0 && Item.StringToItemCategory(Item.Categories[cati.parent].GetName()) == vecView[i].first) {
                         let amt = amount[Item.StringToItemCategory(cati.GetName())];
                         if (amt > 0) {
                             if (++count > 30) {
-                                tooltip.AddEntry(TooltipEntry(" ...", TCODColor.grey));
+                                tooltip.AddEntry(TooltipEntry(" ...", Color.grey));
                                 return;
                             }
-                            tooltip.AddEntry(TooltipEntry((boost.format("	 %s x%d") % cati.GetName() % amt).str(), TCODColor.grey));
+                            tooltip.AddEntry(TooltipEntry((boost.format("	 %s x%d") % cati.GetName() % amt).str(), Color.grey));
                         }
                     }
                 }
@@ -821,7 +821,7 @@ export class Stockpile extends Construction {
             ar & r;
             ar & g;
             ar & b;
-            colors.insert(std.pair < Coordinate, TCODColor > (pos, TCODColor(r, g, b)));
+            colors.insert(std.pair < Coordinate, Color > (pos, Color(r, g, b)));
         }
         ar & limits;
         if (version >= 1) {
@@ -831,7 +831,7 @@ export class Stockpile extends Construction {
     }
 
     /** }
-    TCODColor.grey
+    Color.grey
     )=
     );
 
@@ -846,13 +846,13 @@ export class Stockpile extends Construction {
             let amt = amount[Item.StringToItemCategory(cati.GetName())];
             if (amt > 0) {
                 if (++count > 30) {
-                    tooltip.AddEntry(TooltipEntry(" ...", TCODColor.grey));
+                    tooltip.AddEntry(TooltipEntry(" ...", Color.grey));
                     return;
                 }
                 tooltip.AddEntry(
                     TooltipEntry(
                         ((boost.format("	 %s x%d") % cati.GetName()) % amt).str(),
-                        TCODColor.grey
+                        Color.grey
                     )
                 );
             }
@@ -1012,7 +1012,7 @@ export class Stockpile extends Construction {
             ar & b;
             colors.insert(
                 std.pair < Coordinate,
-                TCODColor > (pos, TCODColor(r, g, b))
+                Color > (pos, Color(r, g, b))
             );
         }
         ar & limits;

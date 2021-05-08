@@ -32,7 +32,7 @@ import {
 from "./NatureObjectType.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 export class NatureObject extends Entity {
     static CLASS_VERSION = 1;

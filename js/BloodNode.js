@@ -22,7 +22,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 export class BloodNode extends Serializable {
     static CLASS_VERSION = 0;

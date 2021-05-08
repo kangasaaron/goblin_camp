@@ -16,7 +16,7 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 
-import { Color } from "./color/Color.js";
+import { Color } from "./libtcod.js";
 import { Config } from "./data/Config.js";
 import { Coordinate } from "./Coordinate.js";
 import { Events } from "./Events.js";

@@ -20,7 +20,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 import {
     Coordinate
 } from "./Coordinate.js";

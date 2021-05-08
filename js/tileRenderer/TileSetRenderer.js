@@ -41,7 +41,7 @@ class TilesetRenderer extends /*public*/ MapRenderer {
 
     int GetScreenWidth() const;
     int GetScreenHeight() const;
-    TCODColor GetKeyColor() const;
+    Color GetKeyColor() const;
 
     void SetCursorMode(CursorType mode);
     void SetCursorMode(const NPCPreset & preset);
@@ -88,7 +88,7 @@ class TilesetRenderer extends /*public*/ MapRenderer {
     //private:
     // the font characters size
     int screenWidth, screenHeight;
-    TCODColor keyColor;
+    Color keyColor;
 };
 
 template < typename IterT > SpritePtr TilesetRenderer.CreateSprite(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > tilesetTexture, IterT start, IterT end, bool connectionMap, int frameRate, int frameCount) {
@@ -139,7 +139,7 @@ TilesetRenderer.TilesetRenderer(int resolutionX, int resolutionY, TCODConsole * 
     cursorHint(-1),
     screenWidth(resolutionX),
     screenHeight(resolutionY),
-    keyColor(TCODColor.magenta) {}
+    keyColor(Color.magenta) {}
 
 TilesetRenderer.~TilesetRenderer() {}
 
@@ -294,7 +294,7 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
 
         for (int x = offsetX; x < offsetX + sizeX; x++) {
             for (int y = offsetY; y < offsetY + sizeY; y++) {
-                tcodConsole.putCharEx(x, y, ' ', TCODColor.black, keyColor);
+                tcodConsole.putCharEx(x, y, ' ', Color.black, keyColor);
             }
         }
     }
@@ -562,7 +562,7 @@ int TilesetRenderer.GetScreenHeight() const {
     return screenHeight;
 }
 
-TCODColor TilesetRenderer.GetKeyColor() const {
+Color TilesetRenderer.GetKeyColor() const {
     return keyColor;
 }
 

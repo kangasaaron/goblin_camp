@@ -225,7 +225,7 @@ void SpawningPool.*/
 
             if (location != undefinedCoordinate) {
                 ++expansion;
-                if (message) Announce.AddMsg("The spawning pool expands", TCODColor.darkGreen, location);
+                if (message) Announce.AddMsg("The spawning pool expands", Color.darkGreen, location);
                 a = Coordinate.min(a, location);
                 b = Coordinate.max(b, location);
 
@@ -269,7 +269,7 @@ void SpawningPool.*/
                 corruptionLeft += 2000 * Math.min(expansion, 100);
 
             } else {
-                if (message) Announce.AddMsg("The spawning pool bubbles ominously", TCODColor.darkGreen, Position());
+                if (message) Announce.AddMsg("The spawning pool bubbles ominously", Color.darkGreen, Position());
                 corruptionLeft += 4000 * Math.min(expansion, 100);
             }
 
@@ -337,12 +337,12 @@ void SpawningPool.*/
 
             if (goblin) {
                 Game.CreateNPC(spawnLocation, NPC.StringToNPCType("goblin"));
-                Announce.AddMsg("A goblin crawls out of the spawning pool", TCODColor.green, spawnLocation);
+                Announce.AddMsg("A goblin crawls out of the spawning pool", Color.green, spawnLocation);
             }
 
             if (orc) {
                 Game.CreateNPC(spawnLocation, NPC.StringToNPCType("orc"));
-                Announce.AddMsg("An orc claws its way out of the spawning pool", TCODColor.green, spawnLocation);
+                Announce.AddMsg("An orc claws its way out of the spawning pool", Color.green, spawnLocation);
             }
 
         }

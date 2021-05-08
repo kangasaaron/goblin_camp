@@ -1,6 +1,6 @@
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 import {
     Attack
 } from "./Attack.js";

@@ -4,7 +4,7 @@ import {
 import {
 	Coordinate
 } from "../Coordinate.js"
-import { Color } from "../color/Color.js";
+import { Color } from "../libtcod.js;
 
 QUnit.module("Filth test", function () {
 	QUnit.test("statics", function (assert) {

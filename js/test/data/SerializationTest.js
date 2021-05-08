@@ -7,7 +7,7 @@ import {
 import {
     JSONSerializer
 } from "../../data/Serialization.js";
-import { Color } from "../../color/Color.js";
+import { Color } from "../../libtcod.js;
 
 QUnit.module("data/Serialization: saving", function () {
     QUnit.test("save primitives", function (assert) {

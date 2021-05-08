@@ -561,7 +561,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
             for (let y = 0; y < TCODConsole.root.getHeight(); ++y) {
                 let backCol = TCODConsole.root.getCharBackground(x, y);
                 /**unsigned char */
-                let alpha = (backCol == GetKeyColor()) ? 0 : ((translucentUI && backCol == TCODColor.black) ? 128 : 255);
+                let alpha = (backCol == GetKeyColor()) ? 0 : ((translucentUI && backCol == Color.black) ? 128 : 255);
                 the_consoleData[BackCol][4 * (x + y * the_consoleW)] = backCol.r;
                 the_consoleData[BackCol][4 * (x + y * the_consoleW) + 1] = backCol.g;
                 the_consoleData[BackCol][4 * (x + y * the_consoleW) + 2] = backCol.b;

@@ -25,7 +25,7 @@ import {
 } from "./Coordinate.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 const ENTITYHEIGHT = 5;
 

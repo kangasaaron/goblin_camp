@@ -21,7 +21,7 @@ import {
 } from "./data/Serialization.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 class Encampment extends Serializable {
     //Version 2 = 0.2 - diseaseChance

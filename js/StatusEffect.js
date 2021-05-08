@@ -30,7 +30,7 @@ import {
 } from "./StatusEffectType.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 export class StatusEffect extends Serializable {
     static CLASS_VERSION = 1;

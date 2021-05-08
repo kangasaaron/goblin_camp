@@ -78,7 +78,7 @@ class StockPanel extends UIContainer {
     }
     _GetTooltip(x, y, tooltip) {
         if (x >= _x && x < _x + width && y >= _y && y < _y + height - 2) { // subtract 2 from height so tooltip doesn't appear when mouse is over spinner
-            tooltip.AddEntry(TooltipEntry(Item.ItemTypeToString(itemType), TCODColor.white));
+            tooltip.AddEntry(TooltipEntry(Item.ItemTypeToString(itemType), Color.white));
             let compName = "";
             let compAmt = 0;
             for (let compi = 0; compi < Item.Components(itemType).size(); ++compi) {
@@ -87,14 +87,14 @@ class StockPanel extends UIContainer {
                     compAmt++;
                 } else {
                     if (compName.length() > 0) {
-                        tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
+                        tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), Color.grey));
                     }
                     compName = thisCompName;
                     compAmt = 1;
                 }
             }
             if (compName.length() > 0) {
-                tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), TCODColor.grey));
+                tooltip.AddEntry(TooltipEntry((boost.format(" %s x%d") % compName % compAmt).str(), Color.grey));
             }
         }
     }
@@ -113,7 +113,7 @@ class StockPanel extends UIContainer {
         the_console.setAlignment(TCOD_CENTER);
         the_console.setDefaultForeground(Item.Presets[itemType].color);
         the_console.print(x + 8, y, "%c %s", Item.Presets[itemType].graphic, Item.Presets[itemType].name.c_str());
-        the_console.setDefaultForeground(TCODColor.white);
+        the_console.setDefaultForeground(Color.white);
         the_console.print(x + 8, y + 1, "%d", StockManager.TypeQuantity(itemType));
         UIContainer.Draw(x, y, the_console);
     }

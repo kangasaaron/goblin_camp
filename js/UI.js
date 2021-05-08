@@ -16,18 +16,34 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 
-import "./UI/Menu.js"
-import "./UI/SideBar.js"
-import "./Entity.js"
-import "./Game.js"
+import { Menu } from "./UI/Menu.js";
+import { SideBar } from "./UI/SideBar.js";
+import { Entity } from "./Entity.js";
+import { Game } from "./Game.js";
+import { UIState } from "./UIState.js";
+import { console_types } from "./libtcod.js";
+import { Random } from "./Random.js";
+import { UI } from "./UI.js";
+import { Announce } from "./Announce.js";
+import { Game } from "./Game.js";
+import { GCamp } from "./GCamp.js";
+import { Map } from "./Map.js";
+import { Job } from "./Job.js";
+import { Stockpile } from "./Stockpile.js";
+import { Farmplot } from "./Farmplot.js";
+import { Config } from "./data/Config.js";
+import { Data } from "./data/Data.js";
+import { Camp } from "./Camp.js";
+import { StockManagerDialog } from "./UI/StockManagerDialog.js";
+import { SquadsDialog } from "./UI/SquadsDialog.js";
+import { ConstructionDialog } from "./UI/ConstructionDialog.js";
+import { AnnounceDialog } from "./UI/AnnounceDialog.js";
+import { Tooltip } from "./UI/Tooltip.js";
+import { JobDialog } from "./UI/JobDialog.js";
+import { DevConsole } from "./UI/DevConsole.js";
 
-import {
-    UIState
-} from "./UIState.js";
-
-static
-const TCOD_key_t NO_KEY = {
-    TCODK_NONE,
+const NO_KEY = new console_types.TCOD_key_t(
+    console_types.TCOD_keycode_t.TCODK_NONE,
     0,
     false,
     false,
@@ -35,11 +51,10 @@ const TCOD_key_t NO_KEY = {
     false,
     false,
     false
-};
+);
 
 class UI {
-    UI();
-    static UI * instance;
+    static instance null;
     bool menuOpen;
     int menuX, menuY;
     TCOD_key_t key;
@@ -139,25 +154,6 @@ You should have received a copy of the GNU General Public License
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "./Random.js"
-import "./UI.js"
-import "./Announce.js"
-import "./Game.js"
-import "./GCamp.js"
-import "./Map.js"
-import "./Job.js"
-import "./Stockpile.js"
-import "./Farmplot.js"
-import "./data/Config.js"
-import "./data/Data.js"
-import "./Camp.js"
-import "./UI/StockManagerDialog.js"
-import "./UI/SquadsDialog.js"
-import "./UI/ConstructionDialog.js"
-import "./UI/AnnounceDialog.js"
-import "./UI/Tooltip.js"
-import "./UI/JobDialog.js"
-import "./UI/DevConsole.js"
 
 UI * UI.instance = 0;
 
@@ -741,7 +737,7 @@ void UI.DrawTopBar(TCODConsole * the_console) {
 
     if (keyHelpTextColor > 0) {
         the_console.setDefaultForeground(new Color(Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor), Math.min(255, keyHelpTextColor)));
-        the_console.setColorControl(TCOD_COLCTRL_1, new Color(0, Math.min(255, keyHelpTextColor), 0), TCODColor.black);
+        the_console.setColorControl(TCOD_COLCTRL_1, new Color(0, Math.min(255, keyHelpTextColor), 0), Color.black);
         int x = 10;
         x += DrawShortcutHelp(the_console, x, 3, "Exit");
         x += DrawShortcutHelp(the_console, x, 3, "Basics");
@@ -1067,7 +1063,7 @@ void UI.ChooseNaturify() {
 void UI.ChooseChangeTerritory(bool add) {
     if (Camp.IsAutoTerritoryEnabled() && !add) {
         Camp.DisableAutoTerritory();
-        Announce.AddMsg("Automatic territory handling disabled", TCODColor.cyan);
+        Announce.AddMsg("Automatic territory handling disabled", Color.cyan);
     }
     UI.state(UIRECTPLACEMENT);
     UI.SetRectCallback(boost.bind( & Map.SetTerritoryRectangle, Map.Inst(), _1, _2, add));

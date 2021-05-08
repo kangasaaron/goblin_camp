@@ -112,10 +112,10 @@ class SquadsDialog extends Dialog {
     // void SquadsDialog.DrawSquad(std.pair < std.string, boost.shared_ptr < Squad > > squadi, int i, int x, int y, int width, bool selected, TCODConsole * the_console) {
     static DrawSquad(squadi, i, x, y, width, selected, the_console) {
         the_console.setBackgroundFlag(TCOD_BKGND_SET);
-        the_console.setDefaultBackground(selected ? TCODColor.blue : TCODColor.black);
+        the_console.setDefaultBackground(selected ? Color.blue : Color.black);
         the_console.print(x, y, "%s (%d/%d)", squadi.first.c_str(), squadi.second.MemberCount(),
             squadi.second.MemberLimit());
-        the_console.setDefaultBackground(TCODColor.black);
+        the_console.setDefaultBackground(Color.black);
     }
 
     // boost.shared_ptr < Squad > GetSquad(int);
@@ -136,7 +136,7 @@ class SquadsDialog extends Dialog {
         if (squad) {
             let orderIndex = 0;
             do {
-                markers.push_back(Map.AddMarker(MapMarker(FLASHINGMARKER, 'X', squad.TargetCoordinate(orderIndex), -1, TCODColor.azure)));
+                markers.push_back(Map.AddMarker(MapMarker(FLASHINGMARKER, 'X', squad.TargetCoordinate(orderIndex), -1, Color.azure)));
                 squad.GetOrder(orderIndex);
             } while (orderIndex != 0);
         }
@@ -149,8 +149,8 @@ class SquadsDialog extends Dialog {
     // static void GetSquadTooltip(std.pair < std.string, boost.shared_ptr < Squad > > , Tooltip * );
     // void SquadsDialog.GetSquadTooltip(std.pair < std.string, boost.shared_ptr < Squad > > squadi, Tooltip * tooltip) {
     GetSquadTooltip(squadi, tooltip) {
-        tooltip.AddEntry(TooltipEntry(squadi.first, TCODColor.white));
-        tooltip.AddEntry(TooltipEntry((boost.format(" Priority: %d") % squadi.second.Priority()).str(), TCODColor.grey));
+        tooltip.AddEntry(TooltipEntry(squadi.first, Color.white));
+        tooltip.AddEntry(TooltipEntry((boost.format(" Priority: %d") % squadi.second.Priority()).str(), Color.grey));
 
         if (squadi.second.GetGeneralOrder() != NOORDER) {
             let order;
@@ -168,10 +168,10 @@ class SquadsDialog extends Dialog {
                     //unreachable as we tested '!= NOORDER'
                     assert(false);
             }
-            tooltip.AddEntry(TooltipEntry((boost.format(" Orders: %s") % order).str(), TCODColor.grey));
+            tooltip.AddEntry(TooltipEntry((boost.format(" Orders: %s") % order).str(), Color.grey));
         }
-        tooltip.AddEntry(TooltipEntry((boost.format(" Weapon: %s") % Item.ItemCategoryToString(squadi.second.Weapon())).str(), TCODColor.grey));
-        tooltip.AddEntry(TooltipEntry((boost.format(" Armor: %s") % Item.ItemCategoryToString(squadi.second.Armor())).str(), TCODColor.grey));
+        tooltip.AddEntry(TooltipEntry((boost.format(" Weapon: %s") % Item.ItemCategoryToString(squadi.second.Weapon())).str(), Color.grey));
+        tooltip.AddEntry(TooltipEntry((boost.format(" Armor: %s") % Item.ItemCategoryToString(squadi.second.Armor())).str(), Color.grey));
     }
 
     SelectSquad(i) {

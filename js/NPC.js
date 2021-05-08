@@ -141,9 +141,9 @@ export class NPC extends Entity {
     /** @type {Squad} boost.weak_ptr<Squad> */
     squad;
 
-    /** @type {TCODColor} */
+    /** @type {Color} */
     _color;
-    /** @type {TCODColor} */
+    /** @type {Color} */
     _bgcolor;
 
     /** @type {TCODPath} TCODPath * */
@@ -1655,7 +1655,7 @@ export class NPC extends Entity {
                             AddEffect(WORKING);
                             tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Build();
                             if (tmp > 0) {
-                                Announce.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), TCODColor.white, currentEntity().lock().Position());
+                                Announce.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), Color.white, currentEntity().lock().Position());
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             } else if (tmp == BUILD_NOMATERIAL) {
@@ -2506,7 +2506,7 @@ export class NPC extends Entity {
                 inventory.RemoveItem(witem);
             }
 
-            if (deathMessage.length() > 0) Announce.AddMsg(deathMessage, (factionPtr.IsFriendsWith(PLAYERFACTION) ? TCODColor.red : TCODColor.brass), this.Position());
+            if (deathMessage.length() > 0) Announce.AddMsg(deathMessage, (factionPtr.IsFriendsWith(PLAYERFACTION) ? Color.red : Color.brass), this.Position());
 
             Stats.deaths[NPC.NPCTypeToString(type)] += 1;
             Stats.AddPoints(NPC.Presets[type].health);
@@ -2648,7 +2648,7 @@ export class NPC extends Entity {
     Escape() {
         if (carried.lock()) {
             Announce.AddMsg((boost.format("%s has escaped with [%s]!") % name % carried.lock().Name()).str(),
-                TCODColor.yellow, this.Position());
+                Color.yellow, this.Position());
         }
         DestroyAllItems();
         escaped = true;

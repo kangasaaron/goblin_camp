@@ -97,11 +97,11 @@ class DevConsole {
 
         canvas.clear();
         canvas.setAlignment(TCOD_LEFT);
-        canvas.setDefaultBackground(TCODColor.black);
-        canvas.setDefaultForeground(TCODColor.white);
+        canvas.setDefaultBackground(Color.black);
+        canvas.setDefaultForeground(Color.white);
 
         canvas.print(0, 0, "[In  %d]", inputID);
-        canvas.setDefaultForeground(TCODColor.sky);
+        canvas.setDefaultForeground(Color.sky);
 
         let y = 1;
         inTok.forEach(function(token) {
@@ -111,9 +111,9 @@ class DevConsole {
 
         ++y;
 
-        canvas.setDefaultForeground(TCODColor.white);
+        canvas.setDefaultForeground(Color.white);
         canvas.print(0, y, "[Out %d]", inputID);
-        canvas.setDefaultForeground(error ? TCODColor.amber : TCODColor.chartreuse);
+        canvas.setDefaultForeground(error ? Color.amber : Color.chartreuse);
 
         ++y;
         outTok.forEach(function(token) {
@@ -204,8 +204,8 @@ class DevConsole {
         // I tried to use the UI code. Really. I can't wrap my head around it.
         // FIXME: That's OK. :)
         while (true) {
-            c.setDefaultForeground(TCODColor.white);
-            c.setDefaultBackground(TCODColor.black);
+            c.setDefaultForeground(Color.white);
+            c.setDefaultBackground(Color.black);
             c.printFrame(x, y, w, h, true, TCOD_BKGND_SET, "Developer the_console");
             c.setAlignment(TCOD_LEFT);
 

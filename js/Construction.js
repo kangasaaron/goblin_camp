@@ -34,7 +34,7 @@ import {
 } from "./BuildResult.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 import {
     ItemCategory
 } from "./ItemCategory.js";

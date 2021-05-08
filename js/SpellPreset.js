@@ -6,7 +6,7 @@ import {
 } from "./Dice.js";
 import {
     Color
-} from "./color/Color.js";
+} from "./libtcod.js";
 
 export class SpellPreset {
     name = "";

@@ -4,7 +4,7 @@ import {
 import {
     ItemPreset
 } from "./ItemPreset.js";
-import { Color } from "./color/Color.js";
+import { Color } from "./libtcod.js";
 import {
     PresetParser
 } from "./PresetParser.js";

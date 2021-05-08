@@ -53,18 +53,18 @@ class FarmPlot extends Stockpile {
                     screeny = y - upleft.Y();
                     if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 &&
                         screeny < the_console.getHeight()) {
-                        the_console.setCharForeground(screenx, screeny, TCODColor.darkAmber);
+                        the_console.setCharForeground(screenx, screeny, Color.darkAmber);
                         the_console.setChar(screenx, screeny, (graphic[1]));
 
                         if (!containers[p].empty()) {
                             let item = containers[p].GetFirstItem();
                             if (item.lock()) {
-                                the_console.putCharEx(screenx, screeny, item.lock().GetGraphic(), item.lock().Color(), TCODColor.black);
+                                the_console.putCharEx(screenx, screeny, item.lock().GetGraphic(), item.lock().Color(), Color.black);
                             }
                         }
 
                         let gray = Math.round(50 - cos(strobe) * 50);
-                        the_console.setCharBackground(screenx, screeny, TCODColor(gray, gray, gray));
+                        the_console.setCharBackground(screenx, screeny, Color(gray, gray, gray));
 
                     }
                 }

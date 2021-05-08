@@ -220,7 +220,7 @@ class MapClass extends ITCODPathCallback {
     }
     GetForeColor(p) {
         if (Map.IsInside(p)) return tile(p).GetForeColor();
-        return TCODColor.pink;
+        return Color.pink;
     }
 
     ForeColor(p, color) {
@@ -232,7 +232,7 @@ class MapClass extends ITCODPathCallback {
 
     GetBackColor(p) {
         if (Map.IsInside(p)) return tile(p).GetBackColor();
-        return TCODColor.yellow;
+        return Color.yellow;
     }
     SetNatureObject(p, val) {
         if (Map.IsInside(p)) {
@@ -451,7 +451,7 @@ class MapClass extends ITCODPathCallback {
     }
     GetColor(p) {
         if (Map.IsInside(p)) return tile(p).GetForeColor();
-        return TCODColor.white;
+        return Color.white;
     }
 
     Burn(p, magnitude = 1) {

@@ -6,7 +6,7 @@ import {
 } from "./NatureObjectType.js";
 import {
     WaterNode
-} from "./Water.js";
+} from "./WaterNode.js";
 
 export class Ice extends NatureObject {
     static CLASS_VERSION = 0;
