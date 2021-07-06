@@ -1,3 +1,7 @@
+import { Attack } from "./Attack.js";
+import {TCODColor} from "../fakeTCOD/libtcod.js";
+import { NPCPreset } from "./NPCPreset.js";
+import { NPCStat } from "./NPCStat.js";
 import { PresetParser } from "./PresetParser.js";
 
 export class NPCListener extends PresetParser {
@@ -25,13 +29,13 @@ export class NPCListener extends PresetParser {
     }
     parserFlag(name, value = true) {
         let lower = name.toLowerCase();
-        if (lower == "generateName") {
+        if (lower === "generateName") {
             this.NPC.Presets[this.npcIndex].generateName = value;
-        } else if (lower == "needsNutrition") {
+        } else if (lower === "needsNutrition") {
             this.NPC.Presets[this.npcIndex].needsNutrition = value;
-        } else if (lower == "needsSleep") {
+        } else if (lower === "needsSleep") {
             this.NPC.Presets[this.npcIndex].needsSleep = value;
-        } else if (lower == "expert") {
+        } else if (lower === "expert") {
             this.NPC.Presets[this.npcIndex].expert = value;
         }
         return true;
@@ -78,7 +82,7 @@ export class NPCListener extends PresetParser {
             }
         } else if (lower === "projectile") {
             currentPreset.attacks[currentPreset.attacks.length - 1].Projectile(Item.StringToItemType(value));
-            if (currentPreset.attacks[currentPreset.attacks.length - 1].Projectile() == -1) {
+            if (currentPreset.attacks[currentPreset.attacks.length - 1].Projectile() === -1) {
                 //No item found, probably a spell then
                 currentPreset.attacks[currentPreset.attacks.length - 1].Projectile(Spell.StringToSpellType(value));
                 if (currentPreset.attacks[currentPreset.attacks.length - 1].Projectile() >= 0)
@@ -105,7 +109,7 @@ export class NPCListener extends PresetParser {
             currentPreset.stats[NPCStat.STRENGTH] = value;
         } else if (lower === "size") {
             currentPreset.stats[NPCStat.NPCSIZE] = value;
-            if (currentPreset.stats[NPCStat.STRENGTH] == 1) currentPreset.stats[NPCStat.STRENGTH] = value;
+            if (currentPreset.stats[NPCStat.STRENGTH] === 1) currentPreset.stats[NPCStat.STRENGTH] = value;
         } else if (lower === "tier") {
             currentPreset.tier = value;
         } else if (lower === "death") {
@@ -123,16 +127,16 @@ export class NPCListener extends PresetParser {
         return true;
     }
     parserEndStruct(str, name) {
-        if (this.NPC.Presets[this.npcIndex].plural == "")
+        if (this.NPC.Presets[this.npcIndex].plural === "")
             this.NPC.Presets[this.npcIndex].plural = this.NPC.Presets[this.npcIndex].name + "s";
-        if (this.NPC.Presets[this.npcIndex].faction == -1) {
-            if (this.NPC.Presets[this.npcIndex].ai == "PlayerNPC") {
-                this.NPC.Presets[this.npcIndex].faction = PLAYERFACTION;
-            } else if (this.NPC.Presets[this.npcIndex].ai == "PeacefulAnimal") {
+        if (this.NPC.Presets[this.npcIndex].faction === -1) {
+            if (this.NPC.Presets[this.npcIndex].ai === "PlayerNPC") {
+                this.NPC.Presets[this.npcIndex].faction = Constants.PLAYERFACTION;
+            } else if (this.NPC.Presets[this.npcIndex].ai === "PeacefulAnimal") {
                 this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Peaceful animal");
-            } else if (this.NPC.Presets[this.npcIndex].ai == "HungryAnimal") {
+            } else if (this.NPC.Presets[this.npcIndex].ai === "HungryAnimal") {
                 this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Hostile monster");
-            } else if (this.NPC.Presets[this.npcIndex].ai == "HostileAnimal") {
+            } else if (this.NPC.Presets[this.npcIndex].ai === "HostileAnimal") {
                 this.NPC.Presets[this.npcIndex].faction = Faction.StringToFactionType("Hostile monster");
             }
         }

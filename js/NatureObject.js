@@ -7,32 +7,20 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    Entity
-}
-from "./Entity.js";
-import {
-    NatureObjectPreset
-}
-from "./NatureObjectPreset.js";
-import {
-    ItemType
-}
-from "./ItemType.js";
-import {
-    NatureObjectType
-}
-from "./NatureObjectType.js";
-import {
-    Color
-} from "./libtcod.js";
+import {TCODColor} from "../fakeTCOD/libtcod.js";
+import { Coordinate } from "./Coordinate.js";
+import { Entity } from "./Entity.js";
+// import { ItemType } from "./ItemType.js";
+// import { NatureObjectPreset } from "./NatureObjectPreset.js";
+import { NatureObjectListener } from "./NatureObjectListener.js";
+// import { NatureObjectType } from "./NatureObjectType.js";
 
 export class NatureObject extends Entity {
     static CLASS_VERSION = 1;
@@ -59,10 +47,10 @@ export class NatureObject extends Entity {
     }
     destructor() {
         if (!NatureObject.Presets[this.type].walkable) {
-            Map.SetWalkable(this.pos, true);
-            Map.SetBlocksLight(this.pos, false);
+            GameMap.i.SetWalkable(this.pos, true);
+            GameMap.i.SetBlocksLight(this.pos, false);
         }
-        Map.SetBuildable(this.pos, true);
+        GameMap.i.SetBuildable(this.pos, true);
         super.destructor();
     }
     Update() {}
@@ -78,7 +66,7 @@ export class NatureObject extends Entity {
     Marked() {
         return this.marked;
     }
-    CancelJob(int) {
+    CancelJob() {
         this.marked = false;
     }
     Fell() {

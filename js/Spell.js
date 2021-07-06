@@ -7,34 +7,19 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    SpellType
-} from "./SpellType.js";
-import {
-    SpellPreset
-} from "./SpellPreset.js";
-import {
-    SpellListener
-} from "./SpellListener.js";
-import {
-    Entity
-} from "./Entity.js";
-import {
-    Attack
-} from "./Attack.js";
-import {
-    Color
-} from "./Color.js";
-import {
-    Coordinate
-} from "./Coordinate.js";
+import {TCODColor} from "../fakeTCOD/libtcod.js";
+import { Coordinate } from "./Coordinate.js";
+import { DamageType } from "./DamageType.js";
+import { Entity } from "./Entity.js";
+import { Generate } from "./Random.js";
+import { SpellListener } from "./SpellListener.js";
 
 export class Spell extends Entity {
     static CLASS_VERSION = 0;
@@ -60,8 +45,8 @@ export class Spell extends Entity {
         this.pos = pos;
         this.color = Spell.Presets[this.type].color;
         //TODO: I don't like making special cases like this, perhaps a flag instead?
-        if ((Spell.Presets[type].name.toLowerCase() == "smoke") || (Spell.Presets[type].name.toLowerCase() == "steam")) {
-            let add = Random.Generate(50);
+        if ((Spell.Presets[this.type].name.toLowerCase() === "smoke") || (Spell.Presets[this.type].name.toLowerCase() === "steam")) {
+            let add = Generate(50);
             this.color.r += add;
             this.color.g += add;
             this.color.b += add;
@@ -80,7 +65,7 @@ export class Spell extends Entity {
         let screenx = (this.pos.minus(upleft)).X();
         let screeny = (this.pos.minus(upleft)).Y();
         if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
-            the_console.putCharEx(screenx, screeny, this.graphic, this.color, Map.GetBackColor(this.pos));
+            the_console.putCharEx(screenx, screeny, this.graphic, this.color, GameMap.i.GetBackColor(this.pos));
         }
     }
     Impact(speedChange) {
@@ -88,8 +73,8 @@ export class Spell extends Entity {
         this.flightPath.clear();
 
         for (let attacki of this.attacks) {
-            if (attacki.Type() == DamageType.DAMAGE_FIRE) {
-                Game.CreateFire(this.Position());
+            if (attacki.Type() === DamageType.DAMAGE_FIRE) {
+                this.Game.i.CreateFire(this.Position());
                 break;
             }
         }
@@ -97,27 +82,27 @@ export class Spell extends Entity {
         this.dead = true;
     }
     CollideWithObstacle(t) {
-        if (Map.GetConstruction(t) > -1) {
-            let construct;
-            if (construct = Game.GetConstruction(Map.GetConstruction(t)).lock()) {
+        if (GameMap.i.GetConstruction(t) > -1) {
+            let construct = this.Game.i.GetConstruction(GameMap.i.GetConstruction(t)).lock();
+            if (construct) {
                 for (let attacki of this.attacks)
                     construct.Damage(attacki);
             }
         }
         for (let attacki of this.attacks) {
-            if (attacki.Type() == DamageType.DAMAGE_FIRE) {
+            if (attacki.Type() === DamageType.DAMAGE_FIRE) {
                 /*The spell's attack was a fire attack, so theres a chance it'll create fire on the 
                 obstacle it hit */
-                Game.CreateFire(this.flightPath[this.flightPath.length - 1].coord, 5);
+                this.Game.i.CreateFire(this.flightPath[this.flightPath.length - 1].coord, 5);
                 break;
             }
         }
     }
     CollideWithCreatures(t) {
-        if (Random.Generate(Math.max(1, this.flightPath[this.flightPath.length - 1].height) - 1) >= (2 + Map.NPCList(t).length))
+        if (Generate(Math.max(1, this.flightPath[this.flightPath.length - 1].height) - 1) >= (2 + GameMap.i.NPCList(t).length))
             return false;
 
-        let npc = Game.GetNPC(Map.NPCList(t)[0]);
+        let npc = this.Game.i.GetNPC(GameMap.i.NPCList(t)[0]);
         for (let attacki of this.attacks) {
             npc.Damage(attacki);
         }
@@ -131,11 +116,11 @@ export class Spell extends Entity {
 
         if (this.immaterial) return false;
 
-        if (Map.BlocksWater(t) || !Map.IsWalkable(t)) { //We've hit an obstacle
+        if (GameMap.i.BlocksWater(t) || !GameMap.i.IsWalkable(t)) { //We've hit an obstacle
             this.CollideWithObstacle(t);
             return true;
         }
-        if (Map.NPCList(t).length > 0) { //Hit a creature
+        if (GameMap.i.NPCList(t).length > 0) { //Hit a creature
             return this.CollideWithCreatures(t);
         }
 
@@ -148,14 +133,14 @@ export class Spell extends Entity {
         while (this.nextVelocityMove > 100) {
             this.nextVelocityMove -= 100;
             if (this.flightPath.length <= 0) {
-                this.Impact(velocity);
+                this.Impact(this.velocity);
                 return;
             } //No more flightpath
 
-            if (this.flightPath[this.flightPath.length - 1].height < ENTITYHEIGHT) { //We're flying low enough to hit things
+            if (this.flightPath[this.flightPath.length - 1].height < Constants.ENTITYHEIGHT) { //We're flying low enough to hit things
                 let impacts = this.CollisionDetection();
                 if (impacts) {
-                    this.Impact(velocity);
+                    this.Impact(this.velocity);
                     return;
                 }
             }
@@ -163,7 +148,7 @@ export class Spell extends Entity {
             this.Position(this.flightPath[this.flightPath.length - 1].coord);
 
             if (this.flightPath[this.flightPath.length - 1].height <= 0) { //Hit the ground early
-                this.Impact(velocity);
+                this.Impact(this.velocity);
                 return;
             }
 
@@ -198,7 +183,7 @@ export class Spell extends Entity {
         result.color = deserializer.deserialize(data.color);
         result.graphic = data.graphic;
         result.type = Spell.StringToSpellType(data.spellType);
-        if (result.type == -1) result.type = 0;
+        if (result.type === -1) result.type = 0;
         result.dead = data.dead;
         result.attacks = data.attacks;
         result.immaterial = data.immaterial;

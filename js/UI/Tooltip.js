@@ -7,18 +7,18 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 import {
-    Color
-} from "../color/Color";
+    TCODColor, TCOD_bkgnd_flag_t, TCOD_alignment_t
+} from "../fakeTCOD/libtcod.js";
 
-class Tooltips {
+export class Tooltips {
     entries = [];
     offsetX = 0;
     offsetY = 0;
@@ -37,7 +37,7 @@ class Tooltips {
     Draw(x, y, the_console) {
         x += offsetX;
         y += offsetY;
-        the_console.setDefaultBackground(Color.darkestYellow);
+        the_console.setDefaultBackground(TCODColor.darkestYellow);
         let width = 0;
         for (let it of this.entries) {
             width = Math.max(width, it.text.length);
@@ -45,16 +45,16 @@ class Tooltips {
         x = Math.min(Math.min(the_console.getWidth() - 1, x + 1), the_console.getWidth() - width);
         y = Math.min(Math.max(0, y - 1), Math.max(0, the_console.getHeight() - this.entries.length));
         if (width > 0) {
-            the_console.rect(x, y, width, this.entries.length, true, TCOD_BKGND_SET);
+            the_console.rect(x, y, width, this.entries.length, true, TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
             for (let i = 0; i < this.entries.length && y, the_console.getHeight(); i++) {
                 let entry = this.entries[i];
                 the_console.setDefaultForeground(entry.color);
-                the_console.printEx(x, y, TCOD_BKGND_SET, TCOD_LEFT, entry.text);
+                the_console.printEx(x, y, TCOD_bkgnd_flag_t.TCOD_BKGND_SET, (TCOD_alignment_t.TCOD_LEFT), entry.text);
                 y++;
             }
         }
-        the_console.setDefaultBackground(Color.black);
-        the_console.setDefaultForeground(Color.white);
+        the_console.setDefaultBackground(TCODColor.black);
+        the_console.setDefaultForeground(TCODColor.white);
     }
 }
 

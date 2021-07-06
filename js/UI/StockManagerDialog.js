@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -43,7 +43,7 @@ class StockManagerDialog extends Dialog {
         (contents).AddComponent(new TextBox(1, 2, 66, filter));
 
         let grid = new Grid([], 4, 0, 0, 68, 71);
-        for (let it = StockManager.Producables().begin(); it != StockManager.Producables().end(); it++) {
+        for (let it = StockManager.Producables().begin(); it !== StockManager.Producables().end(); it++) {
             grid.AddComponent(new StockPanel(it, this));
         }
         (contents).AddComponent(new ScrollPanel(0, 3, 68, 72, grid, false, 4));
@@ -69,7 +69,7 @@ class StockPanel extends UIContainer {
         if (boost.icontains(Item.Presets[itemType].name, owner.GetFilter()))
             return StockManager.TypeQuantity(itemType) > -1;
         else {
-            for (let cati = Item.Presets[itemType].categories.begin(); cati != Item.Presets[itemType].categories.end(); ++cati) {
+            for (let cati = Item.Presets[itemType].categories.begin(); cati !== Item.Presets[itemType].categories.end(); ++cati) {
                 if (boost.icontains(Item.Categories[cati].name, owner.GetFilter()))
                     return StockManager.TypeQuantity(itemType) > -1;
             }
@@ -83,7 +83,7 @@ class StockPanel extends UIContainer {
             let compAmt = 0;
             for (let compi = 0; compi < Item.Components(itemType).size(); ++compi) {
                 let thisCompName = Item.ItemCategoryToString(Item.Components(itemType, compi));
-                if (compName == thisCompName) {
+                if (compName === thisCompName) {
                     compAmt++;
                 } else {
                     if (compName.length() > 0) {
@@ -103,14 +103,14 @@ class StockPanel extends UIContainer {
         super([], 0, 0, 16, 4);
         itemType(nItemType);
         owner(nowner);
-        AddComponent(new Spinner(0, 2, 16, boost.bind(StockManager.Minimum, StockManager.Inst(), itemType),
-            boost.bind(StockManager.SetMinimum, StockManager.Inst(), itemType, _1)));
+        AddComponent(new Spinner(0, 2, 16, boost.bind(StockManager.Minimum, StockManager.i, itemType),
+            boost.bind(StockManager.SetMinimum, StockManager.i, itemType, _1)));
         SetTooltip(boost.bind(StockPanel._GetTooltip, this, _1, _2, _3));
         visible = boost.bind(StockPanel.ShowItem, this);
     }
 
     Draw(x, y, the_console) {
-        the_console.setAlignment(TCOD_CENTER);
+        the_console.setAlignment(TCOD_alignment_t.TCOD_CENTER);
         the_console.setDefaultForeground(Item.Presets[itemType].color);
         the_console.print(x + 8, y, "%c %s", Item.Presets[itemType].graphic, Item.Presets[itemType].name.c_str());
         the_console.setDefaultForeground(Color.white);

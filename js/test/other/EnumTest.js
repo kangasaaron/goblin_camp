@@ -1,4 +1,4 @@
-import { Enum } from "../../other/Enums.js"
+import { Enum } from "../../cplusplus/Enums.js"
 
 QUnit.module("Enum test", function() {
     QUnit.test("static Enum properties", function(assert) {

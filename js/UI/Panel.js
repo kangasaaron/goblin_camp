@@ -14,12 +14,12 @@ export class Panel extends Drawable {
     }
 
     ShowModal() {
-        let background = new TCODConsole(Game.ScreenWidth(), Game.ScreenHeight());
-        TCODConsole.blit(TCODConsole.root, 0, 0, Game.ScreenWidth(), Game.ScreenHeight(),
+        let background = new TCODConsole(Game.i.ScreenWidth(), Game.i.ScreenHeight());
+        TCODConsole.blit(TCODConsole.root, 0, 0, Game.i.ScreenWidth(), Game.i.ScreenHeight(),
             background, 0, 0);
 
-        let _x = (Game.ScreenWidth() - width) / 2;
-        let _y = (Game.ScreenHeight() - height) / 2;
+        let _x = (Game.i.ScreenWidth() - width) / 2;
+        let _y = (Game.i.ScreenHeight() - height) / 2;
         let key;
         let mouse;
         let event;
@@ -33,7 +33,7 @@ export class Panel extends Drawable {
         TCODConsole.root.clear();
         TCODConsole.root.setDefaultForeground(Color.white);
         TCODConsole.root.setDefaultBackground(Color.black);
-        TCODConsole.blit(background, 0, 0, Game.ScreenWidth(), Game.ScreenHeight(),
+        TCODConsole.blit(background, 0, 0, Game.i.ScreenWidth(), Game.i.ScreenHeight(),
             TCODConsole.root, 0, 0, 0.7, 1.0);
 
         this.Draw(_x, _y, TCODConsole.root);
@@ -44,8 +44,8 @@ export class Panel extends Drawable {
         if (event & TCOD_EVENT_ANY) {
             mouse = TCODMouse.getStatus();
 
-            let result = this.Update(mouse.cx, mouse.cy, mouse.lbutton_pressed != 0, key);
-            if ((result & MenuResult.DISMISS) || key.vk == TCODK_ESCAPE) {
+            let result = this.Update(mouse.cx, mouse.cy, mouse.lbutton_pressed !== 0, key);
+            if ((result & MenuResult.DISMISS) || key.vk === TCODK_ESCAPE) {
                 delete this;
                 return false;
             }

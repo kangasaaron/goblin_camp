@@ -6,7 +6,10 @@ import {
 } from "./MenuResult.js";
 
 export class UIContainer extends Drawable {
-    components = [];
+    constructor(){
+        super();
+        this.components = [];
+    }
 
     AddComponent(component) {
         this.components.push(component);

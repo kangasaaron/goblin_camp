@@ -7,55 +7,44 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    UIContainer
-} from "./UIContainer.js";
-import {
-    Dialog
-} from "./Dialog.js";
-import {
-    Button
-} from "./Button.js";
-import {
-    Label
-} from "./Label.js";
-import {
-    ScrollPanel
-} from "./ScrollPanel.js";
-import {
-    UIList
-} from "./UIList.js";
-import {
-    TextBox
-} from "./TextBox.js";
+ import {Button} from "./Button.js";
+ import {TCOD_alignment_t, Color, TCOD_keycode_t} from "../libtcod.js";
+ import {Construction} from "../Construction.js";
+ import {ConstructionTag} from "../ConstructionTag.js";
+ import {Coordinate} from "../Coordinate.js";
+ import {CursorType} from "./CursorType.js";
+ import {Dialog} from "./Dialog.js";
+ import {Entity} from "../Entity.js";
+//  import {Game} from "../Game.js";
+ import {Item} from "../Item.js";
+ import {Label} from "./Label.js";
+ import {ProductList} from "./ProductList.js";
+ import {ScrollPanel} from "./ScrollPanel.js";
+//  import {Spinner} "./UI/Spinner.js";
+ import {Stockpile} from "../Stockpile.js";
+ import {TextBox} from "./TextBox.js";
+//  import {UI} from "./UI.js";
+ import {UIContainer} from "./UIContainer.js";
+ import {UIList} from "./UIList.js";
+ import {UI} from "./UI.js";
 
-import "UI/Spinner.js"
-import "UI.js"
-import "Game.js"
-import "Stockpile.js"
 
 export class ConstructionDialog extends UIContainer {
-    construct = null;
     constructor(nwidth, nheight) {
         super([], 0, 0, nwidth, nheight);
+        this.construct = null;    
     }
-    Construct(Construction);
-    Rename();
-    Dismantle();
-    Expand();
-    CancelJob(job);
-    static constructionInfoDialog = null;
-    static cachedConstruct = null;
     static ConstructionInfoDialog(wcons) {
-        if (letcons = wcons.lock()) {
-            if (this.constructionInfoDialog && (!this.cachedConstruct.lock() || cons != this.cachedConstruct.lock())) {
+        let cons = wcons.lock();
+        if (cons ) {
+            if (this.constructionInfoDialog && (!this.cachedConstruct.lock() || cons !== this.cachedConstruct.lock())) {
                 delete this.constructionInfoDialog;
                 this.constructionInfoDialog = null;
             }
@@ -63,7 +52,7 @@ export class ConstructionDialog extends UIContainer {
                 this.cachedConstruct = cons;
                 let dialog = new ConstructionDialog(50, 5);
                 this.constructionInfoDialog = new Dialog(dialog, "", 50, 5);
-                if (!cons.HasTag(FARMPLOT)) {
+                if (!cons.HasTag(ConstructionTag.FARMPLOT)) {
                     dialog.AddComponent(new Button("Rename", ConstructionDialog.Rename.bind(this, dialog), 12, 1, 10));
                     dialog.AddComponent(new Button("Dismantle", ConstructionDialog.Dismantle.bind(this, dialog), 28, 1, 13));
                 } else {
@@ -74,13 +63,13 @@ export class ConstructionDialog extends UIContainer {
 
                 if (cons.Producer()) {
                     this.constructionInfoDialog.SetHeight(40);
-                    dialog.AddComponent(new Label("Job Queue", 2, 5, TCOD_LEFT));
+                    dialog.AddComponent(new Label("Job Queue", 2, 5, TCOD_alignment_t.TCOD_LEFT));
                     dialog.AddComponent(new ScrollPanel(2, 6, 23, 34,
                         new UIList(cons.JobList(), 0, 0, 20, 34,
                             ConstructionDialog.DrawJob,
                             ConstructionDialog.CancelJob.bind(this, dialog)),
                         false));
-                    dialog.AddComponent(new Label("Product List", 26, 5, TCOD_LEFT));
+                    dialog.AddComponent(new Label("Product List", 26, 5, TCOD_alignment_t.TCOD_LEFT));
                     let productList = new ProductList(cons);
                     for (let prodi = 0; prodi < cons.Products().length; ++prodi) {
                         productList.productPlacement.push(productList.height);
@@ -107,8 +96,8 @@ export class ConstructionDialog extends UIContainer {
     Rename() {
         if (this.construct.lock()) {
             let contents = new UIContainer([], 1, 1, 28, 7);
-            contents.AddComponent(new TextBox(0, 1, 28, Entity.Name.bind(Entity, construct.lock()), Entity.Name.bind(Entity, construct.lock())));
-            contents.AddComponent(new Button("OK", null, 11, 3, 6, TCODK_ENTER, true));
+            contents.AddComponent(new TextBox(0, 1, 28, Entity.Name.bind(Entity, this.construct.lock()), Entity.Name.bind(Entity, this.construct.lock())));
+            contents.AddComponent(new Button("OK", null, 11, 3, 6, TCOD_keycode_t.TCODK_ENTER, true));
             let renameDialog = new Dialog(contents, "Rename", 30, 8);
             renameDialog.ShowModal();
         }
@@ -116,82 +105,34 @@ export class ConstructionDialog extends UIContainer {
 
     Dismantle() {
         if (this.construct.lock()) {
-            UI.CloseMenu();
+            UI.i.CloseMenu();
             this.construct.lock().Dismantle(undefined);
         }
     }
 
     Expand() {
         if (this.construct.lock()) {
-            let rectCall = Stockpile.Expand.bind(this, construct.lock());
-            let placement = Game.CheckPlacement.bind(this, Coordinate(1, 1),
+            let rectCall = Stockpile.Expand.bind(this, this.construct.lock());
+            let placement = this.Game.i.CheckPlacement.bind(this, Coordinate(1, 1),
                 Construction.Presets[this.construct.lock().Type()].tileReqs);
-            UI.CloseMenu();
-            UI.ChooseRectPlacementCursor(rectCall, placement, Cursor_Stockpile);
+            UI.i.CloseMenu();
+            UI.i.ChooseRectPlacementCursor(rectCall, placement, CursorType.Cursor_Stockpile);
         }
     }
 
     CancelJob(job) {
-        let cons;
-        if (cons = construct.lock()) {
+        let cons = this.construct.lock();
+        if (cons ) {
             cons.CancelJob(job);
         }
     }
 
     static DrawJob(category, i, x, y, width, selected, the_console) {
-        the_console.setDefaultForeground(i == 0 ? Color.white : Color.grey);
+        the_console.setDefaultForeground(i === 0 ? Color.white : Color.grey);
         the_console.print(x, y, Item.ItemTypeToString(category));
         the_console.setDefaultForeground(Color.white);
     }
 }
 
-ConstructionDialog.ProductList = class ProductList extends Scrollable {
-    construct = null;
-    height = 0;
-    productPlacement = [];
-    constructor(nconstruct) {
-        super();
-        this.construct = nconstruct;
-    }
-
-    Draw(x, _y, scroll, width, _height, the_console) {
-        let cons;
-        if (cons = this.construct.lock()) {
-            let y = 0;
-            for (let prodi = 0; prodi < cons.Products().length && y < scroll + _height; ++prodi) {
-                if (y >= scroll) {
-                    the_console.setDefaultForeground(Color.white);
-                    the_console.print(x, _y + y - scroll, "%s x%d", Item.ItemTypeToString(cons.Products(prodi)), Item.Presets[cons.Products(prodi)].multiplier);
-                }
-                ++y;
-                for (let compi = 0; compi < Item.Components(cons.Products(prodi)).length && y < scroll + _height; ++compi) {
-                    if (y >= scroll) {
-                        the_console.setDefaultForeground(Color.white);
-                        the_console.putChar(x + 1, _y + y - scroll, compi + 1 < Item.Components(cons.Products(prodi)).length ? TCOD_CHAR_TEEE : TCOD_CHAR_SW, TCOD_BKGND_SET);
-                        the_console.setDefaultForeground(Color.grey);
-                        the_console.print(x + 2, _y + y - scroll, Item.ItemCategoryToString(Item.Components(cons.Products(prodi), compi)));
-                    }
-                    ++y;
-                }
-                ++y;
-            }
-        }
-        the_console.setDefaultForeground(Color.white);
-    }
-
-    TotalHeight() {
-        return height;
-    }
-
-    Update(x, y, clicked, key) {
-        for (let i = 0; i < this.productPlacement.length; ++i) {
-            if (y == this.productPlacement[i]) {
-                if (clicked && this.construct.lock()) {
-                    this.construct.lock().AddJob(this.construct.lock().Products(i));
-                }
-                return MenuResult.MENUHIT;
-            }
-        }
-        return MenuResult.NOMENUHIT;
-    }
-}
+ConstructionDialog.constructionInfoDialog = null;
+ConstructionDialog.cachedConstruct = null;

@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -26,19 +26,19 @@ export class Dialog extends Panel {
         super(nwidth, nheight)
         this.title = ntitle;
         this.contents = ncontents;
-        this._x = (Game.ScreenWidth() - nwidth) / 2;
-        this._y = (Game.ScreenHeight() - nheight) / 2;
+        this._x = (Game.i.ScreenWidth() - nwidth) / 2;
+        this._y = (Game.i.ScreenHeight() - nheight) / 2;
     }
     SetTitle(ntitle) {
         this.title = ntitle;
     }
     SetHeight(nheight) {
         this.height = nheight;
-        this._x = (Game.ScreenWidth() - this.width) / 2;
-        this._y = (Game.ScreenHeight() - this.height) / 2;
+        this._x = (Game.i.ScreenWidth() - this.width) / 2;
+        this._y = (Game.i.ScreenHeight() - this.height) / 2;
     }
     Draw(x, y, the_console) {
-        the_console.printFrame(this._x, this._y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? "" : this.title);
+        the_console.printFrame(this._x, this._y, this.width, this.height, true, TCOD_bkgnd_flag_t.TCOD_BKGND_SET, (this.title.length === 0) ? "" : this.title);
         this.contents.Draw(this._x, this._y, the_console);
     }
     Update(x, y, clicked, key) {

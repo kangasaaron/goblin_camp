@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -40,7 +40,7 @@ class PyConstruction {
             if (GetType() >= 0) {
                 return Construction.Presets[GetType()].name;
             } else {
-                LOG("WARNING: CONSTRUCTION TYPE == -1");
+                LOG("WARNING: CONSTRUCTION TYPE === -1");
                 return "<invalid type>";
             }
         } else {

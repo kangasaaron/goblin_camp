@@ -7,75 +7,29 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import { Weather } from "./Weather.js";
+import { CacheTile } from "./CacheTile.js";
+import { Coordinate } from "./Coordinate.js";
+import { Constants } from "./Constants.js";
+import { TCODHeightMap } from "../fakeTCOD/libtcod.js";
+import { Singletonify } from "./cplusplus/Singleton.js";
+import { Serializable } from "./data/Serialization.js";
 import { Tile } from "./Tile.js";
 import { TileType } from "./TileType.js";
-import { Coordinate } from "./Coordinate.js";
-import { CacheTile } from "./CacheTile.js";
-import { HeightMap } from "./other/HeightMap.js";
-import { Serializable } from "./data/Serialization.js";
-
-const TERRITORY_OVERLAY = (1 << 0);
-const TERRAIN_OVERLAY = (2 << 0);
-const HARDCODED_WIDTH = 500;
-const HARDCODED_HEIGHT = 500;
+import { Weather } from "./Weather.js";
 
 export class GameMap extends Serializable {
-    static CLASS_VERSION = 2;
-
-    /** @type {Tile[][]} */
-    tileMap;
-    /** @type {CacheTile[][]} */
-    cachedTileMap;
-    /** @type {Coordinate} */
-    extent; //X.width, Y.height
-    //float 
-    waterlevel = 0;
-    //int 
-    overlayFlags = 0
-    // std.list < std.pair < unsigned int, MapMarker > > 
-    mapMarkers = []
-    // unsigned int 
-    markerids = 0;
-    // boost.unordered_set < Coordinate > 
-    changedTiles = new Set();
-
-    // typedef std.list < std.pair < unsigned int, MapMarker > > .const_iterator 
-    MarkerIterator = null;
-
-    // TCODHeightMap * 
-    heightMap = null;
-    // boost.shared_ptr < Weather > 
-    weather;
-    // mutable boost.shared_mutex 
-    cacheMutex;
-
-    tile(p) {
-        return this.tileMap[p.X()][p.Y()];
-    }
-    cachedTile(p) {
-        return this.cachedTileMap[p.X()][p.Y()];
-    }
-    tile(p) {
-        return this.tileMap[p.X()][p.Y()];
-    }
-    cachedTile(p) {
-        return this.cachedTileMap[p.X()][p.Y()];
-    }
-
-    static instance;
-
     constructor() {
-        if (GameMap.instance) return GameMap.instance;
         super();
+        /** @type {Tile[][]} */
         this.tileMap = [];
+        /** @type {CacheTile[][]} */
         this.cachedTileMap = [];
 
         for (let x = 0; x < HARDCODED_WIDTH; x++) {
@@ -86,7 +40,9 @@ export class GameMap extends Serializable {
                 this.cachedTileMap[x].push(new CacheTile());
             }
         }
+        /** @type {TCODHeightMap *} */
         this.heightMap = new HeightMap(HARDCODED_WIDTH, HARDCODED_HEIGHT);
+        /** @type {Coordinate} */
         this.extent = new Coordinate(HARDCODED_WIDTH, HARDCODED_HEIGHT);
         for (let i = 0; i < HARDCODED_WIDTH; ++i) {
             for (let e = 0; e < HARDCODED_HEIGHT; ++e) {
@@ -95,21 +51,43 @@ export class GameMap extends Serializable {
                 this.cachedTileMap[i][e].y = e;
             }
         }
+        /** @type {Number} (float) */
         this.waterlevel = -0.8;
+        /** @type {Weather} (shared_ptr) */
         this.weather = new Weather(this);
+        /** @type {int} **/
+        this.overlayFlags = 0
+        /** @type {std.list < std.pair < unsigned int, MapMarker > >} **/
+        this.mapMarkers = []
+        /** @type {unsigned int} **/
+        this.markerids = 0;
+        /** @type {boost.unordered_set < Coordinate >} **/
+        this.changedTiles = new Set();
+        /** @type {typedef std.list < std.pair < unsigned int, MapMarker > > .const_iterator} **/
+        this.MarkerIterator = null;
+        /** @type {mutable boost.shared_mutex} **/
+        this.cacheMutex;
     }
 
     destructor() {
         this.heightMap = null;
     }
-    Extent() { return extent; }
-    Width() { return extent.X(); }
-    Height() { return extent.Y(); }
+
+    tile(p) {
+        return this.tileMap[p.X()][p.Y()];
+    }
+    cachedTile(p) {
+        return this.cachedTileMap[p.X()][p.Y()];
+    }
+
+    Extent() { return this.extent; }
+    Width() { return this.extent.X(); }
+    Height() { return this.extent.Y(); }
     IsInside(p) {
-        return p.insideExtent(zero, extent);
+        return p.insideExtent(Coordinate.zeroCoordinate, this.extent);
     }
     Shrink(p) {
-        return p.shrinkExtent(zero, extent);
+        return p.shrinkExtent(Coordinate.zeroCoordinate, this.extent);
     }
 
     //we must keep the int-version of getWalkCost as an override of ITCODPathCallback, otherwise this is virtual
@@ -127,18 +105,24 @@ export class GameMap extends Serializable {
             return this.getWalkCost_Coordinate_Coordinate_Ptr(...args);
     }
 
+    IsWalkable(...args){
+        if(args.length === 2)
+            return this.IsWalkable_p_ptr(args[0],args[1]);
+        else
+            return this.IsWalkable_p(args[0]);
+    }
     //Simple version that doesn't take npc information into account
-    IsWalkable(p) {
-        return (this.IsInside(p) && tile(p).IsWalkable());
+    IsWalkable_p(p) {
+        return (this.IsInside(p) && this.tile(p).IsWalkable());
     }
 
-    IsWalkable(p, ptr) {
+    IsWalkable_p_ptr(p, ptr) {
         if ((ptr).HasEffect(FLYING)) return true;
         if (!(ptr).HasHands()) {
-            let constructionId = GetConstruction(p);
+            let constructionId = Game.i.GetConstruction(p);
             if (constructionId >= 0) {
-                let cons;
-                if (cons = Game.GetConstruction(constructionId).lock()) {
+                let cons = Game.i.GetConstruction(constructionId).lock();
+                if (cons) {
                     if (cons.HasTag(DOOR) && !boost.static_pointer_cast < Door > (cons).Open()) {
                         return false;
                     }
@@ -155,74 +139,78 @@ export class GameMap extends Serializable {
     }
 
     IsBuildable(p) {
-        return this.IsInside(p) && tile(p).IsBuildable();
+        return this.IsInside(p) && this.tile(p).IsBuildable();
     }
 
     SetBuildable(p, value) {
         if (this.IsInside(p))
-            tile(p).SetBuildable(value);
+            this.tile(p).SetBuildable(value);
     }
 
     GetType(p) {
-        if (this.IsInside(p)) return tile(p).GetType();
-        return TILENONE;
+        if (this.IsInside(p)) 
+            return this.tile(p).GetType();
+        return TileType.TILENONE;
     }
     //ResetType() resets all tile variables to defaults
     ResetType(p, ntype, tileHeight = 0.0) {
         if (this.IsInside(p)) {
-            tile(p).ResetType(ntype, tileHeight);
-            changedTiles.insert(p);
+            this.tile(p).ResetType(ntype, tileHeight);
+            this.changedTiles.insert(p);
         }
     }
     //ChangeType() preserves information such as buildability
     ChangeType(p, ntype, tileHeight = 0.0) {
         if (this.IsInside(p)) {
-            tile(p).ChangeType(ntype, tileHeight);
-            changedTiles.insert(p);
+            this.tile(p).ChangeType(ntype, tileHeight);
+            this.changedTiles.insert(p);
         }
     }
 
     MoveTo(p, uid) {
         if (this.IsInside(p)) {
-            tile(p).MoveTo(uid);
+            this.tile(p).MoveTo(uid);
         }
     }
 
     MoveFrom(p, uid) {
-        if (this.IsInside(p)) tile(p).MoveFrom(uid);
+        if (this.IsInside(p)) 
+            this.tile(p).MoveFrom(uid);
     }
 
     SetConstruction(p, uid) {
         if (this.IsInside(p)) {
-            tile(p).SetConstruction(uid);
-            changedTiles.insert(p);
+            this.tile(p).SetConstruction(uid);
+            this.changedTiles.insert(p);
         }
     }
     GetConstruction(p) {
-        if (this.IsInside(p)) return tile(p).GetConstruction();
+        if (this.IsInside(p)) 
+            return this.tile(p).GetConstruction();
         return -1;
     }
 
     GetWater(p) {
-        if (this.IsInside(p)) return tile(p).GetWater();
+        if (this.IsInside(p)) 
+            return this.tile(p).GetWater();
         return null;
     }
     SetWater(p, value) {
         if (this.IsInside(p)) {
-            tile(p).SetWater(value);
-            changedTiles.insert(p);
+            this.tile(p).SetWater(value);
+            this.changedTiles.insert(p);
         }
     }
 
     IsLow(p) {
-        return this.IsInside(p) && tile(p).IsLow();
+        return this.IsInside(p) && this.tile(p).IsLow();
     }
     SetLow(p, value) {
-        if (this.IsInside(p)) tile(p).SetLow(value);
+        if (this.IsInside(p)) this.tile(p).SetLow(value);
     }
 
     BlocksWater(p) {
-        return !this.IsInside(p) || tile(p).BlocksWater();
+        return !this.IsInside(p) || this.tile(p).BlocksWater();
     }
     SetBlocksWater(p, value) {
         if (this.IsInside(p)) {
@@ -231,109 +219,110 @@ export class GameMap extends Serializable {
     }
 
     NPCList(p) {
-        if (this.IsInside(p)) return tile(p).npcList;
+        if (this.IsInside(p)) return this.tile(p).npcList;
         return tileMap[0][0].npcList;
     }
     ItemList(p) {
-        if (this.IsInside(p)) return tile(p).itemList;
+        if (this.IsInside(p)) return this.tile(p).itemList;
         return tileMap[0][0].itemList;
     }
 
     GetGraphic(p) {
-        if (this.IsInside(p)) return tile(p).GetGraphic();
+        if (this.IsInside(p)) return this.tile(p).GetGraphic();
         return '?';
     }
     GetForeColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetForeColor();
+        if (this.IsInside(p)) return this.tile(p).GetForeColor();
         return Color.pink;
     }
 
     ForeColor(p, color) {
         if (this.IsInside(p)) {
-            tile(p).originalForeColor = color;
-            tile(p).foreColor = color;
+            this.tile(p).originalForeColor = color;
+            this.tile(p).foreColor = color;
         }
     }
 
     GetBackColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetBackColor();
-        return Color.yellow;
+        if (this.IsInside(p)) 
+            return this.tile(p).GetBackColor();
+        return TCODColor.yellow;
     }
     SetNatureObject(p, val) {
         if (this.IsInside(p)) {
-            tile(p).SetNatureObject(val);
+            this.tile(p).SetNatureObject(val);
         }
     }
     GetNatureObject(p) {
-        if (this.IsInside(p)) return tile(p).GetNatureObject();
+        if (this.IsInside(p)) return this.tile(p).GetNatureObject();
         return -1;
     }
 
     GetFilth(p) {
-        if (this.IsInside(p)) return tile(p).GetFilth();
+        if (this.IsInside(p)) return this.tile(p).GetFilth();
         return null;
     }
     SetFilth(p, value) {
         if (this.IsInside(p)) {
-            tile(p).SetFilth(value);
-            changedTiles.insert(p);
+            this.tile(p).SetFilth(value);
+            this.changedTiles.insert(p);
         }
     }
     GetBlood(p) {
-        if (this.IsInside(p)) return tile(p).GetBlood();
+        if (this.IsInside(p)) return this.tile(p).GetBlood();
         return null;
     }
     SetBlood(p, value) {
-        if (this.IsInside(p)) tile(p).SetBlood(value);
+        if (this.IsInside(p)) this.tile(p).SetBlood(value);
     }
 
     GetFire(p) {
-        if (this.IsInside(p)) return tile(p).GetFire();
+        if (this.IsInside(p)) return this.tile(p).GetFire();
         return null;
     }
     SetFire(p, value) {
         if (this.IsInside(p)) {
-            tile(p).SetFire(value);
-            changedTiles.insert(p);
+            this.tile(p).SetFire(value);
+            this.changedTiles.insert(p);
         }
     }
     BlocksLight(p) {
-        if (this.IsInside(p)) return tile(p).BlocksLight();
+        if (this.IsInside(p)) return this.tile(p).BlocksLight();
         return true;
     }
     SetBlocksLight(p, val) {
-        if (this.IsInside(p)) tile(p).SetBlocksLight(val);
+        if (this.IsInside(p)) this.tile(p).SetBlocksLight(val);
     }
     LineOfSight(a, b) {
         TCODLine.init(a.X(), a.Y(), b.X(), b.Y());
         let p = a;
         do {
-            if (BlocksLight(p)) return false;
-        } while (!TCODLine.step(p.Xptr(), p.Yptr()) && p != b);
+            if (this.BlocksLight(p)) return false;
+        } while (!TCODLine.step(p.Xptr(), p.Yptr()) && p !== b);
         return true;
     }
 
 
-    Mark(p) { tile(p).Mark(); }
-    Unmark(p) { tile(p).Unmark(); }
+    Mark(p) { this.tile(p).Mark(); }
+    Unmark(p) { this.tile(p).Unmark(); }
 
-    GroundMarked(p) { return tile(p).marked; }
+    GroundMarked(p) { return this.tile(p).marked; }
 
     GetMoveModifier(p) {
         let modifier = 0;
 
         let construction;
-        if (tile(p).construction >= 0) construction = Game.GetConstruction(tile(p).construction).lock();
+        if (this.tile(p).construction >= 0) construction = Game.i.GetConstruction(this.tile(p).construction).lock();
         let bridge = false;
-        if (construction) bridge = (construction.Built() && construction.HasTag(BRIDGE));
+        if (construction) bridge = (construction.Built() && construction.HasTag(ConstructionTag.BRIDGE));
 
-        if (tile(p).GetType() == TILEBOG && !bridge) modifier += 10;
-        else if (tile(p).GetType() == TILEDITCH && !bridge) modifier += 4;
-        else if (tile(p).GetType() == TILEMUD && !bridge) { //Mud adds 6 if there's no bridge
+        if (this.tile(p).GetType() === TileType.TILEBOG && !bridge) modifier += 10;
+        else if (this.tile(p).GetType() === TileType.TILEDITCH && !bridge) modifier += 4;
+        else if (this.tile(p).GetType() === TileType.TILEMUD && !bridge) { //Mud adds 6 if there's no bridge
             modifier += 6;
         }
-        let water;
-        if (water = tile(p).GetWater().lock()) { //Water adds 'depth' without a bridge
+        let water = this.tile(p).GetWater().lock();
+        if (water) { //Water adds 'depth' without a bridge
             if (!bridge) modifier += water.Depth();
         }
 
@@ -341,17 +330,17 @@ export class GameMap extends Serializable {
         if (construction && !bridge) modifier += construction.GetMoveSpeedModifier();
 
         //Other critters slow down movement
-        if (tile(p).npcList.size() > 0) modifier += 2 + Random.Generate(tile(p).npcList.size() - 1);
+        if (this.tile(p).npcList.size() > 0) modifier += 2 + Random.i.Generate(this.tile(p).npcList.size() - 1);
 
         return modifier;
     }
-    GetWaterlevel() { return waterlevel; }
-    WalkOver(p) { if (this.IsInside(p)) tile(p).WalkOver(); }
+    GetWaterlevel() { return this.waterlevel; }
+    WalkOver(p) { if (this.IsInside(p)) this.tile(p).WalkOver(); }
     Naturify(p) {
         if (this.IsInside(p)) {
-            if (tile(p).walkedOver > 0) --tile(p).walkedOver;
-            if (tile(p).burnt > 0) tile(p).Burn(-1);
-            if (tile(p).walkedOver == 0 && tile(p).natureObject < 0 && tile(p).construction < 0) {
+            if (this.tile(p).walkedOver > 0) --this.tile(p).walkedOver;
+            if (this.tile(p).burnt > 0) this.tile(p).Burn(-1);
+            if (this.tile(p).walkedOver === 0 && this.tile(p).natureObject < 0 && this.tile(p).construction < 0) {
                 let natureObjects = 0;
                 let begin = this.Shrink(p - 2);
                 let end = this.Shrink(p + 2);
@@ -360,8 +349,8 @@ export class GameMap extends Serializable {
                         if (tileMap[ix][iy].natureObject >= 0) ++natureObjects;
                     }
                 }
-                if (natureObjects < (tile(p).corruption < 100 ? 6 : 1)) { //Corrupted areas have less flora
-                    Game.CreateNatureObject(p, natureObjects);
+                if (natureObjects < (this.tile(p).corruption < 100 ? 6 : 1)) { //Corrupted areas have less flora
+                    Game.i.CreateNatureObject(p, natureObjects);
                 }
             }
         }
@@ -369,39 +358,39 @@ export class GameMap extends Serializable {
     Corrupt(pos, magnitude = 200) {
         let p = pos;
         for (let loops = 0; magnitude > 0 && loops < 2000; ++loops, p = Shrink(Random.ChooseInRadius(p, 1))) {
-            if (tile(p).corruption < 300) {
-                let difference = 300 - tile(p).corruption;
+            if (this.tile(p).corruption < 300) {
+                let difference = 300 - this.tile(p).corruption;
                 if (magnitude - difference <= 0) {
-                    tile(p).Corrupt(magnitude);
+                    this.tile(p).Corrupt(magnitude);
                     magnitude = 0;
                 } else {
-                    tile(p).Corrupt(difference);
+                    this.tile(p).Corrupt(difference);
                     magnitude -= difference;
                 }
 
-                if (tile(p).corruption >= 100) {
-                    if (tile(p).natureObject >= 0 &&
-                        !NatureObject.Presets[Game.natureList[tile(p).natureObject].Type()].evil &&
-                        !boost.iequals(Game.natureList[tile(p).natureObject].Name(), "Withering tree") &&
-                        !Game.natureList[tile(p).natureObject].IsIce()) {
-                        let createTree = Game.natureList[tile(p).natureObject].Tree();
-                        Game.RemoveNatureObject(Game.natureList[tile(p).natureObject]);
-                        if (createTree && Random.Generate(6) < 1) Game.CreateNatureObject(p, "Withering tree");
+                if (this.tile(p).corruption >= 100) {
+                    if (this.tile(p).natureObject >= 0 &&
+                        !NatureObject.Presets[Game.i.natureList[this.tile(p).natureObject].Type()].evil &&
+                        !boost.iequals(Game.i.natureList[this.tile(p).natureObject].Name(), "Withering tree") &&
+                        !Game.i.natureList[this.tile(p).natureObject].IsIce()) {
+                        let createTree = Game.i.natureList[this.tile(p).natureObject].Tree();
+                        Game.i.RemoveNatureObject(Game.i.natureList[this.tile(p).natureObject]);
+                        if (createTree && Random.i.Generate(6) < 1) Game.i.CreateNatureObject(p, "Withering tree");
                     }
                 }
             }
         }
     }
     GetCorruption(p) {
-        if (this.IsInside(p)) return tile(p).corruption;
+        if (this.IsInside(p)) return this.tile(p).corruption;
         return 0;
     }
     IsTerritory(p) {
-        return this.IsInside(p) && tile(p).territory;
+        return this.IsInside(p) && this.tile(p).territory;
     }
 
     SetTerritory(p, value) {
-        if (this.IsInside(p)) tile(p).territory = value;
+        if (this.IsInside(p)) this.tile(p).territory = value;
     }
 
     SetTerritoryRectangle(a, b, value) {
@@ -428,10 +417,10 @@ export class GameMap extends Serializable {
         for (let x = low.X(); x <= high.X(); ++x) {
             for (let y = low.Y(); y <= high.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                if (p != move) {
-                    if (IsWalkable(p, npc) && tile(p).npcList.size() == 0 && !IsUnbridgedWater(p) &&
+                if (p !== move) {
+                    if (IsWalkable(p, npc) && this.tile(p).npcList.size() === 0 && !IsUnbridgedWater(p) &&
                         !IsDangerous(p, (npc).GetFaction())) {
-                        if (Game.Adjacent(p, current) && Game.Adjacent(p, move) && Game.Adjacent(p, next)) {
+                        if (Game.i.Adjacent(p, current) && Game.i.Adjacent(p, move) && Game.i.Adjacent(p, next)) {
                             move = p;
                             return;
                         }
@@ -442,44 +431,42 @@ export class GameMap extends Serializable {
     }
     IsUnbridgedWater(p) {
         if (this.IsInside(p)) {
-            let water;
-            if (water = tile(p).water) {
-                let construction = Game.GetConstruction(tile(p).construction).lock();
+            let water = this.tile(p).water;
+            if (water) {
+                let construction = Game.i.GetConstruction(this.tile(p).construction).lock();
                 if (water.Depth() > 0 && (!construction || !construction.Built() || !construction.HasTag(BRIDGE))) return true;
             }
         }
         return false;
     }
     UpdateMarkers() {
-        for (let markeri = mapMarkers.begin(); markeri != mapMarkers.end();) {
+        for (let markeri = mapMarkers.begin(); markeri !== mapMarkers.end();) {
             if (!markeri.second.Update()) {
                 markeri = mapMarkers.erase(markeri);
             } else ++markeri;
         }
     }
     AddMarker(marker) {
-        mapMarkers.push_back((markerids, marker));
+        mapMarkers.push((markerids, marker));
         ++markerids;
         return markerids - 1;
     }
     RemoveMarker(markid) {
-        for (markeri = mapMarkers.begin(); markeri != mapMarkers.end(); ++markeri) {
-            if (static_cast < int > (markeri.first) == markid) {
+        for (markeri = mapMarkers.begin(); markeri !== mapMarkers.end(); ++markeri) {
+            if (static_cast < int > (markeri.first) === markid) {
                 mapMarkers.erase(markeri);
                 return;
             }
         }
     }
     GetColor(p) {
-        if (Map.IsInside(p)) return tile(p).GetForeColor();
+        if (this.IsInside(p)) return this.tile(p).GetForeColor();
         return Color.white;
-    }
-        }
     }
 
     Burnt(p) {
         if (this.IsInside(p)) {
-            return tile(p).burnt;
+            return this.tile(p).burnt;
         }
         return 0;
     }
@@ -502,37 +489,37 @@ export class GameMap extends Serializable {
 
         if (px[0] < px[1]) startDirectionA = EAST;
         else if (px[0] > px[1]) startDirectionA = WEST;
-        else startDirectionA = Random.GenerateBool() ? EAST : WEST;
+        else startDirectionA = Random.i.GenerateBool() ? EAST : WEST;
         if (py[0] < py[1]) startDirectionB = SOUTH;
         else if (py[0] > py[1]) startDirectionB = NORTH;
-        else startDirectionB = Random.GenerateBool() ? SOUTH : NORTH;
+        else startDirectionB = Random.i.GenerateBool() ? SOUTH : NORTH;
 
         if (px[1] < px[2]) midDirectionA = EAST;
         else if (px[1] > px[2]) midDirectionA = WEST;
-        else midDirectionA = Random.GenerateBool() ? EAST : WEST;
+        else midDirectionA = Random.i.GenerateBool() ? EAST : WEST;
         if (py[1] < py[2]) midDirectionB = SOUTH;
         else if (py[1] > py[2]) midDirectionB = NORTH;
-        else midDirectionB = Random.GenerateBool() ? SOUTH : NORTH;
+        else midDirectionB = Random.i.GenerateBool() ? SOUTH : NORTH;
 
         if (px[2] < px[3]) endDirectionA = EAST;
         else if (px[2] > px[3]) endDirectionA = WEST;
-        else endDirectionA = Random.GenerateBool() ? EAST : WEST;
+        else endDirectionA = Random.i.GenerateBool() ? EAST : WEST;
         if (py[2] < py[3]) endDirectionB = SOUTH;
         else if (py[2] > py[3]) endDirectionB = NORTH;
-        else endDirectionB = Random.GenerateBool() ? SOUTH : NORTH;
+        else endDirectionB = Random.i.GenerateBool() ? SOUTH : NORTH;
 
-        if (Random.GenerateBool()) { //Reverse?
-            if (startDirectionA == EAST) startDirectionA = WEST;
+        if (Random.i.GenerateBool()) { //Reverse?
+            if (startDirectionA === EAST) startDirectionA = WEST;
             else startDirectionA = EAST;
-            if (startDirectionB == SOUTH) startDirectionB = NORTH;
+            if (startDirectionB === SOUTH) startDirectionB = NORTH;
             else startDirectionB = SOUTH;
-            if (midDirectionA == EAST) midDirectionA = WEST;
+            if (midDirectionA === EAST) midDirectionA = WEST;
             else midDirectionA = EAST;
-            if (midDirectionB == SOUTH) midDirectionB = NORTH;
+            if (midDirectionB === SOUTH) midDirectionB = NORTH;
             else midDirectionB = SOUTH;
-            if (endDirectionA == EAST) endDirectionA = WEST;
+            if (endDirectionA === EAST) endDirectionA = WEST;
             else endDirectionA = EAST;
-            if (endDirectionB == SOUTH) endDirectionB = NORTH;
+            if (endDirectionB === SOUTH) endDirectionB = NORTH;
             else endDirectionB = SOUTH;
         }
 
@@ -551,8 +538,8 @@ export class GameMap extends Serializable {
         let stage = 0;
         let favorA = false;
         let favorB = false;
-        let distance1 = Distance(new Coordinate(px[0], py[0]), new Coordinate(px[1], py[1]));
-        let distance2 = Distance(new Coordinate(px[1], py[1]), new Coordinate(px[2], py[2]));
+        let distance1 = Coordinate.Distance(new Coordinate(px[0], py[0]), new Coordinate(px[1], py[1]));
+        let distance2 = Coordinate.Distance(new Coordinate(px[1], py[1]), new Coordinate(px[2], py[2]));
 
         if (Math.abs(px[0] - px[1]) - Math.abs(py[0] - py[1]) > 15)
             favorA = true;
@@ -580,9 +567,9 @@ export class GameMap extends Serializable {
                     break;
             }
 
-            let resultA = Random.Generate(favorA ? 3 : 1);
-            let resultB = Random.Generate(favorB ? 3 : 1);
-            if (resultA == resultB) Random.GenerateBool() ? resultA += 1 : resultB += 1;
+            let resultA = Random.i.Generate(favorA ? 3 : 1);
+            let resultB = Random.i.Generate(favorB ? 3 : 1);
+            if (resultA === resultB) Random.i.GenerateBool() ? resultA += 1 : resultB += 1;
             if (resultA > resultB)
                 tileMap[current.X()][current.Y()].flow = flowDirectionA;
             else
@@ -590,13 +577,13 @@ export class GameMap extends Serializable {
 
             for (let y = current.Y() - 1; y <= current.Y() + 1; ++y) {
                 for (let x = current.X() - 1; x <= current.X() + 1; ++x) {
-                    let pos = new Coordinate(x, y);
+                let pos = new Coordinate(x, y);
                     if (IsInside(pos)) {
-                        if (touched.find(pos) == touched.end() && tile(pos).water) {
-                            let distance = Distance(beginning, pos);
+                        if (touched.find(pos) === touched.end() && tile(pos).water) {
+                            let distance = Coordinate.Distance(beginning, pos);
                             touched.insert(pos);
                             unfinished.push((Number.MAX_SAFE_INTEGER - distance, pos));
-                            if (stage == 0 && distance > distance1) {
+                            if (stage === 0 && distance > distance1) {
                                 stage = 1;
                                 favorA = false;
                                 favorB = false;
@@ -605,7 +592,7 @@ export class GameMap extends Serializable {
                                 else if (Math.abs(px[1] - px[2]) - Math.abs(py[1] - py[2]) < 15)
                                     favorB = true;
                             }
-                            if (stage == 1 && Distance(pos, Coordinate(px[1], py[1])) > distance2) {
+                            if (stage === 1 && Coordinate.Distance(pos, new Coordinate(px[1], py[1])) > distance2) {
                                 stage = 2;
                                 favorA = false;
                                 favorB = false;
@@ -637,12 +624,12 @@ export class GameMap extends Serializable {
            water arrays.
          */
         /**std.vector < boost.weak_ptr < WaterNode > > */
-        let waterArray = (Game.waterList.begin(), Game.waterList.end());
+        let waterArray = (Game.i.waterList.begin(), Game.i.waterList.end());
 
         for (let y = 0; y < Height(); ++y) {
             for (let x = 0; x < Width(); ++x) {
                 let pos = new Coordinate(x, y);
-                if (tile(pos).flow == NODIRECTION) {
+                if (tile(pos).flow === NODIRECTION) {
                     let lowest = new Coordinate(x, y);
                     for (let iy = y - 1; iy <= y + 1; ++iy) {
                         for (let ix = x - 1; ix <= x + 1; ++ix) {
@@ -658,11 +645,11 @@ export class GameMap extends Serializable {
                     if (lowest.X() < x) {
                         if (lowest.Y() < y)
                             tile(pos).flow = NORTHWEST;
-                        else if (lowest.Y() == y)
+                        else if (lowest.Y() === y)
                             tile(pos).flow = WEST;
                         else
                             tile(pos).flow = SOUTHWEST;
-                    } else if (lowest.X() == x) {
+                    } else if (lowest.X() === x) {
                         if (lowest.Y() < y)
                             tile(pos).flow = NORTH;
                         else if (lowest.Y() > y)
@@ -670,13 +657,13 @@ export class GameMap extends Serializable {
                     } else {
                         if (lowest.Y() < y)
                             tile(pos).flow = NORTHEAST;
-                        else if (lowest.Y() == y)
+                        else if (lowest.Y() === y)
                             tile(pos).flow = EAST;
                         else
                             tile(pos).flow = SOUTHEAST;
                     }
 
-                    if (tile(pos).flow == NODIRECTION && !waterArray.empty()) {
+                    if (tile(pos).flow === NODIRECTION && !waterArray.empty()) {
                         // No slope here, so approximate towards river
                         /**boost.weak_ptr < WaterNode >*/
                         let randomWater = Random.ChooseElement(waterArray);
@@ -684,11 +671,11 @@ export class GameMap extends Serializable {
                         if (coord.X() < x) {
                             if (coord.Y() < y)
                                 tile(pos).flow = NORTHWEST;
-                            else if (coord.Y() == y)
+                            else if (coord.Y() === y)
                                 tile(pos).flow = WEST;
                             else
                                 tile(pos).flow = SOUTHWEST;
-                        } else if (coord.X() == x) {
+                        } else if (coord.X() === x) {
                             if (coord.Y() < y)
                                 tile(pos).flow = NORTH;
                             else if (coord.Y() > y)
@@ -696,7 +683,7 @@ export class GameMap extends Serializable {
                         } else {
                             if (coord.Y() < y)
                                 tile(pos).flow = NORTHEAST;
-                            else if (coord.Y() == y)
+                            else if (coord.Y() === y)
                                 tile(pos).flow = EAST;
                             else
                                 tile(pos).flow = SOUTHEAST;
@@ -740,7 +727,7 @@ export class GameMap extends Serializable {
     }
 
     Update() {
-        if (Random.Generate(UPDATES_PER_SECOND * 1) == 0)
+        if (Random.i.GenerateConstants.UPDATES_PER_SECOND * 1 === 0)
             Naturify(Random.ChooseInExtent(Extent()));
         UpdateMarkers();
         weather.Update();
@@ -759,10 +746,10 @@ export class GameMap extends Serializable {
                 if (this.IsInside(p) &&
                     tile(p).construction >= 0 &&
                     !tile(p).fire &&
-                    Game.GetConstruction(tile(p).construction).lock() &&
-                    Game.GetConstruction(tile(p).construction).lock().HasTag(RANGEDADVANTAGE) &&
+                    Game.i.GetConstruction(tile(p).construction).lock() &&
+                    Game.i.GetConstruction(tile(p).construction).lock().HasTag(RANGEDADVANTAGE) &&
                     tile(p).npcList.empty()) {
-                    potentialPositions.push_back(p);
+                    potentialPositions.push(p);
                 }
             }
         }
@@ -774,7 +761,7 @@ export class GameMap extends Serializable {
     UpdateCache() {
         // boost.unique_lock < boost.shared_mutex > 
         let writeLock = (cacheMutex);
-        for (let tilei = changedTiles.begin(); tilei != changedTiles.end();) {
+        for (let tilei = changedTiles.begin(); tilei !== changedTiles.end();) {
             cachedTile(tilei) = tile(tilei);
             tilei = changedTiles.erase(tilei);
         }
@@ -820,7 +807,7 @@ export class GameMap extends Serializable {
         extent = Coordinate(width, height);
         ar & mapMarkers;
         ar & markerids;
-        if (version == 0) {
+        if (version === 0) {
             let unused;
             ar & unused;
         }
@@ -840,9 +827,8 @@ export class GameMap extends Serializable {
             }
         }
     }
-    static Reset() {
-        this.instance = null;
-        this.instance = new GameMap();
-    }
 }
 
+Singletonify(GameMap);
+
+GameMap.CLASS_VERSION = 2;

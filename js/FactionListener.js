@@ -7,7 +7,7 @@ export class FactionListener extends PresetParser {
     }
     parserNewStruct(str, name) {
         let lower = name.toLowerCase();
-        if (lower == "faction_type") {
+        if (lower === "faction_type") {
             this.factionIndex = this.Faction.StringToFactionType(name);
         }
         return true;
@@ -41,7 +41,7 @@ export class FactionListener extends PresetParser {
             if (activeTime < 0.0)
                 this.Faction.factions[this.factionIndex].maxActiveTime = -1;
             else
-                this.Faction.factions[this.factionIndex].maxActiveTime = Math.round(activeTime * MONTH_LENGTH);
+                this.Faction.factions[this.factionIndex].maxActiveTime = Math.round(activeTime * Constants.MONTH_LENGTH);
         } else if (lower === "friends") {
             for (let i = 0; i < value.length; ++i) {
                 this.Faction.factions[this.factionIndex].friendNames.push(value[i]);

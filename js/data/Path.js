@@ -1,4 +1,4 @@
-import { Enum } from "../other/Enums.js";
+import { Enum } from "../cplusplus/Enums.js";
 /**
  * @const Path
  * @see Paths.Get

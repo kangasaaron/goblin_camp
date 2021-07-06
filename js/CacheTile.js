@@ -37,7 +37,7 @@ export class CacheTile {
     assignTile(that) {
         this.walkable = that.walkable;
         this.moveCost = that.moveCost;
-        let construct = Game.GetConstruction(that.construction).lock();
+        let construct = Game.i.GetConstruction(that.construction).lock();
         if (construct) {
             this.construction = true;
             this.door = construct.HasTag(DOOR);
@@ -101,8 +101,8 @@ export class CacheTile {
                 100 : 1;
         }
 
-        //cost == 0 normally means unwalkable, but tunnellers can, surprise surprise, tunnel through
-        if (cost == 0 && this.construction && npc.IsTunneler()) cost = 50;
+        //cost === 0 normally means unwalkable, but tunnellers can, surprise surprise, tunnel through
+        if (cost === 0 && this.construction && npc.IsTunneler()) cost = 50;
 
         return cost;
     }

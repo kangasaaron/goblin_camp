@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -42,10 +42,10 @@ class Sprite {
         frameTime(1000 / frameRate);
         frameCount(frames > 0 ? frames : 1)
         let indices = [];
-        for (; start != end; ++start) {
-            indices.push_back(start);
+        for (; start !== end; ++start) {
+            indices.push(start);
         }
-        if (indices.size() == 0) {
+        if (indices.size() === 0) {
             return;
         }
 
@@ -61,7 +61,7 @@ class Sprite {
             frameCount = static_cast < int > (indices.size());
         }
         let numTiles = indices.size() / frameCount;
-        if (numTiles == 0) {
+        if (numTiles === 0) {
             frameCount = 0;
             return;
         }
@@ -91,7 +91,7 @@ class Sprite {
 
         for (let tile = 0; tile < numTiles; ++tile) {
             for (let frame = 0; frame < frameCount; ++frame) {
-                tiles.push_back(indices[tile + frame * numTiles]);
+                tiles.push(indices[tile + frame * numTiles]);
             }
         }
 
@@ -110,7 +110,7 @@ class Sprite {
         type(SPRITE_Single);
         frameTime(15);
         frameCount(1);
-        tiles.push_back(tile);
+        tiles.push(tile);
     }
 
     CurrentFrame() {
@@ -122,7 +122,7 @@ class Sprite {
     }
 
     IsTwoLayeredConnectionMap() {
-        return (type & SPRITE_TwoLayerConnectionMap) == SPRITE_TwoLayerConnectionMap;
+        return (type & SPRITE_TwoLayerConnectionMap) === SPRITE_TwoLayerConnectionMap;
     }
     IsAnimated() {
         return type & SPRITE_Animated;
@@ -138,7 +138,7 @@ class Sprite {
     // void Sprite.Draw(int screenX, int screenY, ConnectedFunction connected) const {
     Draw(screenX, screenY, connected) {
         if (IsConnectionMap()) {
-            if ((type & SPRITE_ExtendedConnectionMap) == SPRITE_ExtendedConnectionMap) {
+            if ((type & SPRITE_ExtendedConnectionMap) === SPRITE_ExtendedConnectionMap) {
                 let index = ExtConnectionIndex(connected);
                 DrawInternal(screenX, screenY, tiles.at(CurrentFrame() + frameCount * index));
             } else if (type & SPRITE_NormalConnectionMap) {
@@ -155,7 +155,7 @@ class Sprite {
     // void Draw(int screenX, int screenY, int connectionLayer, LayeredConnectedFunction) const;
     // void Sprite.Draw(int screenX, int screenY, int connectionLayer, LayeredConnectedFunction connected) const {
     Draw(screenX, screenY, connectionLayer, connected) {
-        if (((type & SPRITE_TwoLayerConnectionMap) == SPRITE_TwoLayerConnectionMap) && connectionLayer > 0) {
+        if (((type & SPRITE_TwoLayerConnectionMap) === SPRITE_TwoLayerConnectionMap) && connectionLayer > 0) {
             /**boost.array < int, 2 > */
             let vertLayer = [
                 connected(NORTH), connected(SOUTH)
@@ -205,7 +205,7 @@ class Sprite {
             for (let horizDirection = 0; horizDirection < 2; ++horizDirection) {
                 let corner = static_cast < Corner > (horizDirection + 2 * vertDirection);
                 let index = (vertConnected[vertDirection] ? 1 : 0) + (horizConnected[horizDirection] ? 2 : 0);
-                if (index == 3 && cornerConnected[corner]) {
+                if (index === 3 && cornerConnected[corner]) {
                     index++;
                 }
                 DrawInternal(screenX, screenY, tiles[CurrentFrame() + frameCount * index], corner);
@@ -225,9 +225,9 @@ class Sprite {
     ConnectionIndex(connectNorth, connectEast, connectSouth, connectWest) {
         let index = 0;
         if (connectNorth) index += 8;
-        if (connectNorth != connectSouth) index += 4;
+        if (connectNorth !== connectSouth) index += 4;
         if (connectWest) index += 2;
-        if (connectEast != connectWest) index += 1;
+        if (connectEast !== connectWest) index += 1;
         return index;
     }
 
@@ -285,10 +285,10 @@ class Sprite {
                     (connectW && connectN && !connectNW)) {
                     let sides = ((connectN) ? 1 : 0) + ((connectS) ? 1 : 0) + ((connectE) ? 1 : 0) + ((connectW) ? 1 : 0);
 
-                    if (sides == 4) {
+                    if (sides === 4) {
                         let cornerScore = ((connectNE) ? 1 : 0) + ((connectSE) ? 2 : 0) + ((connectSW) ? 4 : 0) + ((connectNW) ? 8 : 0);
                         result[i] = lookupTable4Sides[cornerScore];
-                    } else if (sides == 3) {
+                    } else if (sides === 3) {
                         if (!connectN) {
                             result[i] = lookupTable3Sides[(connectSE ? 1 : 0) + (connectSW ? 2 : 0)];
                         } else if (!connectE) {

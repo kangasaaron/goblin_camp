@@ -16,9 +16,9 @@ let skillSetHandlers = {
 
 export class SkillSet extends Serializable {
     static CLASS_VERSION = 0;
-
-    skills = new Array(Skill.SKILLAMOUNT).fill(0);
+    
     constructor() {
+        this.skills = new Array(Skill.SKILLAMOUNT).fill(0);
         return new Proxy(this, skillSetHandlers);
     }
     serialize(ar, version) {

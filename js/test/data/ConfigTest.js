@@ -7,7 +7,7 @@ QUnit.module("data/Config", function () {
     QUnit.test("statics", function (assert) {
         assert.ok(Config !== null);
         assert.ok(Globals !== null);
-        assert.ok(Config.constructor.name == "Configuration");
+        assert.ok(Config.constructor.name === "Configuration");
 
         assert.ok(Config.cvars.has("resolutionX"));
         assert.ok(Config.cvars.has("resolutionY"));

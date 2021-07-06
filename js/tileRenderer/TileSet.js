@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -184,8 +184,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -335,7 +335,7 @@ void TileSet.DrawTerritoryOverlay(int screenX, int screenY, bool owned, Sprite.C
 
 void TileSet.DrawNPC(int screenX, int screenY, boost.shared_ptr < NPC > npc) const {
     int hint = npc.GetGraphicsHint();
-    if (hint == -1 || hint >= static_cast < int > (npcSprites.size())) {
+    if (hint === -1 || hint >= static_cast < int > (npcSprites.size())) {
         defaultNPCSprite.Draw(screenX, screenY, npc);
     } else {
         npcSprites[hint].Draw(screenX, screenY, npc);
@@ -348,14 +348,14 @@ void TileSet.DrawNPC(int screenX, int screenY, boost.shared_ptr < NPC > npc) con
             }
         } else if (boost.shared_ptr < Item > wielded = npc.Wielding().lock()) {
             int itemHint = wielded.GetGraphicsHint();
-            if (itemHint != -1 && itemSprites[itemHint].renderWhenWielded) {
+            if (itemHint !== -1 && itemSprites[itemHint].renderWhenWielded) {
                 DrawItem(screenX, screenY, wielded);
             }
         }
     }
 
     int numActiveEffects = 0;
-    for (NPC.StatusEffectIterator iter = npc.StatusEffects().begin(); iter != npc.StatusEffects().end(); ++iter) {
+    for (NPC.StatusEffectIterator iter = npc.StatusEffects().begin(); iter !== npc.StatusEffects().end(); ++iter) {
         if (defaultStatusEffects.at(iter.type).IsAlwaysVisible()) {
             defaultStatusEffects.at(iter.type).Draw(screenX, screenY, false);
         } else if (defaultStatusEffects.at(iter.type).Exists()) {
@@ -366,10 +366,10 @@ void TileSet.DrawNPC(int screenX, int screenY, boost.shared_ptr < NPC > npc) con
     if (numActiveEffects > 0) {
         int activeEffect = (TCODSystem.getElapsedMilli() / 250) % numActiveEffects;
         int count = 0;
-        for (NPC.StatusEffectIterator iter = npc.StatusEffects().begin(); iter != npc.StatusEffects().end(); ++iter) {
+        for (NPC.StatusEffectIterator iter = npc.StatusEffects().begin(); iter !== npc.StatusEffects().end(); ++iter) {
             const StatusEffectSprite & sprite = defaultStatusEffects.at(iter.type);
             if (sprite.Exists() && !sprite.IsAlwaysVisible()) {
-                if (count == activeEffect) {
+                if (count === activeEffect) {
                     sprite.Draw(screenX, screenY, numActiveEffects > 1);
                     break;
                 }
@@ -381,7 +381,7 @@ void TileSet.DrawNPC(int screenX, int screenY, boost.shared_ptr < NPC > npc) con
 
 void TileSet.DrawNatureObject(int screenX, int screenY, boost.shared_ptr < NatureObject > plant) const {
     int hint = plant.GetGraphicsHint();
-    if (hint == -1 || hint >= static_cast < int > (natureObjectSpriteSets.size())) {
+    if (hint === -1 || hint >= static_cast < int > (natureObjectSpriteSets.size())) {
         defaultNatureObjectSpriteSet.tile.Draw(screenX, screenY);
     } else {
         natureObjectSpriteSets[hint].tile.Draw(screenX, screenY);
@@ -390,7 +390,7 @@ void TileSet.DrawNatureObject(int screenX, int screenY, boost.shared_ptr < Natur
 
 void TileSet.DrawItem(int screenX, int screenY, boost.shared_ptr < Item > item) const {
     int hint = item.GetGraphicsHint();
-    if (hint == -1 || hint >= static_cast < int > (itemSprites.size())) {
+    if (hint === -1 || hint >= static_cast < int > (itemSprites.size())) {
         defaultItemSprite.tile.Draw(screenX, screenY);
     } else {
         itemSprites[hint].tile.Draw(screenX, screenY);
@@ -400,7 +400,7 @@ void TileSet.DrawItem(int screenX, int screenY, boost.shared_ptr < Item > item) 
 void TileSet.DrawOpenDoor(int screenX, int screenY, Door * door,
     const Coordinate & worldPos) const {
     int hint = door.GetGraphicsHint();
-    if (hint == -1 || hint >= static_cast < int > (constructionSprites.size())) {
+    if (hint === -1 || hint >= static_cast < int > (constructionSprites.size())) {
         defaultConstructionSprite.DrawOpen(screenX, screenY, worldPos - door.Position());
     } else {
         constructionSprites[hint].DrawOpen(screenX, screenY, worldPos - door.Position());
@@ -410,9 +410,9 @@ void TileSet.DrawOpenDoor(int screenX, int screenY, Door * door,
 namespace {
     bool ConstructionConnectTo(ConstructionType type, Coordinate origin, Direction dir) {
         Coordinate pos = origin + Coordinate.DirectionToCoordinate(dir);
-        boost.weak_ptr < Construction > constructPtr = Game.GetConstruction(Map.GetConstruction(pos));
+        boost.weak_ptr < Construction > constructPtr = Game.i.GetConstruction(GameMap.i.GetConstruction(pos));
         if (boost.shared_ptr < Construction > otherConstruct = constructPtr.lock()) {
-            return otherConstruct.Type() == type;
+            return otherConstruct.Type() === type;
         }
         return false;
     }
@@ -421,7 +421,7 @@ namespace {
 void TileSet.DrawBaseConstruction(int screenX, int screenY, Construction * construction,
     const Coordinate & worldPos) const {
     int hint = construction.GetGraphicsHint();
-    const ConstructionSprite & spriteSet((hint == -1 || hint >= static_cast < int > (constructionSprites.size())) ?
+    const ConstructionSprite & spriteSet((hint === -1 || hint >= static_cast < int > (constructionSprites.size())) ?
         defaultConstructionSprite : constructionSprites[hint]);
     if (spriteSet.IsConnectionMap()) {
         ConstructionType type = construction.Type();
@@ -434,7 +434,7 @@ void TileSet.DrawBaseConstruction(int screenX, int screenY, Construction * const
 void TileSet.DrawUnderConstruction(int screenX, int screenY, Construction * construction,
     const Coordinate & worldPos) const {
     int hint = construction.GetGraphicsHint();
-    const ConstructionSprite & spriteSet((hint == -1 || hint >= static_cast < int > (constructionSprites.size())) ?
+    const ConstructionSprite & spriteSet((hint === -1 || hint >= static_cast < int > (constructionSprites.size())) ?
         defaultConstructionSprite : constructionSprites[hint]);
     if (spriteSet.HasUnderConstructionSprites()) {
         if (spriteSet.IsConnectionMap()) {
@@ -451,7 +451,7 @@ void TileSet.DrawUnderConstruction(int screenX, int screenY, Construction * cons
 void TileSet.DrawUnreadyTrap(int screenX, int screenY, Construction * trap,
     const Coordinate & worldPos) const {
     int hint = trap.GetGraphicsHint();
-    const ConstructionSprite & spriteSet((hint == -1 || hint >= static_cast < int > (constructionSprites.size())) ?
+    const ConstructionSprite & spriteSet((hint === -1 || hint >= static_cast < int > (constructionSprites.size())) ?
         defaultConstructionSprite : constructionSprites[hint]);
     if (spriteSet.IsConnectionMap()) {
         ConstructionType type = trap.Type();
@@ -472,14 +472,14 @@ void TileSet.DrawStockpileContents(int screenX, int screenY, Stockpile * stockpi
 }
 
 void TileSet.DrawCursor(int screenX, int screenY, CursorType type, int cursorHint, bool placeable) const {
-    if (type == Cursor_Item_Mode) {
-        if (cursorHint == -1 || cursorHint >= static_cast < int > (itemSprites.size())) {
+    if (type === Cursor_Item_Mode) {
+        if (cursorHint === -1 || cursorHint >= static_cast < int > (itemSprites.size())) {
             defaultItemSprite.tile.Draw(screenX, screenY);
         } else {
             itemSprites[cursorHint].tile.Draw(screenX, screenY);
         }
-    } else if (type == Cursor_NPC_Mode) {
-        if (cursorHint == -1 || cursorHint >= static_cast < int > (npcSprites.size())) {
+    } else if (type === Cursor_NPC_Mode) {
+        if (cursorHint === -1 || cursorHint >= static_cast < int > (npcSprites.size())) {
             defaultNPCSprite.Draw(screenX, screenY);
         } else {
             npcSprites[cursorHint].Draw(screenX, screenY);
@@ -494,7 +494,7 @@ void TileSet.DrawCursor(int screenX, int screenY, CursorType type, int cursorHin
 }
 
 void TileSet.DrawSpell(int screenX, int screenY, boost.shared_ptr < Spell > spell) const {
-    if (spell.GetGraphicsHint() == -1) {
+    if (spell.GetGraphicsHint() === -1) {
         defaultSpellSpriteSet.Draw(screenX, screenY);
     } else {
         spellSpriteSets[spell.GetGraphicsHint()].Draw(screenX, screenY);
@@ -506,7 +506,7 @@ void TileSet.DrawFire(int screenX, int screenY, boost.shared_ptr < FireNode > fi
 }
 
 const TerrainSprite & TileSet.GetTerrainSprite(TileType type) const {
-    if (type == TILENONE || !terrainTiles.at(type).Exists()) {
+    if (type === TILENONE || !terrainTiles.at(type).Exists()) {
         return defaultTerrainTile;
     } else {
         return terrainTiles.at(type);
@@ -514,7 +514,7 @@ const TerrainSprite & TileSet.GetTerrainSprite(TileType type) const {
 }
 
 TerrainSprite & TileSet.GetTerrainSprite(TileType type) {
-    if (type == TILENONE || !terrainTiles.at(type).Exists()) {
+    if (type === TILENONE || !terrainTiles.at(type).Exists()) {
         return defaultTerrainTile;
     } else {
         return terrainTiles.at(type);
@@ -525,12 +525,12 @@ int TileSet.GetGraphicsHintFor(const NPCPreset & npcPreset) const {
     LookupMap.const_iterator set;
 
     set = npcSpriteLookup.find(npcPreset.typeName);
-    if (set != npcSpriteLookup.end()) {
+    if (set !== npcSpriteLookup.end()) {
         return set.second;
     }
 
     set = npcSpriteLookup.find(npcPreset.fallbackGraphicsSet);
-    if (set != npcSpriteLookup.end()) {
+    if (set !== npcSpriteLookup.end()) {
         return set.second;
     }
 
@@ -541,12 +541,12 @@ int TileSet.GetGraphicsHintFor(const NatureObjectPreset & natureObjectPreset) co
     LookupMap.const_iterator set;
 
     set = natureObjectSpriteLookup.find(natureObjectPreset.name);
-    if (set != natureObjectSpriteLookup.end()) {
+    if (set !== natureObjectSpriteLookup.end()) {
         return set.second;
     }
 
     set = natureObjectSpriteLookup.find(natureObjectPreset.fallbackGraphicsSet);
-    if (set != natureObjectSpriteLookup.end()) {
+    if (set !== natureObjectSpriteLookup.end()) {
         return set.second;
     }
 
@@ -557,21 +557,21 @@ int TileSet.GetGraphicsHintFor(const ItemPreset & itemPreset) const {
     LookupMap.const_iterator set;
 
     set = itemSpriteLookup.find(itemPreset.name);
-    if (set != itemSpriteLookup.end()) {
+    if (set !== itemSpriteLookup.end()) {
         return set.second;
     }
 
     set = itemSpriteLookup.find(itemPreset.fallbackGraphicsSet);
-    if (set != itemSpriteLookup.end()) {
+    if (set !== itemSpriteLookup.end()) {
         return set.second;
     }
 
-    for (std.set < ItemCategory > .const_iterator cati = itemPreset.specificCategories.begin(); cati != itemPreset.specificCategories.end(); ++cati) {
+    for (std.set < ItemCategory > .const_iterator cati = itemPreset.specificCategories.begin(); cati !== itemPreset.specificCategories.end(); ++cati) {
         ItemCategory catId = * cati;
-        while (catId != -1) {
+        while (catId !== -1) {
             ItemCat & cat = Item.Categories.at(catId);
             set = itemSpriteLookup.find(cat.GetName());
-            if (set != itemSpriteLookup.end()) {
+            if (set !== itemSpriteLookup.end()) {
                 return set.second;
             }
             catId = cat.parent;
@@ -585,12 +585,12 @@ int TileSet.GetGraphicsHintFor(const ConstructionPreset & constructPreset) const
     LookupMap.const_iterator set;
 
     set = constructionSpriteLookup.find(constructPreset.name);
-    if (set != constructionSpriteLookup.end()) {
+    if (set !== constructionSpriteLookup.end()) {
         return set.second;
     }
 
     set = constructionSpriteLookup.find(constructPreset.fallbackGraphicsSet);
-    if (set != constructionSpriteLookup.end()) {
+    if (set !== constructionSpriteLookup.end()) {
         return set.second;
     }
 
@@ -601,12 +601,12 @@ int TileSet.GetGraphicsHintFor(const SpellPreset & spellPreset) const {
     LookupMap.const_iterator set;
 
     set = spellSpriteLookup.find(spellPreset.name);
-    if (set != spellSpriteLookup.end()) {
+    if (set !== spellSpriteLookup.end()) {
         return set.second;
     }
 
     set = spellSpriteLookup.find(spellPreset.fallbackGraphicsSet);
-    if (set != spellSpriteLookup.end()) {
+    if (set !== spellSpriteLookup.end()) {
         return set.second;
     }
 
@@ -630,7 +630,7 @@ void TileSet.SetTerrain(TileType type,
     if (type < 0 || type >= TILE_TYPE_COUNT)
         return;
 
-    if (type == TILENONE) {
+    if (type === TILENONE) {
         defaultTerrainTile = sprite;
     } else {
         terrainTiles[type] = sprite;
@@ -676,7 +676,7 @@ void TileSet.SetMarkedOverlay(SpritePtr sprite) {
 void TileSet.SetCursorSprites(CursorType type, SpritePtr sprite) {
     placeableCursors[type] = sprite;
     nonplaceableCursors[type] = sprite;
-    if (type == Cursor_None) {
+    if (type === Cursor_None) {
         for (CursorTypeSpriteArray.size_type i = 0; i < placeableCursors.size(); ++i) {
             if (!placeableCursors[i].Exists()) {
                 placeableCursors[i] = sprite;
@@ -689,7 +689,7 @@ void TileSet.SetCursorSprites(CursorType type, SpritePtr sprite) {
 void TileSet.SetCursorSprites(CursorType type, SpritePtr placeableSprite, SpritePtr nonplaceableSprite) {
     placeableCursors[type] = placeableSprite;
     nonplaceableCursors[type] = nonplaceableSprite;
-    if (type == Cursor_None) {
+    if (type === Cursor_None) {
         for (CursorTypeSpriteArray.size_type i = 0; i < placeableCursors.size(); ++i) {
             if (!placeableCursors[i].Exists()) {
                 placeableCursors[i] = placeableSprite;
@@ -715,11 +715,11 @@ void TileSet.SetFireSprite(SpritePtr sprite) {
 void TileSet.AddNPCSprite(std.string name,
     const NPCSprite & sprite) {
     LookupMap.const_iterator found(npcSpriteLookup.find(name));
-    if (found != npcSpriteLookup.end()) {
+    if (found !== npcSpriteLookup.end()) {
         npcSprites[found.second] = sprite;
     } else {
         int index = static_cast < int > (npcSprites.size());
-        npcSprites.push_back(sprite);
+        npcSprites.push(sprite);
         npcSpriteLookup[name] = index;
     }
 }
@@ -731,11 +731,11 @@ void TileSet.SetDefaultNPCSprite(const NPCSprite & sprite) {
 void TileSet.AddNatureObjectSpriteSet(std.string name,
     const NatureObjectSpriteSet & sprite) {
     LookupMap.const_iterator found(natureObjectSpriteLookup.find(name));
-    if (found != natureObjectSpriteLookup.end()) {
+    if (found !== natureObjectSpriteLookup.end()) {
         natureObjectSpriteSets[found.second] = sprite;
     } else {
         int index = static_cast < int > (natureObjectSpriteSets.size());
-        natureObjectSpriteSets.push_back(sprite);
+        natureObjectSpriteSets.push(sprite);
         natureObjectSpriteLookup[name] = index;
     }
 }
@@ -747,11 +747,11 @@ void TileSet.SetDefaultNatureObjectSpriteSet(const NatureObjectSpriteSet & sprit
 void TileSet.AddItemSprite(std.string name,
     const ItemSprite & sprite) {
     LookupMap.const_iterator found(itemSpriteLookup.find(name));
-    if (found != itemSpriteLookup.end()) {
+    if (found !== itemSpriteLookup.end()) {
         itemSprites[found.second] = sprite;
     } else {
         int index = static_cast < int > (itemSprites.size());
-        itemSprites.push_back(sprite);
+        itemSprites.push(sprite);
         itemSpriteLookup[name] = index;
     }
 }
@@ -763,11 +763,11 @@ void TileSet.SetDefaultItemSprite(const ItemSprite & sprite) {
 void TileSet.AddConstructionSprite(std.string name,
     const ConstructionSprite & sprite) {
     LookupMap.const_iterator found(constructionSpriteLookup.find(name));
-    if (found != constructionSpriteLookup.end()) {
+    if (found !== constructionSpriteLookup.end()) {
         constructionSprites[found.second] = sprite;
     } else {
         int index = static_cast < int > (constructionSprites.size());
-        constructionSprites.push_back(sprite);
+        constructionSprites.push(sprite);
         constructionSpriteLookup[name] = index;
     }
 }
@@ -779,11 +779,11 @@ void TileSet.SetDefaultConstructionSprite(const ConstructionSprite & sprite) {
 void TileSet.AddSpellSpriteSet(std.string name,
     const SpellSpriteSet & sprite) {
     LookupMap.const_iterator found(spellSpriteLookup.find(name));
-    if (found != spellSpriteLookup.end()) {
+    if (found !== spellSpriteLookup.end()) {
         spellSpriteSets[found.second] = sprite;
     } else {
         int index = static_cast < int > (spellSpriteSets.size());
-        spellSpriteSets.push_back(sprite);
+        spellSpriteSets.push(sprite);
         spellSpriteLookup[name] = index;
     }
 }

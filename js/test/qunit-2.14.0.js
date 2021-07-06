@@ -110,7 +110,7 @@
 	}
 
 	function _arrayLikeToArray(arr, len) {
-	  if (len == null || len > arr.length) len = arr.length;
+	  if (len === null || len > arr.length) len = arr.length;
 
 	  for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
 
@@ -124,7 +124,7 @@
 	function _createForOfIteratorHelper(o, allowArrayLike) {
 	  var it;
 
-	  if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
+	  if (typeof Symbol === "undefined" || o[Symbol.iterator] === null) {
 	    if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
 	      if (it) o = it;
 	      var i = 0;
@@ -170,7 +170,7 @@
 	    },
 	    f: function () {
 	      try {
-	        if (!normalCompletion && it.return != null) it.return();
+	        if (!normalCompletion && it.return !== null) it.return();
 	      } finally {
 	        if (didErr) throw err;
 	      }
@@ -2548,7 +2548,7 @@
 	    emit("assertion", assertion);
 	  },
 	  resolvePromise: function resolvePromise(promise, phase) {
-	    if (promise != null) {
+	    if (promise !== null) {
 	      var _test = this;
 
 	      var then = promise.then;
@@ -3068,7 +3068,7 @@
 	    key: "equal",
 	    value: function equal(actual, expected, message) {
 	      // eslint-disable-next-line eqeqeq
-	      var result = expected == actual;
+	      var result = expected === actual;
 	      this.pushResult({
 	        result: result,
 	        actual: actual,
@@ -3080,7 +3080,7 @@
 	    key: "notEqual",
 	    value: function notEqual(actual, expected, message) {
 	      // eslint-disable-next-line eqeqeq
-	      var result = expected != actual;
+	      var result = expected !== actual;
 	      this.pushResult({
 	        result: result,
 	        actual: actual,
@@ -3164,7 +3164,7 @@
 	      var currentTest = this instanceof Assert && this.test || config.current; // 'expected' is optional unless doing string comparison
 
 	      if (objectType(expected) === "string") {
-	        if (message == null) {
+	        if (message === null) {
 	          message = expected;
 	          expected = null;
 	        } else {
@@ -3595,7 +3595,7 @@
 	  QUnit.begin(storeFixture); // Resets the fixture DOM element if available.
 
 	  function resetFixture() {
-	    if (config.fixture == null) {
+	    if (config.fixture === null) {
 	      return;
 	    }
 
@@ -4693,7 +4693,7 @@
 	            _iterator.f();
 	          }
 	        } else {
-	          while ((test = hiddenTests.pop()) != null) {
+	          while ((test = hiddenTests.pop()) !== null) {
 	            tests.appendChild(test);
 	          }
 	        }

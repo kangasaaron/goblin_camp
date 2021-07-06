@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -231,7 +231,7 @@ class TerrainSprite {
         if ((!snowEdge.Exists() && sprites.size() > 0) || (snowConnected(NORTH) && snowConnected(EAST) && snowConnected(SOUTH) && snowConnected(WEST) && snowConnected(NORTHEAST) && snowConnected(NORTHWEST) && snowConnected(SOUTHEAST) && snowConnected(SOUTHWEST))) {
             if (snowSprites.size() > 1) {
                 snowSprites.at(permTable.Hash(permTable.Hash(coords.X()) + coords.Y()) % snowSprites.size()).Draw(screenX, screenY);
-            } else if (snowSprites.size() == 1) {
+            } else if (snowSprites.size() === 1) {
                 if (snowSprites[0].IsConnectionMap()) {
                     snowSprites[0].Draw(screenX, screenY, boost.bind(WangConnected, permTable, coords, _1));
                 } else {
@@ -272,7 +272,7 @@ class TerrainSprite {
     //     const std.vector < SpritePtr > & detailSprites, Coordinate coords,
     //         const PermutationTable & permTable) const {
     DrawDetails(screenX, screenY, detailSprites, coords, permTable) {
-        if (detailsChance != 0 && !detailSprites.empty()) {
+        if (detailsChance !== 0 && !detailSprites.empty()) {
             let detailChoice = permTable.Hash(permTable.Hash(coords.X() + detailPermOffset) + coords.Y()) % (detailsChance * detailSprites.size());
             let detailIndex = static_cast < size_t > (detailChoice);
             if (detailIndex < detailSprites.size()) {

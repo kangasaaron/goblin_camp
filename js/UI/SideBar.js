@@ -7,20 +7,20 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import "libtcod.js"
-import "vector "
-import "string"
-import "boost/weak_ptr.js"
+// import "libtcod.js"
+// import "vector "
+// import "string"
+// import "boost/weak_ptr.js"
 
-import "Entity.js"
+// import "Entity.js"
 
 class SideBar {
     boost.weak_ptr < Entity > entity;
@@ -48,8 +48,8 @@ class SideBar {
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -83,7 +83,7 @@ SideBar.SideBar():
     construction(false) {}
 
 MenuResult SideBar.Update(int x, int y, bool clicked) {
-    if (contents && x > Game.ScreenWidth() - width) {
+    if (contents && x > Game.i.ScreenWidth() - width) {
         MenuResult result = contents.Update(x - (leftX + 1), y - (topY + 14), clicked, NO_KEY);
         if (!(result & NOMENUHIT)) {
             return result;
@@ -95,7 +95,7 @@ MenuResult SideBar.Update(int x, int y, bool clicked) {
 
 void SideBar.Draw(TCODConsole * the_console) {
     if (entity.lock()) {
-        the_console.setDefaultForeground(Color.white);
+        the_console.setDefaultForeground(TCODColor.white);
         int edgeX = the_console.getWidth();
         leftX = edgeX - width;
         topY = Math.max(0, (the_console.getHeight() - height) / 2);
@@ -105,9 +105,9 @@ void SideBar.Draw(TCODConsole * the_console) {
             contents.Draw(edgeX - (width - 1), topY + 14, the_console);
         }
 
-        the_console.setDefaultForeground(Color.white);
+        the_console.setDefaultForeground(TCODColor.white);
         the_console.printFrame(edgeX - width, topY, width, height, false, TCOD_BKGND_DEFAULT, entity.lock().Name().c_str());
-        Game.Draw(the_console, entity.lock().Center().X() + 0.5 f, entity.lock().Center().Y() + 0.5 f, false, edgeX - (width - 4), topY + 2, 11, 11);
+        Game.i.Draw(the_console, entity.lock().Center().X() + 0.5 f, entity.lock().Center().Y() + 0.5 f, false, edgeX - (width - 4), topY + 2, 11, 11);
 
         if (npc || construction) { //Draw health bar
             int health;
@@ -118,17 +118,17 @@ void SideBar.Draw(TCODConsole * the_console) {
                 boost.shared_ptr < Construction > construct = boost.static_pointer_cast < Construction > (entity.lock());
                 health = (int)(((double) construct.Condition() / (double) Math.max(1, construct.GetMaxCondition())) * 10);
             }
-            for (int i = 0; i < health; ++i) {
+            for (let i = 0; i < health; ++i) {
                 the_console.setChar(edgeX - (width - 2), topY + 12 - i, 231);
-                Color color;
-                if (health > 7) color = Color.green;
-                else if (health > 3) color = Color.yellow;
-                else color = Color.red;
+                let color;
+                if (health > 7) color = TCODColor.green;
+                else if (health > 3) color = TCODColor.yellow;
+                else color = TCODColor.red;
                 the_console.setCharForeground(edgeX - (width - 2), topY + 12 - i, color);
             }
         }
     }
-    the_console.setDefaultForeground(Color.white);
+    the_console.setDefaultForeground(TCODColor.white);
 }
 
 void SideBar.GetTooltip(int x, int y, Tooltip * tooltip, TCODConsole * the_console) {
@@ -143,7 +143,7 @@ void SideBar.GetTooltip(int x, int y, Tooltip * tooltip, TCODConsole * the_conso
             std.list < boost.weak_ptr < Entity > > minimapUnderCursor = std.list < boost.weak_ptr < Entity > > ();
             UI.HandleUnderCursor(Coordinate(actualX, actualY), & minimapUnderCursor);
             if (!minimapUnderCursor.empty() && minimapUnderCursor.begin().lock()) {
-                for (std.list < boost.weak_ptr < Entity > > .iterator ucit = minimapUnderCursor.begin(); ucit != minimapUnderCursor.end(); ++ucit) {
+                for (std.list < boost.weak_ptr < Entity > > .iterator ucit = minimapUnderCursor.begin(); ucit !== minimapUnderCursor.end(); ++ucit) {
                     ucit.lock().GetTooltip(actualX, actualY, tooltip);
                 }
             }
@@ -169,9 +169,9 @@ void SideBar.SetEntity(boost.weak_ptr < Entity > ent) {
             SideBar.DrawStatusEffect));
         container.AddComponent(frame);
         boost.function < std.string() > func = boost.bind( & SideBar.NPCSquadLabel, npci.get());
-        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCSquadLabel, npci.get()), 0, 12, TCOD_LEFT));
-        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCWeaponLabel, npci.get()), 0, 13, TCOD_LEFT));
-        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCArmorLabel, npci.get()), 0, 14, TCOD_LEFT));
+        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCSquadLabel, npci.get()), 0, 12, (TCOD_alignment_t.TCOD_LEFT)));
+        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCWeaponLabel, npci.get()), 0, 13, (TCOD_alignment_t.TCOD_LEFT)));
+        container.AddComponent(new LiveLabel(boost.bind( & SideBar.NPCArmorLabel, npci.get()), 0, 14, (TCOD_alignment_t.TCOD_LEFT)));
     } else if (boost.shared_ptr < FarmPlot > fp = boost.dynamic_pointer_cast < FarmPlot > (entity.lock())) {
         height = 30;
         construction = true;
@@ -199,13 +199,13 @@ void SideBar.SetEntity(boost.weak_ptr < Entity > ent) {
 void SideBar.DrawStatusEffect(StatusEffect effect, int i, int x, int y, int width, bool selected, TCODConsole * the_console) {
     the_console.setDefaultForeground(effect.color);
     the_console.print(x, y, "%c%s", effect.graphic, effect.name.c_str());
-    the_console.setDefaultForeground(Color.white);
+    the_console.setDefaultForeground(TCODColor.white);
 }
 
 void SideBar.DrawSeed(std.pair < ItemType, bool > seed, int i, int x, int y, int width, bool selected, TCODConsole * the_console) {
-    the_console.setDefaultForeground(seed.second ? Color.green : Color.red);
+    the_console.setDefaultForeground(seed.second ? TCODColor.green : TCODColor.red);
     the_console.print(x, y, "%c %s", seed.second ? 225 : 224, Item.Presets[seed.first].name.substr(0, width - 3).c_str());
-    the_console.setDefaultForeground(Color.white);
+    the_console.setDefaultForeground(TCODColor.white);
 }
 
 std.string SideBar.NPCSquadLabel(NPC * npc) {

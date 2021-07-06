@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -43,7 +43,7 @@ import "./Config.js"
 // import "../JobManager.js"
 // import "../Camp.js"
 // import "../StockManager.js"
-// import "../Map.js"
+// import "../GameMap.i.js"
 
 // IMPORTANT
 // Implementing class versioning properly is an effort towards backward compatibility for saves,
@@ -214,7 +214,7 @@ class SerializableObject extends SerializablePrimative {
         let d = this.data;
         let ks = Array.from(Object.keys(this.data));
         let result = {};
-        if (ks.length == 0)
+        if (ks.length === 0)
             return result;
         ks.map(key => result[serializer.serialize(key)] = serializer.serialize(d[key]));
         return result;
@@ -222,7 +222,7 @@ class SerializableObject extends SerializablePrimative {
     static deserialize(data, version, deserializer) {
         let result = {};
         let ks = Array.from(Object.keys(data));
-        if (ks.length == 0) return result;
+        if (ks.length === 0) return result;
         ks.map(key => result[deserializer.deserialize(key)] = deserializer.deserialize(data[key]));
         return result;
     }
@@ -410,13 +410,13 @@ export class JSONSerializer extends Serializable {
             return SerializableNull;
         if (obj === undefined || obj === "__undefined__")
             return SerializableUndefined;
-        let type = this.registered_types.find(rt => rt.name == obj.constructor.name);
+        let type = this.registered_types.find(rt => rt.name === obj.constructor.name);
         if (type) return type;
         if (typeof obj === "object" && "__class__" in obj)
-            type = this.registered_types.find(rt => rt.name == obj.__class__);
+            type = this.registered_types.find(rt => rt.name === obj.__class__);
         if (type) return type;
         if (typeof obj === "object" && "__type__" in obj)
-            type = this.registered_types.find(rt => rt.typeName == obj.__type__);
+            type = this.registered_types.find(rt => rt.typeName === obj.__type__);
         if (type) return type;
         switch (typeof obj) {
             case "symbol":
@@ -487,7 +487,7 @@ export class JSONSerializer extends Serializable {
         else
             needsClassAndVersion = true;
         let result = object.serialize(this);
-        if (typeof result == "object" && needsClassAndVersion) {
+        if (typeof result === "object" && needsClassAndVersion) {
             result = Object.assign({
                 "__class__": object.constructor.name,
                 "__version__": object.constructor.CLASS_VERSION

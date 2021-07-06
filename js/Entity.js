@@ -7,27 +7,20 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    Serializable
-} from "./data/Serialization.js";
-import {
-    FlightPath
-} from "./FlightPath.js";
-import {
-    Coordinate
-} from "./Coordinate.js";
-import {
-    Color
-} from "./libtcod.js";
+import {Serializable} from "./data/Serialization.js";
+import {FlightPath} from "./FlightPath.js";
+import {Coordinate} from "./Coordinate.js";
+import {TCODColor, TCODLine} from "../fakeTCOD/libtcod.js";
+import {Faction} from "./Faction.js";
+import {TooltipEntry} from "./UI/TooltipEntry.js";
 
-const ENTITYHEIGHT = 5;
 
 export class Entity extends Serializable {
     static CLASS_VERSION = 0;
@@ -55,15 +48,17 @@ export class Entity extends Serializable {
         return this.pos.X();
     }
     Y() {
-            return this.pos.Y();
-        }
-        /** @type {Coordinate} */
+        return this.pos.Y();
+    }
+
+    /** @type {Coordinate} */
     Center() {
-            return this.Position();
-        }
-        /** @type {Coordinate} */
+        return this.Position();
+    }
+    
+    /** @type {Coordinate} */
     Position(p) {
-        if (p !== undefined && p instanceof Coordinate)
+        if (this.p !== undefined && this.p instanceof Coordinate)
             this.pos = p;
         return this.pos;
     }
@@ -71,7 +66,7 @@ export class Entity extends Serializable {
         return this.uid;
     }
     Zone(value) {
-        if (p !== undefined && Number.isFinite(p))
+        if (this.p !== undefined && Number.isFinite(this.p))
             this.zone = value;
         return this.zone;
     }
@@ -96,7 +91,7 @@ export class Entity extends Serializable {
         return null;
     }
     GetTooltip(x, y, tooltip) {
-        tooltip.AddEntry(new TooltipEntry(this.name, Color.white));
+        tooltip.AddEntry(new TooltipEntry(this.name, TCODColor.white));
     }
     GetVelocity() {
             return this.velocity;
@@ -160,7 +155,7 @@ export class Entity extends Serializable {
             "nextVelocityMove": this.nextVelocityMove,
             "velocityTarget": ar.serialize(this.velocityTarget),
             "bulk": this.bulk,
-        }
+        };
     }
     static deserialize(data, version, deserializer) {
             let result = new Entity();
@@ -184,7 +179,7 @@ export class Entity extends Serializable {
          * @returns 
          */
     CalculateFlightPath(target, speed, initialHeight = 0) {
-        if (DEBUG) {
+        if (Globals.DEBUG) {
             console.log(`Calculating flightpath for ${this.name} from ${this.pos.X()},${this.pos.Y()} to ${target.X()},${target.Y()} at v:${speed}`);
         }
         this.velocityTarget = target;
@@ -192,7 +187,7 @@ export class Entity extends Serializable {
         TCODLine.init(target.X(), target.Y(), this.pos.X(), this.pos.Y());
         let p = target;
         do {
-            if (Map.IsInside(p))
+            if (GameMap.i.IsInside(p))
                 this.flightPath.push(new FlightPath(p));
         } while (!TCODLine.step(p.Xptr(), p.Yptr()));
 
@@ -210,14 +205,14 @@ export class Entity extends Serializable {
         let endIt = this.flightPath.length;
         --endIt;
 
-        while (this.flightPath[begIt].height == -1 && this.flightPath[endIt].height == -1) {
+        while (this.flightPath[begIt].height === -1 && this.flightPath[endIt].height === -1) {
             this.flightPath[begIt].height = h;
             this.flightPath[endIt].height = Math.max(initialHeight, h);
             h += hAdd;
             // Preventing iterator problems
-            if (begIt != this.flightPath.length) ++begIt;
-            if (endIt != 0) --endIt;
-            if (begIt == this.flightPath.length || endIt == this.flightPath.length) break;
+            if (begIt !== this.flightPath.length) ++begIt;
+            if (endIt !== 0) --endIt;
+            if (begIt === this.flightPath.length || endIt === this.flightPath.length) break;
         }
         this.flightPath.pop(); //Last coordinate is the entity's coordinate
 

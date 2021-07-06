@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -40,14 +40,14 @@ export class StatusEffectSprite {
     constructor(sprite, flashRate, alwaysOn) {
         sprite(sprite);
         alwaysOn(alwaysOn);
-        flashRate(flashRate == 0 ? 0 : 1000 / (flashRate + 1));
+        flashRate(flashRate === 0 ? 0 : 1000 / (flashRate + 1));
     }
 
 
     // void Draw(int screenX, int screenY, bool forceOn) const;
     // void StatusEffectSprite.Draw(int screenX, int screenY, bool forceOn) const {
     Draw(screenX, screenY, forceOn) {
-        if (forceOn || flashRate == 0 || (TCODSystem.getElapsedMilli() / flashRate) % 2 == 0) {
+        if (forceOn || flashRate === 0 || (TCODSystem.getElapsedMilli() / flashRate) % 2 === 0) {
             sprite.Draw(screenX, screenY);
         }
     }

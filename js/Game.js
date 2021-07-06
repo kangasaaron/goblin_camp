@@ -7,34 +7,79 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-
-
-import { Color } from "./libtcod.js";
-import { BlendMode } from "./other/BlendMode.js";
-import { Config } from "./data/Config.js";
-import { Console } from "./other/Console.js";
-import { Alignment } from "./other/Alignment.js";
-import { Announce } from "./Announce.js";
-import { Camp } from "./Camp.js";
-import { Coordinate } from "./Coordinate.js";
+import { Serializable } from "./data/Serialization.js";
+import { Singletonify } from "./cplusplus/Singleton.js";
+import { Season } from "./Season.js";
 import { Events } from "./Events.js";
-import { Faction } from "./Faction.js";
-import { GameMap } from "./GameMap.js";
-import { JobManager } from "./JobManager.js";
-import { StockManager } from "./StockManager.js";
-import {
-    Season
-} from "./Season.js";
-import {
-    TCODMapRenderer
-} from "./TCODMapRenderer.js";
+// import { Action } from "./Action.js";
+// import { Announce } from "./Announce.js";
+// import { Attack } from "./Attack.js";
+// import { BloodNode } from "./BloodNode.js";
+// import { Button } from "./UI/Button.js";
+// import { Camp } from "./Camp.js";
+// import { TCODColor, TCOD_alignment_t, TCOD_bkgnd_flag_t } from "../fakeTCOD/libtcod.js";
+// import { Config } from "./data/Config.js";
+// import { Container } from "./Container.js";
+// // import { Console } from "./other/Console.js";
+// import { Constants } from "./Constants.js";
+// import { Construction } from "./Construction.js";
+// import { ConstructionTag } from "./ConstructionTag.js";
+// import { Coordinate } from "./Coordinate.js";
+// import { DamageType } from "./DamageType.js";
+// import { Data } from "./data/Data.js";
+// import { Dialog } from "./UI/Dialog.js";
+// import { Direction } from "./Direction.js";
+// import { Door } from "./Door.js";
+// import { Entity } from "./Entity.js";
+// import { Faction } from "./Faction.js";
+// import { FarmPlot } from "./FarmPlot.js";
+// import { FilthNode } from "./FilthNode.js";
+// import { FireNode } from "./FireNode.js";
+// import { Frame } from "./UI/Frame.js";
+// import { GameMap } from "./GameMap.js";
+// import { Globals } from "./Globals.js";
+// import { Ice } from "./Ice.js";
+// import { Item } from "./Item.js";
+// import { Job } from "./Job.js";
+// import { JobManager } from "./JobManager.js";
+// import { JobPriority } from "./JobPriority.js";
+// import { Label } from "./UI/Label.js";
+// import { MapMarker } from "./MapMarker.js";
+// import { MarkerType } from "./MarkerType.js";
+// import { MessageBox } from "./UI/MessageBox.js";
+// import { Menu } from "./UI/Menu.js";
+// import { NatureObject } from "./NatureObject.js";
+// import { NPC } from "./NPC.js";
+// import { OrganicItem } from "./OrganicItem.js";
+// import { Random } from "./Random.js";
+// import { Resistance } from "./Resistance.js";
+// import { Script } from "./scripting/Script.js";
+// import { ScrollPanel } from "./UI/ScrollPanel.js";
+// import { SpawningPool } from "./SpawningPool.js";
+// import { Spell } from "./Spell.js";
+// import { Squad } from "./Squad.js";
+// import { Stats } from "./Stats.js";
+// import { StatusEffectType } from "./StatusEffectType.js";
+// import { StockManager } from "./StockManager.js";
+// import { StockManagerDialog } from "./UI/StockManagerDialog.js";
+// import { Stockpile } from "./Stockpile.js";
+// import { Task } from "./Task.js";
+// import { TileType } from "./TileType.js";
+// import { Trait } from "./Trait.js";
+// import { Trap } from "./Trap.js";
+// import { UI } from "./UI/UI.js";
+// import { UIContainer } from "./UI/UIContainer.js";
+// import { UIList } from "./UI/UIList.js";
+// import { TCODMapRenderer } from "./TCODMapRenderer.js";
+// import { WaterItem } from "./WaterItem.js";
+// import { WaterNode } from "./WaterNode.js";
 
 let loading = [
     "\\ Loading...",
@@ -53,38 +98,15 @@ let saving = [
 const loadingSize = loading.length;
 const savingSize = saving.length;
 
-export class Game {
+let iequals = function iequals(s1,s2){
+    return String(s1).toLowerCase() === String(s2).toLowerCase();
+}
+// let format = function format(...args){
+
+// }
+
+export class Game extends Serializable{
     static CLASS_VERSION() { return 1; }
-    static instance;
-    //boost.mutex 
-    loadingScreenMutex;
-    screenWidth = 0;
-    screenHeight = 0;
-    charWidth = 0;
-    charHeight = 0;
-    season = Season.EarlySpring;
-    time = 0;
-    age = 0;
-    orcCount = 0;
-    goblinCount = 0;
-    peacefulFaunaCount = 0;
-    paused = false;
-    toMainMenu = false;
-    running = false;
-    gameOver = false;
-    safeMonths = 3;
-    events = new Events();
-    camX = 180;
-    camY = 180;
-    /** @type {Console} */
-    buffer = null;
-    /** @type {Coordinate[]}*/
-    marks = new Array(12);
-    the_console = null;
-    /** @type {boost.shared_ptr<MapRenderer>} */
-    renderer = null;
-    staticConstructionList = new Map();
-    dynamicConstructionList = new Map();
 
     // friend class ConfigListener;
     // friend void SettingsMenu();
@@ -97,7 +119,7 @@ export class Game {
     // Season season;
     // int time;
     // int age;
-    // int orcCount, goblinCount;
+    // int this.orcCount, this.goblinCount;
     // unsigned int peacefulFaunaCount;
     // bool paused;
     // int charWidth, charHeight;
@@ -113,7 +135,7 @@ export class Game {
     // boost.shared_ptr < MapRenderer > renderer;
     // bool gameOver;
 
-    // std.map < int, boost.shared_ptr < NPC > > npcList;
+    // std.map < int, boost.shared_ptr < NPC > > this.npcMap;
 
     // static bool initializedOnce;
 
@@ -171,7 +193,7 @@ export class Game {
     // TCODConsole * buffer;
     // void FlipBuffer();
     // void Draw(
-    //     TCODConsole * the_console = Game.buffer, float focusX = Game.camX, float focusY = Game.camY,
+    //     TCODConsole * the_console = Game.i.buffer, float focusX = Game.i.camX, float focusY = Game.i.camY,
     //     bool drawUI = true, int posX = 0, int posY = 0, int xSize = -1, int ySize = -1
     // );
 
@@ -191,7 +213,7 @@ export class Game {
     // void GoblinCount(int);
     // void RemoveNPC(boost.weak_ptr < NPC > );
     // int FindMilitaryRecruit();
-    // std.map < std.string, boost.shared_ptr < Squad > > squadList;
+    // std.map < std.string, boost.shared_ptr < Squad > > squadMap;
     // std.list < boost.shared_ptr < Squad > > hostileSquadList;
     // void CreateSquad(std.string);
     // static void SetSquadTargetCoordinate(Order, Coordinate, boost.shared_ptr < Squad > , bool autoClose = true);
@@ -214,7 +236,7 @@ export class Game {
     // void RemoveConstruction(boost.weak_ptr < Construction > );
     // static int PlaceStockpile(Coordinate, Coordinate, ConstructionType, int);
     RefreshStockpiles() {
-        refreshStockpiles = true;
+        this.refreshStockpiles = true;
     }
 
     // void RebalanceStockpiles(ItemCategory requiredCategory, boost.shared_ptr < Stockpile > excluded);
@@ -233,11 +255,11 @@ export class Game {
     //     boost.shared_ptr < Container > = boost.shared_ptr < Container > ());
     // void RemoveItem(boost.weak_ptr < Item > );
     // boost.weak_ptr < Item > GetItem(int);
-    // std.map < int, boost.shared_ptr < Item > > itemList;
+    // std.map < int, boost.shared_ptr < Item > > this.itemMap;
     // void ItemContained(boost.weak_ptr < Item > , bool contained);
-    // std.set < boost.weak_ptr < Item > > freeItems; //Free as in not contained
-    // std.set < boost.weak_ptr < Item > > flyingItems; //These need to be updated
-    // std.list < boost.weak_ptr < Item > > stoppedItems; //These need to be removed from flyingItems
+    // std.set < boost.weak_ptr < Item > > freeItemsSet; //Free as in not contained
+    // std.set < boost.weak_ptr < Item > > flyingItemsSet; //These need to be updated
+    // std.list < boost.weak_ptr < Item > > stoppedItems; //These need to be removed from flyingItemsSet
     // static int ItemTypeCount;
     // static int ItemCatCount;
     // boost.shared_ptr < Job > StockpileItem(boost.weak_ptr < Item > , bool returnJob = false, bool disregardTerritory = false, bool reserveItem = true);
@@ -279,12 +301,12 @@ export class Game {
     // void DeTillFarmPlots();
     // void DecayItems();
 
-    // std.list < boost.weak_ptr < FilthNode > > filthList;
+    // std.list < boost.weak_ptr < FilthNode > > filthNodes;
     // void CreateFilth(Coordinate);
     // void CreateFilth(Coordinate, int);
     // void RemoveFilth(Coordinate);
 
-    // std.list < boost.weak_ptr < BloodNode > > bloodList;
+    // std.list < boost.weak_ptr < BloodNode > > bloodNodes;
     // void CreateBlood(Coordinate);
     // void CreateBlood(Coordinate, int);
 
@@ -293,13 +315,13 @@ export class Game {
 
     // void AddDelay(int delay, boost.function < void() > );
 
-    // std.list < boost.weak_ptr < FireNode > > fireList;
+    // std.list < boost.weak_ptr < FireNode > > fireNodes;
     // void CreateFire(Coordinate);
     // void CreateFire(Coordinate, int);
     // void StartFire(Coordinate);
 
     // boost.shared_ptr < Spell > CreateSpell(Coordinate, int type);
-    // std.list < boost.shared_ptr < Spell > > spellList;
+    // std.list < boost.shared_ptr < Spell > > spells;
 
     // int GetAge();
 
@@ -308,18 +330,39 @@ export class Game {
 
 
 
-    static ItemTypeCount = 0;
-    static ItemCatCount = 0;
-
-    static initializedOnce = false;
-    // static instance = 0;
-
-    static devMode = false;
-
     constructor() {
-        if (Game.instance) return Game.instance;
+        if (Game._instance) return Game._instance;
+        super();
 
-        this.Config = new Config();
+        //boost.mutex 
+        this.loadingScreenMutex;
+        this.screenWidth = 0;
+        this.screenHeight = 0;
+        this.charWidth = 0;
+        this.charHeight = 0;
+        this.season = Season.EarlySpring;
+        this.time = 0;
+        this.age = 0;
+        this.orcCount = 0;
+        this.goblinCount = 0;
+        this.peacefulFaunaCount = 0;
+        this.paused = false;
+        this.toMainMenu = false;
+        this.running = false;
+        this.gameOver = false;
+        this.safeMonths = 3;
+        this.events = new Events();
+        this.camX = 180;
+        this.camY = 180;
+        /** @type {Console} */
+        this.buffer = null;
+        /** @type {Coordinate[]}*/
+        this.marks = new Array(12);
+        this.the_console = null;
+        /** @type {boost.shared_ptr<MapRenderer>} */
+        this.renderer = null;
+        this.staticConstructionMap = new Map();
+        this.dynamicConstructionMap = new Map();
 
         for (let i = 0; i < 12; i++) {
             this.marks[i] = Coordinate.undefinedCoordinate;
@@ -338,7 +381,7 @@ export class Game {
         for (let x = target.X(); x < target.X() + size.X(); ++x) {
             for (let y = target.Y(); y < target.Y() + size.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                if (!Map.IsInside(p) || !Map.IsBuildable(p) || (!tileReqs.empty() && tileReqs.find(Map.GetType(p)) === tileReqs.end()))
+                if (!GameMap.i.IsInside(p) || !GameMap.i.IsBuildable(p) || (!tileReqs.empty() && tileReqs.find(GameMap.i.GetType(p)) === tileReqs.end()))
                     return false;
             }
         }
@@ -349,28 +392,28 @@ export class Game {
         //Check if the required materials exist before creating the build job
         let componentList;
         for (let mati = Construction.Presets[construct].materials.begin(); mati !== Construction.Presets[construct].materials.end(); ++mati) {
-            let material = Game.FindItemByCategoryFromStockpiles(mati, target, EMPTY);
-            let item;
-            if (item = material.lock()) {
+            let material = this.FindItemByCategoryFromStockpiles(mati, target, Constants.EMPTY);
+            let item= material.lock();
+            if (item ) {
                 item.Reserve(true);
-                componentList.push_back(item);
+                componentList.push(item);
             } else {
                 for (let compi = componentList.begin(); compi !== componentList.end(); ++compi) {
                     compi.lock().Reserve(false);
                 }
                 componentList.clear();
-                Announce.AddMsg((boost.format("Cancelled %s: insufficient [%s] in stockpiles") % Construction.Presets[construct].name % Item.ItemCategoryToString(mati)).str(), Color.red);
+                Announce.i.AddMsg((`Cancelled ${Construction.Presets[construct].name}: insufficient [${Item.ItemCategoryToString(mati)}] in stockpiles`), TCODColor.red);
                 return -1;
             }
         }
 
         if (Construction.AllowedAmount[construct] >= 0) {
             if (Construction.AllowedAmount[construct] === 0) {
-                Announce.AddMsg(
+                Announce.i.AddMsg(
                     "Cannot build another " +
                     Construction.Presets[construct].name +
                     "!",
-                    Color.red
+                    TCODColor.red
                 );
                 return -1;
             }
@@ -382,52 +425,52 @@ export class Game {
         }
         componentList.clear();
 
-        boost.shared_ptr < Construction > newCons;
-        if (Construction.Presets[construct].tags[DOOR]) {
-            newCons = boost.shared_ptr < Construction > (new Door(construct, target));
-        } else if (Construction.Presets[construct].tags[SPAWNINGPOOL]) {
-            newCons = boost.shared_ptr < Construction > (new SpawningPool(construct, target));
-        } else if (Construction.Presets[construct].tags[TRAP]) {
-            newCons = boost.shared_ptr < Construction > (new Trap(construct, target));
-            Faction.factions[PLAYERFACTION].TrapSet(target, true);
+        let newCons;
+        if (Construction.Presets[construct].tags[ConstructionTag.DOOR]) {
+            newCons = new Door(construct, target);
+        } else if (Construction.Presets[construct].tags[ConstructionTag.SPAWNINGPOOL]) {
+            newCons = new SpawningPool(construct, target);
+        } else if (Construction.Presets[construct].tags[ConstructionTag.TRAP]) {
+            newCons = new Trap(construct, target);
+            Faction.factions[Constants.PLAYERFACTION].TrapSet(target, true);
         } else {
-            newCons = boost.shared_ptr < Construction > (new Construction(construct, target));
+            newCons = new Construction(construct, target);
         }
         if (Construction.Presets[construct].dynamic) {
-            Game.dynamicConstructionList.insert((newCons.Uid(), newCons));
+            this.dynamicConstructionMap.insert((newCons.Uid(), newCons));
         } else {
-            Game.staticConstructionList.insert((newCons.Uid(), newCons));
+            this.staticConstructionMap.insert((newCons.Uid(), newCons));
         }
-        newCons.SetMap(Map);
+        newCons.SetMap(GameMap.i);
         let blueprint = Construction.Blueprint(construct);
         for (let x = target.X(); x < target.X() + blueprint.X(); ++x) {
             for (let y = target.Y(); y < target.Y() + blueprint.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                Map.SetBuildable(p, false);
-                Map.SetConstruction(p, newCons.Uid());
-                if (!Construction.Presets[construct].tags[TRAP]) Map.SetTerritory(p, true);
+                GameMap.i.SetBuildable(p, false);
+                GameMap.i.SetConstruction(p, newCons.Uid());
+                if (!Construction.Presets[construct].tags[ConstructionTag.TRAP]) GameMap.i.SetTerritory(p, true);
             }
         }
 
-        boost.shared_ptr < Job > buildJob(new Job("Build " + Construction.Presets[construct].name, MED, 0, false));
+        let buildJob = (new Job("Build " + Construction.Presets[construct].name, JobPriority.MED, 0, false));
         buildJob.DisregardTerritory();
 
         for (let materialIter = newCons.MaterialList().begin(); materialIter !== newCons.MaterialList().end(); ++materialIter) {
-            boost.shared_ptr < Job > pickupJob(new Job("Pickup " + Item.ItemCategoryToString(materialIter) + " for " + Construction.Presets[construct].name, MED, 0, true));
+            let pickupJob = (new Job("Pickup " + Item.ItemCategoryToString(materialIter) + " for " + Construction.Presets[construct].name, JobPriority.MED, 0, true));
             pickupJob.Parent(buildJob);
             pickupJob.DisregardTerritory();
-            buildJob.PreReqs().push_back(pickupJob);
+            buildJob.PreReqs().push(pickupJob);
 
-            pickupJob.tasks.push_back(Task(FIND, target, null, materialIter, EMPTY));
-            pickupJob.tasks.push_back(Task(MOVE));
-            pickupJob.tasks.push_back(Task(TAKE));
-            pickupJob.tasks.push_back(Task(MOVE, newCons.Storage().lock().Position(), newCons));
-            pickupJob.tasks.push_back(Task(PUTIN, newCons.Storage().lock().Position(), newCons.Storage()));
+            pickupJob.tasks.push(new Task(Action.FIND, target, null, materialIter, Constants.EMPTY));
+            pickupJob.tasks.push(new Task(Action.MOVE));
+            pickupJob.tasks.push(new Task(Action.TAKE));
+            pickupJob.tasks.push(new Task(Action.MOVE, newCons.Storage().lock().Position(), newCons));
+            pickupJob.tasks.push(new Task(Action.PUTIN, newCons.Storage().lock().Position(), newCons.Storage()));
             JobManager.AddJob(pickupJob);
         }
 
-        buildJob.tasks.push_back(Task(MOVEADJACENT, newCons.Position(), newCons));
-        buildJob.tasks.push_back(Task(BUILD, newCons.Position(), newCons));
+        buildJob.tasks.push(new Task(Action.MOVEADJACENT, newCons.Position(), newCons));
+        buildJob.tasks.push(new Task(Action.BUILD, newCons.Position(), newCons));
         buildJob.ConnectToEntity(newCons);
 
         JobManager.AddJob(buildJob);
@@ -445,7 +488,7 @@ export class Game {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 for (let x = a.X(); x <= b.X(); ++x) {
                     let p = new Coordinate(x, y);
-                    if (Map.IsBuildable(p)) {
+                    if (GameMap.i.IsBuildable(p)) {
                         a = p;
                         // goto ContinuePlaceStockpile;
                         break startContinuePlaceStockpile;
@@ -456,42 +499,70 @@ export class Game {
         } while (false);
         // ContinuePlaceStockpile: 
         // boost.shared_ptr < Stockpile > 
-        newSp = ((Construction.Presets[stockpile].tags[FARMPLOT]) ? new FarmPlot(stockpile, symbol, a) : new Stockpile(stockpile, symbol, a));
-        newSp.SetMap(Map);
-        Map.SetBuildable(a, false);
-        Map.SetConstruction(a, newSp.Uid());
-        Map.SetTerritory(a, true);
+        let newSp = ((Construction.Presets[stockpile].tags[ConstructionTag.FARMPLOT]) ? new FarmPlot(stockpile, symbol, a) : new Stockpile(stockpile, symbol, a));
+        newSp.SetMap(GameMap.i);
+        GameMap.i.SetBuildable(a, false);
+        GameMap.i.SetConstruction(a, newSp.Uid());
+        GameMap.i.SetTerritory(a, true);
         newSp.Expand(a, b);
         if (Construction.Presets[stockpile].dynamic) {
-            Game.dynamicConstructionList.insert((newSp.Uid(), (newSp)));
+            this.dynamicConstructionMap.insert((newSp.Uid(), (newSp)));
         } else {
-            Game.staticConstructionList.insert((newSp.Uid(), (newSp)));
+            this.staticConstructionMap.insert((newSp.Uid(), (newSp)));
         }
 
-        Game.RefreshStockpiles();
+        this.RefreshStockpiles();
 
-        Script.Event.BuildingCreated(newSp, a.X(), a.Y());
+        Script.i.Event.BuildingCreated(newSp, a.X(), a.Y());
 
         //Spawning a BUILD job is not required because stockpiles are created "built"
         return newSp.Uid();
     }
 
+    FindClosestAdjacent(...args){
+        if(args.length === 3){
+            if(args[1] instanceof Entity)
+                return this.FindClosestAdjacent_coordinate_entity_factionNum(args[0],args[1],args[2]);
+            else if(args[1] instanceof Coordinate)                
+                return this.FindClosestAdjacent_coordinate_coordinate_factionNum(args[0],args[1],args[2]);
+        }
+    }
+
+    FindClosestAdjacent_coordinate_coordinate_factionNum(from, target, faction) {
+        let closest = Coordinate(-9999, -9999);
+        let leastDistance = Number.MAX_SAFE_INTEGER;
+        for (let ix = target.X() - 1; ix <= target.X() + 1; ++ix) {
+            for (let iy = target.Y() - 1; iy <= target.Y() + 1; ++iy) {
+                let p = new Coordinate(ix, iy);
+                if (p.onRectangleEdges(target - 1, target + 1) && GameMap.i.IsWalkable(p)) {
+                    let distance = Coordinate.Distance(from, p);
+                    if (faction >= 0 && GameMap.i.IsDangerous(p, faction)) distance += 100;
+                    if (distance < leastDistance) {
+                        closest = p;
+                        leastDistance = distance;
+                    }
+                }
+            }
+        }
+        return closest;
+    }
+
     //Returns undefined if not found
-    FindClosestAdjacent(pos, ent, faction) {
+    FindClosestAdjacent_coordinate_entity_factionNum(pos, ent, faction) {
         let closest = Coordinate.undefinedCoordinate;
         let leastDistance = Number.MAX_SAFE_INTEGER;
         if (ent.lock()) {
             if ((ent.lock())) {
-                let construct = (boost.static_pointer_cast < Construction > (ent.lock()));
+                let construct = ent.lock();
                 //note on weird (origin,extent) coordinates: we want the *outer* bordure of (position,blueprint)
                 let origin = construct.Position() - 1,
                     extent = Construction.Blueprint(construct.Type()) + 2;
                 for (let ix = origin.X(); ix < (origin + extent).X(); ++ix) {
                     for (let iy = origin.Y(); iy < (origin + extent).Y(); ++iy) {
                         let p = new Coordinate(ix, iy);
-                        if (p.onExtentEdges(origin, extent) && Map.IsWalkable(p)) {
-                            let distance = Distance(pos, p);
-                            if (faction >= 0 && Map.IsDangerous(p, faction)) distance += 100;
+                        if (p.onExtentEdges(origin, extent) && GameMap.i.IsWalkable(p)) {
+                            let distance = Coordinate.Distance(pos, p);
+                            if (faction >= 0 && GameMap.i.IsDangerous(p, faction)) distance += 100;
                             if (distance < leastDistance) {
                                 closest = p;
                                 leastDistance = distance;
@@ -500,18 +571,29 @@ export class Game {
                     }
                 }
             } else {
-                return FindClosestAdjacent(pos, ent.lock().Position(), faction);
+                return this.FindClosestAdjacent(pos, ent.lock().Position(), faction);
             }
         }
         return closest;
     }
 
+    Adjacent(...args){
+        if(args[1] instanceof Entity)
+            return this.Adjacent_coordinate_entity(args[0],args[1]);
+        else            
+            return this.Adjacent_coordinate_coordinate(args[0],args[1]);
+    }
+
+    Adjacent_coordinate_coordinate(a, b) {
+        return (Math.abs(a.X() - b.X()) < 2 && Math.abs(a.Y() - b.Y()) < 2);
+    }
+
     //Returns true/false depending on if the given position is adjacent to the entity
     //Takes into consideration if the entity is a construction, and thus may be larger than just one tile
-    Adjacent(pos, ent) {
+    Adjacent_coordinate_entity(pos, ent) {
         if (ent.lock()) {
-            if (boost.dynamic_pointer_cast < Construction > (ent.lock())) {
-                boost.shared_ptr < Construction > construct(boost.static_pointer_cast < Construction > (ent.lock()));
+            if (ent.lock()) {
+                let construct = ent.lock();
                 for (let ix = construct.X() - 1; ix <= construct.X() + Construction.Blueprint(construct.Type()).X(); ++ix) {
                     for (let iy = construct.Y() - 1; iy <= construct.Y() + Construction.Blueprint(construct.Type()).Y(); ++iy) {
                         if (pos.X() === ix && pos.Y() === iy) {
@@ -536,20 +618,20 @@ export class Game {
 
     CreateNPC(target, type) {
 
-        if (!Map.IsWalkable(target)) {
+        if (!GameMap.i.IsWalkable(target)) {
             for (let tries = 0; tries < 20; ++tries) {
                 let candidate = Random.ChooseInRadius(target, 1 + tries / 3);
-                if (Map.IsWalkable(candidate)) {
+                if (GameMap.i.IsWalkable(candidate)) {
                     target = candidate;
                 }
             }
             //TODO find a walkwable target even if those tries fail
-            assert(Map.IsWalkable(target));
+            assert(GameMap.i.IsWalkable(target));
         }
 
         //boost.shared_ptr < NPC >
         let npc = (new NPC(target));
-        npc.SetMap(Map);
+        npc.SetMap(GameMap.i);
         npc.type = type;
         npc.SetFaction(NPC.Presets[type].faction);
         npc.InitializeAIFunctions();
@@ -565,11 +647,11 @@ export class Game {
         npc.needsSleep = NPC.Presets[type].needsSleep;
         npc.health = NPC.Presets[type].health;
         npc.maxHealth = NPC.Presets[type].health;
-        for (let i = 0; i < STAT_COUNT; ++i) {
-            npc.baseStats[i] = NPC.Presets[type].stats[i] + Random.Sign(NPC.Presets[type].stats[i] * (Random.Generate(0, 10) / 100));
+        for (let i = 0; i < StatusEffectType.STAT_COUNT; ++i) {
+            npc.baseStats[i] = NPC.Presets[type].stats[i] + Random.Sign(NPC.Presets[type].stats[i] * (Random.i.Generate(0, 10) / 100));
         }
-        for (let i = 0; i < RES_COUNT; ++i) {
-            npc.baseResistances[i] = NPC.Presets[type].resistances[i] + Random.Sign(NPC.Presets[type].resistances[i] * (Random.Generate(0, 10) / 100));
+        for (let i = 0; i < Resistance.RES_COUNT; ++i) {
+            npc.baseResistances[i] = NPC.Presets[type].resistances[i] + Random.Sign(NPC.Presets[type].resistances[i] * (Random.i.Generate(0, 10) / 100));
         }
 
         npc.attacks = NPC.Presets[type].attacks;
@@ -580,16 +662,16 @@ export class Game {
             }
         }
 
-        if (boost.iequals(NPC.NPCTypeToString(type), "orc")) {
-            ++orcCount;
-            npc.AddTrait(FRESH);
-        } else if (boost.iequals(NPC.NPCTypeToString(type), "goblin")) {
-            ++goblinCount;
-            if (Random.Generate(2) === 0) npc.AddTrait(CHICKENHEART);
-        } else if (NPC.Presets[type].tags.find("localwildlife") !== NPC.Presets[type].tags.end()) ++peacefulFaunaCount;
+        if (NPC.NPCTypeToString(type).toLowerCase() === "orc") {
+            ++this.orcCount;
+            npc.AddTrait(Trait.FRESH);
+        } else if (NPC.NPCTypeToString(type).toLowerCase === "goblin") {
+            ++this.goblinCount;
+            if (Random.i.Generate(2) === 0) npc.AddTrait(Trait.CHICKENHEART);
+        } else if (NPC.Presets[type].tags.find("localwildlife") !== NPC.Presets[type].tags.end()) ++this.peacefulFaunaCount;
 
         if (NPC.Presets[type].tags.find("flying") !== NPC.Presets[type].tags.end()) {
-            npc.AddEffect(FLYING);
+            npc.AddEffect(StatusEffectType.FLYING);
         }
 
         npc.coward = (NPC.Presets[type].tags.find("coward") !== NPC.Presets[type].tags.end() ||
@@ -607,40 +689,40 @@ export class Game {
 
         for (let equipIndex = 0; equipIndex < NPC.Presets[type].possibleEquipment.size(); ++equipIndex) {
             let itemType = Random.ChooseElement(NPC.Presets[type].possibleEquipment[equipIndex]);
-            if (itemType > 0 && itemType < static_cast < int > (Item.Presets.size())) {
+            if (itemType > 0 && itemType < (Item.Presets.size())) {
                 //std.set < ItemCategory > 
                 let categories = Item.Presets[itemType].categories;
                 if (categories.find(Item.StringToItemCategory("weapon")) !== categories.end() &&
                     !npc.Wielding().lock()) {
-                    let itemUid = CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
+                    let itemUid = this.CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
                     //boost.shared_ptr < Item > 
-                    let item = itemList[itemUid];
+                    let item = this.itemMap[itemUid];
                     npc.mainHand = item;
                 } else if (categories.find(Item.StringToItemCategory("armor")) !== categories.end() &&
                     !npc.Wearing().lock()) {
-                    let itemUid = CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
+                    let itemUid = this.CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
                     //boost.shared_ptr < Item > 
-                    let item = itemList[itemUid];
+                    let item = this.itemMap[itemUid];
                     npc.armor = item;
                 } else if (categories.find(Item.StringToItemCategory("quiver")) !== categories.end() &&
                     !npc.quiver.lock()) {
-                    let itemUid = CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
+                    let itemUid = this.CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
                     // boost.shared_ptr < Item > 
-                    let item = itemList[itemUid];
-                    npc.quiver = boost.static_pointer_cast < Container > (item); //Quivers = containers
+                    let item = this.itemMap[itemUid];
+                    npc.quiver = (item); //Quivers = containers
                 } else if (categories.find(Item.StringToItemCategory("ammunition")) !== categories.end() &&
                     npc.quiver.lock() && npc.quiver.lock().empty()) {
                     for (let i = 0; i < 20 && !npc.quiver.lock().Full(); ++i) {
-                        CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.quiver.lock());
+                        this.CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.quiver.lock());
                     }
                 } else {
-                    let itemUid = CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
+                    let itemUid = this.CreateItem(npc.Position(), itemType, false, npc.GetFaction(), [], npc.inventory);
                     itemUid;
                 }
             }
         }
 
-        npcList.insert((npc.Uid(), npc));
+        this.npcMap.insert((npc.Uid(), npc));
         npc.factionPtr.AddMember(npc);
 
         return npc.Uid();
@@ -648,13 +730,13 @@ export class Game {
 
     OrcCount(add) {
         if (Number.isFinite(add))
-            orcCount += add;
-        return orcCount;
+            this.orcCount += add;
+        return this.orcCount;
     }
     GoblinCount(add) {
         if (Number.isFinite(add))
-            goblinCount += add;
-        return goblinCount;
+            this.goblinCount += add;
+        return this.goblinCount;
     }
 
     //Moves the entity to a valid walkable tile
@@ -663,24 +745,24 @@ export class Game {
         let entity;
 
         // std.map < int, boost.shared_ptr < NPC > > .iterator 
-        let npc = npcList.find(uid);
-        if (npc !== npcList.end()) {
+        let npc = this.npcMap.find(uid);
+        if (npc !== this.npcMap.end()) {
             entity = npc.second;
         } else {
             // std.map < int, boost.shared_ptr < Item > > .iterator 
-            let item = itemList.find(uid);
-            if (item !== itemList.end()) {
+            let item = this.itemMap.find(uid);
+            if (item !== this.itemMap.end()) {
                 entity = item.second;
             }
         }
 
         if (entity) {
-            if (!Map.IsWalkable(entity.Position())) {
+            if (!GameMap.i.IsWalkable(entity.Position())) {
                 for (let radius = 1; radius < 10; ++radius) {
                     for (let ix = entity.Position().X() - radius; ix <= entity.Position().X() + radius; ++ix) {
                         for (let iy = entity.Position().Y() - radius; iy <= entity.Position().Y() + radius; ++iy) {
                             let p = new Coordinate(ix, iy);
-                            if (Map.IsWalkable(p)) {
+                            if (GameMap.i.IsWalkable(p)) {
                                 entity.Position(p);
                                 return;
                             }
@@ -689,8 +771,8 @@ export class Game {
                 }
             }
         }
-        if /* if(def */ (DEBUG) { } else {
-            std.cout << "\nTried to bump nonexistant entity.";
+        if(Globals.DEBUG)  {
+            console.log("Tried to bump nonexistant entity.");
         }
     } /*#endif*/
 
@@ -698,9 +780,12 @@ export class Game {
     DoNothing() { }
 
     Exit(confirm) {
-        //boost.function<void()> exitFunc = boost.bind(&Game.Running, Game, false);
+        //boost.function<void()> exitFunc = boost.bind(&Game.i.Running, Game, false);
         // boost.function < void() > 
-        let exitFunc = boost.bind(exit, 0);
+        let exitFunc =  () => {
+            this.Running(false);
+            this.GCamp.exit();
+        };
 
         if (confirm) {
             MessageBox.ShowMessageBox("Really exit?", exitFunc, "Yes", null, "No");
@@ -725,12 +810,12 @@ export class Game {
 
         let loadingMsg = (isLoading ? loading : saving)[spin % (isLoading ? loadingSize : savingSize)];
 
-        this.buffer.setDefaultForeground(Color.white);
-        this.buffer.setDefaultBackground(Color.black);
-        this.buffer.setAlignment(Alignment.CENTER);
-        // this.the_console.setDefaultForeground(Color.white);
-        // this.the_console.setDefaultBackground(Color.black);
-        // this.the_console.setAlignment(TCOD_CENTER); //TODO
+        this.buffer.setDefaultForeground(TCODColor.white);
+        this.buffer.setDefaultBackground(TCODColor.black);
+        this.buffer.setAlignment(TCOD_alignment_t.TCOD_CENTER);
+        // this.the_console.setDefaultForeground(TCODColor.white);
+        // this.the_console.setDefaultBackground(TCODColor.black);
+        // this.the_console.setAlignment(TCOD_alignment_t.TCOD_CENTER); //TODO
         this.buffer.clear();
         this.buffer.print(x, y, loadingMsg);
         // this.buffer.flush();
@@ -743,7 +828,7 @@ export class Game {
         // so that the process doesn't appear to be dead
         //
         // thread safety notice: blockingCall MUST NOT access TCODConsole.root without
-        // locking Game.loadingScreenMutex first!
+        // locking Game.i.loadingScreenMutex first!
         //
         // XXX heavily experimental
         //boost.promise < void >
@@ -753,8 +838,8 @@ export class Game {
         // let future = (promise.get_future());
 
         // make copies before launching the thread
-        let x = Game.screenWidth / 2;
-        let y = Game.screenHeight / 2;
+        let x = this.screenWidth / 2;
+        let y = this.screenHeight / 2;
 
         this.DrawProgressScreen(x, y, 0, isLoading);
 
@@ -769,9 +854,7 @@ export class Game {
         let me = this;
         let intervalID = 0
         let spin = 0;
-        intervalID = setInterval(function () {
-            this.DrawProgressScreen(x, y, ++spin, isLoading);
-        }.bind(this), 500);
+        intervalID = setInterval(() => me.DrawProgressScreen(x, y, ++spin, isLoading), 500);
         return new Promise(function (resolve, reject) {
             blockingCall();
             clearInterval(intervalID);
@@ -787,27 +870,25 @@ export class Game {
     }
 
     ErrorScreen() {
-        boost.lock_guard < boost.mutex > lock(loadingScreenMutex);
+        let lock = this.loadingScreenMutex;
 
-        let game = Game;
-        TCODConsole.root.setDefaultForeground(Color.white);
-        TCODConsole.root.setDefaultBackground(Color.black);
-        TCODConsole.root.setAlignment(TCOD_CENTER);
+        TCODConsole.root.setDefaultForeground(TCODColor.white);
+        TCODConsole.root.setDefaultBackground(TCODColor.black);
+        TCODConsole.root.setAlignment(TCOD_alignment_t.TCOD_CENTER);
         TCODConsole.root.clear();
         TCODConsole.root.print(
-            game.screenWidth / 2, game.screenHeight / 2,
+            this.screenWidth / 2, this.screenHeight / 2,
             "A critical error occurred, refer to the logfile for more information."
         );
-        TCODConsole.root.print(game.screenWidth / 2, game.screenHeight / 2 + 1, "Press any key to exit the game.");
+        TCODConsole.root.print(this.screenWidth / 2, this.screenHeight / 2 + 1, "Press any key to exit the game.");
         TCODConsole.root.flush();
-        TCODConsole.waitForKeypress(true);
-        exit(255);
+        TCODConsole.waitForKeypress(true).then(() => this.GCamp.exit(255));
     }
 
     Init(firstTime) {
-        let width = this.Config.GetCVar('int', "resolutionX");
-        let height = this.Config.GetCVar('int', "resolutionY");
-        let fullscreen = this.Config.GetCVar('bool', "fullscreen");
+        let width = Config.i.GetCVar('int', "resolutionX");
+        let height = Config.i.GetCVar('int', "resolutionY");
+        let fullscreen = Config.i.GetCVar('bool', "fullscreen");
 
         if (width <= 0 || height <= 0) {
             if (fullscreen) {
@@ -827,24 +908,25 @@ export class Game {
         this.screenWidth = width / this.charWidth;
         this.screenHeight = height / this.charHeight;
 
-        // srand(std.time(0)); TODO seed random generator....I thought it was already seeded in Rand.init..???
+        // srand(std.time(0));// TODO seed random generator....I thought it was already seeded in Rand.init..???
+        srand(Date.now());
 
         //Enabling TCOD_RENDERER_GLSL can cause GCamp to crash on exit, apparently it's because of an ATI driver issue.
         //TCOD_renderer_t 
-        // let renderer_type = (Config.GetCVar("renderer"));//TODO
+        let renderer_type = (Config.i.GetCVar("renderer"));//TODO
 
-        // TCODMouse.showCursor(true);
-        //	TCODConsole.setKeyboardRepeat(500, 10);
+        TCODMouse.showCursor(true);
+        TCODConsole.setKeyboardRepeat(500, 10);
 
 
         if (firstTime) {
-            this.buffer = new Console(this.screenWidth, this.screenHeight, "Goblin Camp", fullscreen);
+            // this.buffer = new Console(this.screenWidth, this.screenHeight, "Goblin Camp", fullscreen);
             // this.buffer = new ROT.Display({ width: this.screenWidth, height: this.screenHeight });
-            // TCODConsole.initRoot(screenWidth, screenHeight, "Goblin Camp", fullscreen, renderer_type);
+            TCODConsole.initRoot(this.screenWidth, this.screenHeight, "Goblin Camp", fullscreen, renderer_type);
         }
         this.ResetRenderer();
 
-        this.events = (new Events(Map));
+        this.events = (new Events(GameMap.i));
 
         this.season = Season.LateWinter;
         this.camX = 180;
@@ -861,11 +943,11 @@ export class Game {
         if (this.renderer && "reset" in this.renderer)
             this.renderer.reset();
 
-        if (this.Config.GetCVar("bool", "useTileset")) {
-            let tilesetName = this.Config.GetStringCVar("tileset");
+        if (Config.i.GetCVar("bool", "useTileset")) {
+            let tilesetName = Config.i.GetStringCVar("tileset");
             if (tilesetName.length === 0) tilesetName = "default";
 
-            let tilesetRenderer = this.CreateTilesetRenderer(width, height, buffer, tilesetName);
+            let tilesetRenderer = this.CreateTilesetRenderer(width, height, this.buffer, tilesetName);
 
             if (tilesetRenderer) {
                 this.renderer = tilesetRenderer;
@@ -881,19 +963,19 @@ export class Game {
         if (this.running) {
             this.renderer.PreparePrefabs();
         }
-        this.renderer.SetTranslucentUI(this.Config.GetCVar("bool", "translucentUI"));
+        this.renderer.SetTranslucentUI(Config.i.GetCVar("bool", "translucentUI"));
     }
 
     RemoveConstruction(cons) {
-        let construct;
-        if (construct = cons.lock()) {
+        let construct = cons.lock();
+        if (construct) {
             if (Construction.Presets[construct.type].dynamic) {
-                Game.dynamicConstructionList.erase(construct.Uid());
+                this.dynamicConstructionMap.erase(construct.Uid());
             } else {
-                Game.staticConstructionList.erase(construct.Uid());
+                this.staticConstructionMap.erase(construct.Uid());
             }
 
-            Script.Event.BuildingDestroyed(cons, construct.X(), construct.Y());
+            Script.i.Event.BuildingDestroyed(cons, construct.X(), construct.Y());
         }
     }
 
@@ -901,12 +983,12 @@ export class Game {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                let construction = Map.GetConstruction(p);
+                let construction = GameMap.i.GetConstruction(p);
                 if (construction >= 0) {
                     if (this.GetConstruction(construction).lock()) {
                         this.GetConstruction(construction).lock().Dismantle(p);
                     } else {
-                        Map.SetConstruction(p, -1);
+                        GameMap.i.SetConstruction(p, -1);
                     }
                 }
             }
@@ -914,10 +996,10 @@ export class Game {
     }
 
     GetConstruction(uid) {
-        if (staticConstructionList.find(uid) !== staticConstructionList.end())
-            return staticConstructionList[uid];
-        else if (dynamicConstructionList.find(uid) !== dynamicConstructionList.end())
-            return dynamicConstructionList[uid];
+        if (this.staticConstructionMap.find(uid) !== this.staticConstructionMap.end())
+            return this.staticConstructionMap[uid];
+        else if (this.dynamicConstructionMap.find(uid) !== this.dynamicConstructionMap.end())
+            return this.dynamicConstructionMap[uid];
         return null;
     }
 
@@ -926,14 +1008,14 @@ export class Game {
             // boost.shared_ptr < Item > 
             let newItem;
             if (Item.Presets[type].organic) {
-                boost.shared_ptr < OrganicItem > orgItem;
+                let orgItem;
 
-                if (boost.iequals(Item.ItemTypeToString(type), "water"))
+                if (Item.ItemTypeToString(type).toLowerCase() === "water")
                     orgItem.reset(new WaterItem(pos, type));
                 else
                     orgItem.reset(new OrganicItem(pos, type));
 
-                newItem = boost.static_pointer_cast < Item > (orgItem);
+                newItem = orgItem;
                 orgItem.Nutrition(Item.Presets[type].nutrition);
                 orgItem.Growth(Item.Presets[type].growth);
                 orgItem.SetFaction(ownerFaction);
@@ -942,11 +1024,11 @@ export class Game {
             } else {
                 newItem.reset(new Item(pos, type, ownerFaction, comps));
             }
-            newItem.SetMap(Map);
+            newItem.SetMap(GameMap.i);
             if (!container) {
-                if (newItem !== 0) { // No null pointers in freeItems please..
-                    freeItems.insert(newItem);
-                    Map.ItemList(newItem.Position()).insert(newItem.Uid());
+                if (newItem !== 0) { // No null pointers in freeItemsSet please..
+                    this.freeItemsSet.insert(newItem);
+                    GameMap.i.ItemList(newItem.Position()).insert(newItem.Uid());
                 } else {
                     return -1;
                 }
@@ -958,19 +1040,20 @@ export class Game {
                 }
             }
 
-            if (newItem !== 0) { // No null pointers in itemList... I'm being overly cautious here.
-                itemList.insert((newItem.Uid(), newItem));
+            if (newItem !== 0) { // No null pointers in this.itemMap... I'm being overly cautious here.
+                this.itemMap.insert((newItem.Uid(), newItem));
             } else {
                 return -1;
             }
 
-            if (store) StockpileItem(newItem, false, true);
+            if (store) 
+                this.StockpileItem(newItem, false, true);
 
-            Script.Event.ItemCreated(newItem, pos.X(), pos.Y());
+            Script.i.Event.ItemCreated(newItem, pos.X(), pos.Y());
 
-            if /* if(def */ (DEBUG) {
-                std.cout << newItem.name << "(" << newItem.Uid() << ") created\n";
-            } /*#endif*/
+            if  (Globals.DEBUG) {
+                console.log(newItem.name , "(" , newItem.Uid() , ") created\n");
+            } 
 
             return newItem.Uid();
         }
@@ -978,90 +1061,93 @@ export class Game {
     }
 
     RemoveItem(witem) {
-        let item;
-        if (item = witem.lock()) {
-            Map.ItemList(item.Position()).erase(item.uid);
-            if (freeItems.find(witem) !== freeItems.end()) freeItems.erase(witem);
-            let container;
-            if (container = boost.static_pointer_cast < Container > (item.container.lock())) {
+        let item = witem.lock();
+        if (item) {
+            GameMap.i.ItemList(item.Position()).erase(item.uid);
+            if (this.freeItemsSet.find(witem) !== this.freeItemsSet.end()) this.freeItemsSet.erase(witem);
+            let container = item.container.lock();
+            if (container) {
                 if (container) {
                     container.RemoveItem(witem);
                 }
             }
-            itemList.erase(item.uid);
+            this.itemMap.erase(item.uid);
         }
     }
 
     GetItem(uid) {
-        if (itemList.find(uid) !== itemList.end()) return itemList[uid];
+        if (this.itemMap.find(uid) !== this.itemMap.end()) return this.itemMap[uid];
         return null;
     }
 
     ItemContained(item, con) {
         if (!con) {
-            freeItems.insert(item);
-            Map.ItemList(item.lock().Position()).insert(item.lock().Uid());
+            this.freeItemsSet.insert(item);
+            GameMap.i.ItemList(item.lock().Position()).insert(item.lock().Uid());
         } else {
-            freeItems.erase(item);
-            Map.ItemList(item.lock().Position()).erase(item.lock().Uid());
+            this.freeItemsSet.erase(item);
+            GameMap.i.ItemList(item.lock().Position()).erase(item.lock().Uid());
         }
     }
 
     CreateWater(pos, amount = 10, time) {
         //If there is filth here mix it with the water
         // boost.shared_ptr < FilthNode >
-        let filth = Map.GetFilth(pos).lock();
+        let filth = GameMap.i.GetFilth(pos).lock();
 
         // boost.weak_ptr < WaterNode > 
-        let water = (Map.GetWater(pos));
+        let water = (GameMap.i.GetWater(pos));
         if (!water.lock()) {
-            boost.shared_ptr < WaterNode > newWater(new WaterNode(pos, amount, time));
-            waterList.push_back(boost.weak_ptr < WaterNode > (newWater));
-            Map.SetWater(pos, newWater);
+            let newWater = new WaterNode(pos, amount, time);
+            this.waterList.push(newWater);
+            GameMap.i.SetWater(pos, newWater);
             if (filth) newWater.AddFilth(filth.Depth());
         } else {
             water.lock().Depth(water.lock().Depth() + amount);
             if (filth) water.lock().AddFilth(filth.Depth());
         }
 
-        if (filth) RemoveFilth(pos);
+        if (filth) 
+            this.RemoveFilth(pos);
     }
 
     CreateWaterFromNode(water) {
         if (water) {
             // boost.shared_ptr < FilthNode > 
-            let filth = Map.GetFilth(water.Position()).lock();
+            let filth = GameMap.i.GetFilth(water.Position()).lock();
             // boost.weak_ptr < WaterNode > 
-            let existingWater = (Map.GetWater(water.Position()));
+            let existingWater = (GameMap.i.GetWater(water.Position()));
             if (!existingWater.lock()) {
-                waterList.push_back(water);
-                Map.SetWater(water.Position(), water);
-                if (filth) water.AddFilth(filth.Depth());
+                this.waterList.push(water);
+                GameMap.i.SetWater(water.Position(), water);
+                if (filth)  
+                    water.AddFilth(filth.Depth());
             } else {
                 let originalWater = existingWater.lock();
                 originalWater.Depth(water.Depth());
                 originalWater.AddFilth(water.GetFilth());
                 if (filth) originalWater.AddFilth(filth.Depth());
             }
-            if (filth) RemoveFilth(filth.Position());
+            if (filth) 
+                this.RemoveFilth(filth.Position());
         }
     }
 
     DistanceNPCToCoordinate(uid, pos) {
-        return Distance(npcList[uid].Position(), pos);
+        return Coordinate.Distance(this.npcMap[uid].Position(), pos);
     }
 
     // TODO this currently checks every stockpile.  We could maintain some data structure that allowed us to check the closest stockpile(s)
     // first.
     FindItemByCategoryFromStockpiles(category, target, flags, value) {
         let nearestDistance = Number.MAX_SAFE_INTEGER;
-        // boost.weak_ptr < Item > 
-        let nearest = null; // boost.weak_ptr < Item > ();
-        for (let consIter = staticConstructionList.begin(); consIter !== staticConstructionList.end(); ++consIter) {
+        
+        let nearest = null; 
+        for (let consIter = this.staticConstructionMap.begin(); consIter !== this.staticConstructionMap.end(); ++consIter) {
             if (consIter.second.stockpile && !consIter.second.farmplot) {
-                boost.weak_ptr < Item > item(boost.static_pointer_cast < Stockpile > (consIter.second).FindItemByCategory(category, flags, value));
+                let item = ((consIter.second).FindItemByCategory(category, flags, value));
                 if (item.lock() && !item.lock().Reserved()) {
-                    let distance = (flags & MOSTDECAYED ? item.lock().GetDecay() : Distance(item.lock().Position(), target));
+                    let distance = (flags & Constants.MOSTDECAYED ? item.lock().GetDecay() : Coordinate.Distance(item.lock().Position(), target));
                     if (distance < nearestDistance) {
                         nearestDistance = distance;
                         nearest = item;
@@ -1078,11 +1164,11 @@ export class Game {
         let nearestDistance = Number.MAX_SAFE_INTEGER;
         //boost.weak_ptr < Item >
         let nearest = null; // boost.weak_ptr < Item > ();
-        for (let consIter = staticConstructionList.begin(); consIter !== staticConstructionList.end(); ++consIter) {
+        for (let consIter = this.staticConstructionMap.begin(); consIter !== this.staticConstructionMap.end(); ++consIter) {
             if (consIter.second.stockpile && !consIter.second.farmplot) {
-                boost.weak_ptr < Item > item(boost.static_pointer_cast < Stockpile > (consIter.second).FindItemByType(type, flags, value));
+                let item = ((consIter.second).FindItemByType(type, flags, value));
                 if (item.lock() && !item.lock().Reserved()) {
-                    let distance = (flags & MOSTDECAYED ? item.lock().GetDecay() : Distance(item.lock().Position(), target));
+                    let distance = (flags & Constants.MOSTDECAYED ? item.lock().GetDecay() : Coordinate.Distance(item.lock().Position(), target));
                     if (distance < nearestDistance) {
                         nearestDistance = distance;
                         nearest = item;
@@ -1099,49 +1185,49 @@ export class Game {
         let high = Coordinate.max(corner1, corner2);
         for (let items = 0, count = 0; items < quantity && count < quantity * 10; ++count) {
             let p = Random.ChooseInRectangle(low, high);
-            if (Map.IsWalkable(p)) {
-                Game.CreateItem(p, type, true);
+            if (GameMap.i.IsWalkable(p)) {
+                this.CreateItem(p, type, true);
                 ++items;
             }
         }
     }
 
     FindFilth(pos) {
-        if (filthList.size() === 0) return undefined;
+        if (this.filthNodes.size() === 0) return undefined;
 
         //First check the vicinity of the given position
         if (pos.X() >= 0) {
             for (let i = 0; i < 10; ++i) {
                 let candidate = Random.ChooseInRadius(pos, 5);
                 // boost.shared_ptr < FilthNode > 
-                let filth = Map.GetFilth(candidate).lock();
-                if (filth && filth.Depth() > 0 && Map.IsWalkable(candidate))
+                let filth = GameMap.i.GetFilth(candidate).lock();
+                if (filth && filth.Depth() > 0 && GameMap.i.IsWalkable(candidate))
                     return candidate;
             }
         }
 
         //Then around the camp center (a pretty good place to find filth most of the time)
         for (let i = 0; i < 10; ++i) {
-            let candidate = Random.ChooseInRadius(Camp.Center(), 5);
+            let candidate = Random.ChooseInRadius(Camp.i.Center(), 5);
             // boost.shared_ptr < FilthNode > 
-            let filth = Map.GetFilth(candidate).lock();
-            if (filth && filth.Depth() > 0 && Map.IsWalkable(candidate))
+            let filth = GameMap.i.GetFilth(candidate).lock();
+            if (filth && filth.Depth() > 0 && GameMap.i.IsWalkable(candidate))
                 return candidate;
         }
 
         //If we still haven't found filth just choose the closest filth out of 30 at random
         // std.vector < boost.weak_ptr < FilthNode > >
-        let filthArray = (filthList.begin(), filthList.end());
+        let filthArray = (this.filthNodes.begin(), this.filthNodes.end());
         let closest = Coordinate.undefinedCoordinate;
         let closest_distance = Number.MAX_SAFE_INTEGER;
-        for (let i = 0; i < Math.min(static_cast < size_t > (30), filthArray.size()); ++i) {
+        for (let i = 0; i < Math.min(30, filthArray.size()); ++i) {
             // boost.weak_ptr < FilthNode > 
-            let filth = Random.ChooseElement(filthArray);
+            let filth = Random.i.ChooseElement(filthArray);
             // boost.shared_ptr < FilthNode >
             let candidate = filth.lock();
             if (candidate) {
-                let distance = Distance(pos, candidate.Position());
-                if (candidate.Depth() > 0 && Map.IsWalkable(candidate.Position()) && distance < closest_distance) {
+                let distance = Coordinate.Distance(pos, candidate.Position());
+                if (candidate.Depth() > 0 && GameMap.i.IsWalkable(candidate.Position()) && distance < closest_distance) {
                     closest = candidate.Position();
                     closest_distance = distance;
                 }
@@ -1154,13 +1240,13 @@ export class Game {
     FindWater(pos) {
         let closest = Coordinate.undefinedCoordinate;
         let closestDistance = Number.MAX_SAFE_INTEGER;
-        for (let wati = waterList.begin(); wati !== waterList.end(); ++wati) {
-            let water;
-            if (water = wati.lock()) {
-                if (water.IsCoastal() && water.Depth() > DRINKABLE_WATER_DEPTH) {
-                    let waterDistance = Distance(water.Position(), pos);
+        for (let wati = this.waterList.begin(); wati !== this.waterList.end(); ++wati) {
+            let water = wati.lock();
+            if (water) {
+                if (water.IsCoastal() && water.Depth() > Constants.DRINKABLE_WATER_DEPTH) {
+                    let waterDistance = Coordinate.Distance(water.Position(), pos);
                     //Favor water inside territory
-                    if (Map.IsTerritory(water.Position())) waterDistance /= 4;
+                    if (GameMap.i.IsTerritory(water.Position())) waterDistance /= 4;
                     if (waterDistance < closestDistance) {
                         closest = water.Position();
                         closestDistance = waterDistance;
@@ -1172,62 +1258,64 @@ export class Game {
     }
 
     Update() {
-        ++time;
+        ++this.time;
 
-        if (time >= MONTH_LENGTH) {
-            time -= MONTH_LENGTH; // Decrement time now to avoid autosaving issues.
-            Stats.AddPoints(10);
+        if (this.time >= Constants.MONTH_LENGTH) {
+            this.time -= Constants.MONTH_LENGTH; // Decrement time now to avoid autosaving issues.
+            Stats.i.AddPoints(10);
 
-            if (safeMonths > 0) --safeMonths;
+            if (this.safeMonths > 0) --this.safeMonths;
 
-            for (let cons = staticConstructionList.begin(); cons !== staticConstructionList.end(); ++cons) {
+            for (let cons = this.staticConstructionMap.begin(); cons !== this.staticConstructionMap.end(); ++cons) {
                 cons.second.SpawnRepairJob();
             }
-            for (let cons = dynamicConstructionList.begin(); cons !== dynamicConstructionList.end(); ++cons) {
+            for (let cons = this.dynamicConstructionMap.begin(); cons !== this.dynamicConstructionMap.end(); ++cons) {
                 cons.second.SpawnRepairJob();
             }
 
-            if (season < LateWinter) season = (Season)(season + 1);
-            else season = EarlySpring;
+            if (this.season < Season.LateWinter) 
+                this.season = (this.season + 1);
+            else 
+                this.season = Season.EarlySpring;
 
-            switch (season) {
-                case EarlySpring:
-                    this.Announce.AddMsg("Spring has begun");
-                    ++age;
-                    if (this.Config.GetCVar("bool", "autosave")) {
-                        let saveName = "autosave" + std.string(age % 2 ? "1" : "2");
-                        if (Data.SaveGame(saveName, false))
-                            this.Announce.AddMsg("Autosaved");
+            switch (this.season) {
+                case Season.EarlySpring:
+                    Announce.i.AddMsg("Spring has begun");
+                    ++this.age;
+                    if (Config.i.GetCVar("bool", "autosave")) {
+                        let saveName = "autosave" + String(this.age % 2 ? "1" : "2");
+                        if (Data.i.SaveGame(saveName, false))
+                            Announce.i.AddMsg("Autosaved");
                         else
-                            this.Announce.AddMsg("Failed to autosave! Refer to the logfile", Color.red);
+                            Announce.i.AddMsg("Failed to autosave! Refer to the logfile", TCODColor.red);
                     }
-                case Spring:
-                case LateSpring:
-                    this.SpawnTillageJobs();
-                case Summer:
-                case LateSummer:
-                case Fall:
-                case LateFall:
-                case Winter:
-                    DecayItems();
+                case Season.Spring:
+                case Season.LateSpring:
+                    this.this.SpawnTillageJobs();
+                case Season.Summer:
+                case Season.LateSummer:
+                case Season.Fall:
+                case Season.LateFall:
+                case Season.Winter:
+                    this.DecayItems();
                     break;
 
-                case LateWinter:
+                case Season.LateWinter:
                     break;
 
-                case EarlySummer:
-                    Announce.AddMsg("Summer has begun");
-                    DecayItems();
+                case Season.EarlySummer:
+                    Announce.i.AddMsg("Summer has begun");
+                    this.DecayItems();
                     break;
 
-                case EarlyFall:
-                    Announce.AddMsg("Fall has begun");
-                    DecayItems();
+                case Season.EarlyFall:
+                    Announce.i.AddMsg("Fall has begun");
+                    this.DecayItems();
                     break;
 
-                case EarlyWinter:
-                    Announce.AddMsg("Winter has begun");
-                    DeTillFarmPlots();
+                case Season.EarlyWinter:
+                    Announce.i.AddMsg("Winter has begun");
+                    this.DeTillFarmPlots();
                     break;
 
                 default:
@@ -1241,149 +1329,150 @@ export class Game {
         //will be updated once every 2 seconds. It turns out that from the player's viewpoint this is just fine
 
         // nextWati removed because list<> complained about invalidated iterators -pl
-        for (let watIt = waterList.begin(); watIt !== waterList.end();) {
-            let water;
-            if (water = watIt.lock()) {
-                if (Random.Generate(49) === 0 && water.Update()) {
-                    RemoveWater(water.Position(), false);
-                    watIt = waterList.erase(watIt);
+        for (let watIt = 0; watIt < this.waterList.length; watIt++) {
+            let water = this.waterList[0].lock();
+            if (water) {
+                if (Random.i.Generate(49) === 0 && water.Update()) {
+                    this.RemoveWater(water.Position(), false);
+                    watIt = this.waterList.split(watIt,1);
                 } else {
                     ++watIt;
                 }
             } else {
-                watIt = waterList.erase(watIt);
+                watIt = this.waterList.splice(watIt,1);
             }
         }
 
         //Updating the last 10 waternodes each time means that recently created water moves faster.
         //This has the effect of making water rush to new places such as a moat very quickly, which is the
         //expected behaviour of water.
-        if (waterList.size() > 0) {
+        if (this.waterList.length > 0) {
             //We have to use two iterators, because wati may be invalidated if the water evaporates and is removed
             // std.list < boost.weak_ptr < WaterNode > > .iterator 
-            let wati = waterList.end();
+            let wati = this.waterList.length;
             // std.list < boost.weak_ptr < WaterNode > > .iterator 
             let nextwati = --wati;
-            while (std.distance(wati, waterList.end()) < 10) {
+            while ((this.waterList.length - wati) < 10) {
                 --nextwati;
-                if (wati === waterList.end()) break;
-                if (wati.lock()) wati.lock().Update();
+                if (wati === this.waterList.length) break;
+                if (wati[0].lock()) 
+                    wati[0].lock().Update();
                 wati = nextwati;
             }
         }
 
         // std.list < boost.weak_ptr < NPC > > 
         let npcsWaitingForRemoval;
-        for (let npci = npcList.begin(); npci !== npcList.end(); ++npci) {
+        for (let npci = this.npcMap.begin(); npci !== this.npcMap.end(); ++npci) {
             npci.second.Update();
             if (!npci.second.Dead()) npci.second.Think();
-            if (npci.second.Dead() || npci.second.Escaped()) npcsWaitingForRemoval.push_back(npci.second);
+            if (npci.second.Dead() || npci.second.Escaped()) npcsWaitingForRemoval.push(npci.second);
         }
         JobManager.AssignJobs();
 
         for (let remNpci = npcsWaitingForRemoval.begin(); remNpci !== npcsWaitingForRemoval.end(); ++remNpci) {
-            RemoveNPC(remNpci);
+            this.RemoveNPC(remNpci);
         }
 
-        for (let consi = dynamicConstructionList.begin(); consi !== dynamicConstructionList.end(); ++consi) {
+        for (let consi = this.dynamicConstructionMap.begin(); consi !== this.dynamicConstructionMap.end(); ++consi) {
             consi.second.Update();
         }
 
-        for (let itemi = stoppedItems.begin(); itemi !== stoppedItems.end();) {
-            flyingItems.erase(itemi);
-            let item;
-            if (item = itemi.lock()) {
+        for (let itemi = this.stoppedItems.begin(); itemi !== this.stoppedItems.end();) {
+            this.flyingItemsSet.erase(itemi);
+            let item = itemi.lock();
+            if (item) {
                 if (item.condition === 0) { //The impact has destroyed the item
-                    RemoveItem(item);
+                    this.RemoveItem(item);
                 }
             }
-            itemi = stoppedItems.erase(itemi);
+            itemi = this.stoppedItems.erase(itemi);
         }
 
-        for (let itemi = flyingItems.begin(); itemi !== flyingItems.end(); ++itemi) {
-            let item;
-            if (item = itemi.lock()) item.UpdateVelocity();
+        for (let itemi = this.flyingItemsSet.begin(); itemi !== this.flyingItemsSet.end(); ++itemi) {
+            let item = itemi.lock();
+            if (item) item.UpdateVelocity();
         }
 
         /*Constantly checking our free item list for items that can be stockpiled is overkill, so it's done once every
         5 seconds, on average, or immediately if a new stockpile is built or a stockpile's allowed items are changed.
         To further reduce load when very many free items exist, only a quarter of them will be checked*/
-        if (Random.Generate(UPDATES_PER_SECOND * 5 - 1) === 0 || refreshStockpiles) {
-            refreshStockpiles = false;
-            if (freeItems.size() < 100) {
-                for (let itemi = freeItems.begin(); itemi !== freeItems.end(); ++itemi) {
-                    let item;
-                    if (item = itemi.lock()) {
-                        if (!item.Reserved() && item.GetFaction() === PLAYERFACTION && item.GetVelocity() === 0)
-                            StockpileItem(item);
+        if (Random.i.Generate(Constants.UPDATES_PER_SECOND * 5 - 1) === 0 || this.refreshStockpiles) {
+            this.refreshStockpiles = false;
+            if (this.freeItemsSet.size < 100) {
+                for (let itemi of this.freeItemsSet.values()) {
+                    let item = itemi.lock();
+                    if (item) {
+                        if (!item.Reserved() && item.GetFaction() === Constants.PLAYERFACTION && item.GetVelocity() === 0)
+                            this.StockpileItem(item);
                     }
                 }
             } else {
-                for (let i = 0; i < Math.max(static_cast < size_t > (100), freeItems.size() / 4); ++i) {
+                for (let i = 0; i < Math.max(100, this.freeItemsSet.size / 4); ++i) {
                     //std.set < boost.weak_ptr < Item > > .iterator 
-                    let itemi = boost.next(freeItems.begin(), Random.ChooseIndex(freeItems));
-                    let item;
-                    if (item = itemi.lock()) {
-                        if (!item.Reserved() && item.GetFaction() === PLAYERFACTION && item.GetVelocity() === 0)
-                            StockpileItem(item);
+                    let itemi = Random.i.ChooseIndex(this.freeItemsSet.values());
+                    let item = itemi.lock();
+                    if (item) {
+                        if (!item.Reserved() && item.GetFaction() === Constants.PLAYERFACTION && item.GetVelocity() === 0)
+                            this.StockpileItem(item);
                     }
                 }
             }
         }
 
         //Squads needen't update their member rosters ALL THE TIME
-        if (time % (UPDATES_PER_SECOND * 1) === 0) {
-            for (let squadi = squadList.begin(); squadi !== squadList.end(); ++squadi) {
+        if (this.time % (Constants.UPDATES_PER_SECOND * 1) === 0) {
+            for (let squadi = this.squadMap.begin(); squadi !== this.squadMap.end(); ++squadi) {
                 squadi.second.UpdateMembers();
             }
         }
 
-        if (time % (UPDATES_PER_SECOND * 1) === 0) StockManager.Update();
+        if (this.time % (Constants.UPDATES_PER_SECOND * 1) === 0) StockManager.Update();
 
-        if (time % (UPDATES_PER_SECOND * 1) === 0) JobManager.Update();
+        if (this.time % (Constants.UPDATES_PER_SECOND * 1) === 0) JobManager.Update();
 
-        events.Update(safeMonths > 0);
+        this.events.Update(this.safeMonths > 0);
 
-        Map.Update();
+        GameMap.i.Update();
 
-        if (time % (UPDATES_PER_SECOND * 1) === 0) Camp.Update();
+        if (this.time % (Constants.UPDATES_PER_SECOND * 1) === 0) Camp.i.Update();
 
-        for (let delit = delays.begin(); delit !== delays.end();) {
+        for (let delit = this.delays.begin(); delit !== this.delays.end();) {
             if (--delit.first <= 0) {
                 try {
                     delit.second();
                 } catch (e) {
                     Script.LogException();
                 }
-                delit = delays.erase(delit);
+                delit = this.delays.erase(delit);
             } else ++delit;
         }
 
-        if (!gameOver && orcCount === 0 && goblinCount === 0) {
-            gameOver = true;
+        if (!this.gameOver && this.orcCount === 0 && this.goblinCount === 0) {
+            this.gameOver = true;
             //Game over, display stats
-            DisplayStats();
-            MessageBox.ShowMessageBox("Do you wish to keep watching?", null, "Keep watching", boost.bind(Game.GameOver, Game), "Quit");
+            this.DisplayStats();
+            MessageBox.ShowMessageBox("Do you wish to keep watching?", null, "Keep watching", () => this.GameOver(), "Quit");
         }
 
-        for (let fireit = fireList.begin(); fireit !== fireList.end();) {
-            let fire;
-            if (fire = fireit.lock()) {
-                if (Random.GenerateBool()) fire.Update();
+        for (let fireit = this.fireNodes.begin(); fireit !== this.fireNodes.end();) {
+            let fire = fireit.lock();
+            if (fire) {
+                if (Random.i.GenerateBool()) fire.Update();
                 if (fire.GetHeat() <= 0) {
-                    Map.SetFire(fire.Position(), null);
-                    fireit = fireList.erase(fireit);
+                    GameMap.i.SetFire(fire.Position(), null);
+                    fireit = this.fireNodes.erase(fireit);
                 } else {
                     ++fireit;
                 }
             } else {
-                fireit = fireList.erase(fireit);
+                fireit = this.fireNodes.erase(fireit);
             }
         }
 
-        for (let spellit = spellList.begin(); spellit !== spellList.end();) {
+        for (let spellit = this.spells.begin(); spellit !== this.spells.end();) {
             if ((spellit).IsDead()) {
-                spellit = spellList.erase(spellit);
+                spellit = this.spells.erase(spellit);
             } else {
                 (spellit).UpdateVelocity();
                 ++spellit;
@@ -1396,9 +1485,9 @@ export class Game {
     }
 
     StockpileItem(witem, returnJob, disregardTerritory, reserveItem) {
-        let item;
-        if (item = witem.lock()) {
-            if ((!reserveItem || !item.Reserved()) && item.GetFaction() === PLAYERFACTION) {
+        let item = witem.lock();
+        if (item) {
+            if ((!reserveItem || !item.Reserved()) && item.GetFaction() === Constants.PLAYERFACTION) {
                 // boost.shared_ptr < Stockpile > 
                 let nearest = null; //boost.shared_ptr < Stockpile > ();
                 //first = primary distance, second = secondary
@@ -1409,17 +1498,17 @@ export class Game {
                 /* If this is a container and it contains items, then stockpile it based on the items inside
                 instead of the container's type */
                 // boost.shared_ptr < Container > 
-                let containerItem = boost.dynamic_pointer_cast < Container > (item);
+                let containerItem = item;
                 if (containerItem && !containerItem.empty()) {
-                    let innerItem;
-                    if (innerItem = containerItem.GetFirstItem().lock()) {
+                    let innerItem = containerItem.GetFirstItem().lock();
+                    if (innerItem) {
                         itemType = innerItem.Type();
                     }
                 } else if (containerItem) useDemand = true; //Empty containers are stored based on demand
 
-                for (let stocki = staticConstructionList.begin(); stocki !== staticConstructionList.end(); ++stocki) {
+                for (let stocki = this.staticConstructionMap.begin(); stocki !== this.staticConstructionMap.end(); ++stocki) {
                     if (stocki.second.stockpile) {
-                        boost.shared_ptr < Stockpile > sp(boost.static_pointer_cast < Stockpile > (stocki.second));
+                        let sp = stocki.second;
                         if (sp.Allowed(Item.Presets[itemType].specificCategories) && !sp.Full(itemType)) {
 
                             //Found a stockpile that both allows the item, and has space
@@ -1428,14 +1517,14 @@ export class Game {
                             let category = Item.Presets[item.Type()].specificCategories.begin();
                             let distance = useDemand ?
                                 (Number.MAX_SAFE_INTEGER - 2) - sp.GetDemand(category) :
-                                Distance(sp.Center(), item.Position());
+                                Coordinate.Distance(sp.Center(), item.Position());
 
                             if (distance < nearestDistance.first) {
                                 nearestDistance.first = distance;
                                 nearest = sp;
-                                if (useDemand) nearestDistance.second = Distance(sp.Center(), item.Position());
+                                if (useDemand) nearestDistance.second = Coordinate.Distance(sp.Center(), item.Position());
                             } else if (useDemand && distance === nearestDistance.first) {
-                                let realDistance = Distance(sp.Center(), item.Position());
+                                let realDistance = Coordinate.Distance(sp.Center(), item.Position());
                                 if (nearestDistance.second > realDistance) {
                                     nearestDistance.first = distance;
                                     nearest = sp;
@@ -1448,12 +1537,12 @@ export class Game {
 
                 if (nearest) {
                     let priority;
-                    if (item.IsCategory(Item.StringToItemCategory("Food"))) priority = HIGH;
+                    if (item.IsCategory(Item.StringToItemCategory("Food"))) priority = JobPriority.HIGH;
                     else {
                         let stockDeficit = StockManager.TypeQuantity(itemType) / StockManager.Minimum(itemType);
-                        if (stockDeficit >= 1.0) priority = LOW;
-                        else if (stockDeficit > 0.25) priority = MED;
-                        else priority = HIGH;
+                        if (stockDeficit >= 1.0) priority = JobPriority.LOW;
+                        else if (stockDeficit > 0.25) priority = JobPriority.MED;
+                        else priority = JobPriority.HIGH;
                     }
 
                     // boost.shared_ptr < Job > 
@@ -1467,10 +1556,10 @@ export class Game {
 
                     //Check if the item can be contained, and if so if any containers are in the stockpile
                     if (Item.Presets[item.Type()].fitsin >= 0) {
-                        container = nearest.FindItemByCategory(Item.Presets[item.Type()].fitsin, NOTFULL, item.GetBulk());
+                        container = nearest.FindItemByCategory(Item.Presets[item.Type()].fitsin, Constants.NOTFULL, item.GetBulk());
                         if (container.lock()) {
                             target = container.lock().Position();
-                            stockJob.ReserveSpace(boost.static_pointer_cast < Container > (container.lock()), item.GetBulk());
+                            stockJob.ReserveSpace( (container.lock()), item.GetBulk());
                         }
                     }
 
@@ -1479,13 +1568,13 @@ export class Game {
                     if (target.X() !== -1) {
                         stockJob.ReserveSpot(nearest, target, item.Type());
                         if (reserveItem) stockJob.ReserveEntity(item);
-                        stockJob.tasks.push_back(Task(MOVE, item.Position()));
-                        stockJob.tasks.push_back(Task(TAKE, item.Position(), item));
-                        stockJob.tasks.push_back(Task(MOVE, target));
+                        stockJob.tasks.push(new Task(Action.MOVE, item.Position()));
+                        stockJob.tasks.push(new Task(Action.TAKE, item.Position(), item));
+                        stockJob.tasks.push(new Task(Action.MOVE, target));
                         if (!container.lock())
-                            stockJob.tasks.push_back(Task(PUTIN, target, nearest.Storage(target)));
+                            stockJob.tasks.push(new Task(Action.PUTIN, target, nearest.Storage(target)));
                         else
-                            stockJob.tasks.push_back(Task(PUTIN, target, container));
+                            stockJob.tasks.push(new Task(Action.PUTIN, target, container));
 
                         if (disregardTerritory) stockJob.DisregardTerritory();
 
@@ -1499,7 +1588,7 @@ export class Game {
     }
 
     TileAt(pixelX, pixelY) {
-        return renderer.TileAt(pixelX, pixelY, camX, camY);
+        return this.renderer.TileAt(pixelX, pixelY, this.camX, this.camY);
     }
 
     // namespace {
@@ -1512,9 +1601,9 @@ export class Game {
                 ptr.Draw(upleft, buffer);
                 ++it;
             } else {
-                if /* if(def */ (DEBUG) {
-                    std.cout << "!!! null POINTER !!! " << name << " ; id " << it.first << std.endl;
-                } /*#endif*/
+                if (Globals.DEBUG) {
+                    console.log( "!!! null POINTER !!! " , name , " ; id " , it.first );
+                } 
                 let tmp = it;
                 ++it;
                 map.erase(tmp);
@@ -1524,7 +1613,7 @@ export class Game {
     // }
 
     Draw(the_console, focusX, focusY, drawUI, posX, posY, sizeX, sizeY) {
-        the_console.setBackgroundFlag(TCOD_BKGND_SET);
+        the_console.setBackgroundFlag(TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
         if (sizeX === -1) {
             sizeX = the_console.getWidth();
         }
@@ -1533,10 +1622,10 @@ export class Game {
         }
         let charX, charY;
         TCODSystem.getCharSize(charX, charY);
-        renderer.DrawMap(Map, focusX, focusY, posX * charX, posY * charY, sizeX * charX, sizeY * charY);
+        this.renderer.DrawMap(GameMap.i, focusX, focusY, posX * charX, posY * charY, sizeX * charX, sizeY * charY);
 
         if (drawUI) {
-            UI.Draw(the_console);
+            UI.i.Draw(the_console);
         }
     }
 
@@ -1546,22 +1635,22 @@ export class Game {
     }
 
     CurrentSeason() {
-        return season;
+        return this.season;
     }
 
     SpawnTillageJobs() {
-        for (let consi = dynamicConstructionList.begin(); consi !== dynamicConstructionList.end(); ++consi) {
+        for (let consi = this.dynamicConstructionMap.begin(); consi !== this.dynamicConstructionMap.end(); ++consi) {
             if (consi.second.farmplot) {
-                boost.shared_ptr < Job > tillJob(new Job("Till farmplot"));
-                tillJob.tasks.push_back(Task(MOVE, consi.second.Position()));
-                tillJob.tasks.push_back(Task(USE, consi.second.Position(), consi.second));
+                let tillJob = (new Job("Till farmplot"));
+                tillJob.tasks.push(new Task(Action.MOVE, consi.second.Position()));
+                tillJob.tasks.push(new Task(Action.USE, consi.second.Position(), consi.second));
                 JobManager.AddJob(tillJob);
             }
         }
     }
 
     DeTillFarmPlots() {
-        for (let consi = dynamicConstructionList.begin(); consi !== dynamicConstructionList.end(); ++consi) {
+        for (let consi = this.dynamicConstructionMap.begin(); consi !== this.dynamicConstructionMap.end(); ++consi) {
             if (consi.second.farmplot) {
                 (consi.second).tilled = false;
             }
@@ -1573,7 +1662,7 @@ export class Game {
     GenerateMap(seed) {
         let random = new Random.Generator(seed);
 
-        let map = Map;
+        let map = GameMap.i;
         map.heightMap.clear();
 
         let riverStartLeft = random.GenerateBool();
@@ -1604,10 +1693,10 @@ export class Game {
                 py[3] = map.Height() - 1;
             }
             //This conditional ensures that the river's beginning and end are at least 100 units apart
-        } while (std.sqrt(std.pow(px[0] - px[3], 2) + std.pow(py[0] - py[3], 2)) < 100);
+        } while (Math.sqrt(Math.pow(px[0] - px[3], 2) + Math.pow(py[0] - py[3], 2)) < 100);
 
-        let depth = this.Config.GetCVar("riverDepth");
-        let width = this.Config.GetCVar("riverWidth");
+        let depth = Config.i.GetCVar("riverDepth");
+        let width = Config.i.GetCVar("riverWidth");
         map.heightMap.digBezier(px, py, width, -depth, width, -depth);
 
         let hills = 0;
@@ -1620,10 +1709,10 @@ export class Game {
 
             //We draw four lines from our potential hill site and measure the least distance to a river
             let dirs = [
-                WEST,
-                EAST,
-                NORTH,
-                SOUTH
+                Direction.WEST,
+                Direction.EAST,
+                Direction.NORTH,
+                Direction.SOUTH
             ];
             for (let i = 0; i < 4; ++i) {
                 let distance = 70;
@@ -1649,7 +1738,7 @@ export class Game {
                 for (let i = 0; i < 3; ++i) {
                     let height = random.Generate(15, heights[i]);
                     let radius = random.Generate(1, 3);
-                    map.heightMap.addHill(static_cast < float > (centers[i].X()), static_cast < float > (centers[i].Y()), static_cast < float > (height), static_cast < float > (radius));
+                    map.heightMap.addHill(centers[i].X(),centers[i].Y(), (height), (radius));
                 }
                 ++hills;
             }
@@ -1659,7 +1748,7 @@ export class Game {
 
         {
             // std.auto_ptr < TCODRandom > 
-            let tcodRandom = std.auto_ptr < TCODRandom > (new TCODRandom(random.GetSeed()));
+            let tcodRandom = new TCODRandom(random.GetSeed());
             map.heightMap.rainErosion(map.Width() * map.Height() * 5, 0.005, 0.30, tcodRandom.get());
         }
 
@@ -1691,7 +1780,7 @@ export class Game {
                     for (let ix = x - 3; ix <= x + 3; ++ix) {
                         let ip = new Coordinate(ix, y);
                         if (map.IsInside(ip) && map.heightMap.getValue(ix, y) >= map.GetWaterlevel()) {
-                            map.ResetType(p, TILEDITCH);
+                            map.ResetType(p, TileType.TILEDITCH);
                             tileChosen = true;
                             break;
                         }
@@ -1700,18 +1789,19 @@ export class Game {
                         for (let iy = y - 3; iy <= y + 3; ++iy) {
                             let ip = new Coordinate(x, iy);
                             if (map.IsInside(ip) && map.heightMap.getValue(x, iy) >= map.GetWaterlevel()) {
-                                map.ResetType(p, TILEDITCH);
+                                map.ResetType(p, TileType.TILEDITCH);
                                 tileChosen = true;
                                 break;
                             }
                         }
                     }
-                    if (!tileChosen) map.ResetType(p, TILERIVERBED);
-                    CreateWater(p, RIVERDEPTH);
+                    if (!tileChosen) 
+                        map.ResetType(p, TileType.TILERIVERBED);
+                    this.CreateWater(p, Constants.RIVERDEPTH);
                 } else if (height < 4.5) {
-                    map.ResetType(p, TILEGRASS);
+                    map.ResetType(p, TileType.TILEGRASS);
                 } else {
-                    map.ResetType(p, TILEROCK);
+                    map.ResetType(p, TileType.TILEROCK);
                 }
             }
         }
@@ -1719,13 +1809,13 @@ export class Game {
         //Create a bog
         infinityCheck = 0;
         while (infinityCheck < 1000) {
-            let candidate = random.ChooseInRectangle(zero + 30, map.Extent() - 30);
+            let candidate = random.ChooseInRectangle(Coordinate.zeroCoordinate + 30, map.Extent() - 30);
             let riverDistance = 70;
             let dirs = [
-                WEST,
-                EAST,
-                NORTH,
-                SOUTH
+                Direction.WEST,
+                Direction.EAST,
+                Direction.NORTH,
+                Direction.SOUTH
             ];
             for (let i = 0; i < 4; ++i) {
                 let distance = 70;
@@ -1740,11 +1830,11 @@ export class Game {
                 let lowOffset = random.Generate(-5, 5);
                 let highOffset = random.Generate(-5, 5);
                 for (let xOffset = -25; xOffset < 25; ++xOffset) {
-                    let range = int(std.sqrt((double)(25 * 25 - xOffset * xOffset)));
+                    let range = Math.floor(Math.sqrt()(25 * 25 - xOffset * xOffset));
                     lowOffset = Math.min(Math.max(random.Generate(-1, 1) + lowOffset, -5), 5);
                     highOffset = Math.min(Math.max(random.Generate(-1, 1) + highOffset, -5), 5);
                     for (let yOffset = -range - lowOffset; yOffset < range + highOffset; ++yOffset) {
-                        map.ResetType(candidate + Coordinate(xOffset, yOffset), TILEBOG);
+                        map.ResetType(candidate + Coordinate(xOffset, yOffset), TileType.TILEBOG);
                     }
                 }
                 break; //Only generate one bog
@@ -1772,19 +1862,19 @@ export class Game {
     FellTree(a, b) {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
-                let natUid = Map.GetNatureObject(Coordinate(x, y));
+                let natUid = GameMap.i.GetNatureObject(Coordinate(x, y));
                 if (natUid >= 0) {
                     // boost.shared_ptr < NatureObject > 
-                    let natObj = Game.natureList[natUid];
+                    let natObj = this.natureList[natUid];
                     if (natObj && natObj.Tree() && !natObj.Marked()) {
                         natObj.Mark();
-                        boost.shared_ptr < Job > fellJob(new Job("Fell tree", MED, 0, true));
+                        let fellJob = (new Job("Fell tree", JobPriority.MED, 0, true));
                         fellJob.Attempts(50);
                         fellJob.ConnectToEntity(natObj);
                         fellJob.DisregardTerritory();
                         fellJob.SetRequiredTool(Item.StringToItemCategory("Axe"));
-                        fellJob.tasks.push_back(Task(MOVEADJACENT, natObj.Position(), natObj));
-                        fellJob.tasks.push_back(Task(FELL, natObj.Position(), natObj));
+                        fellJob.tasks.push(new Task(Action.MOVEADJACENT, natObj.Position(), natObj));
+                        fellJob.tasks.push(new Task(Action.FELL, natObj.Position(), natObj));
                         JobManager.AddJob(fellJob);
                     }
                 }
@@ -1795,10 +1885,10 @@ export class Game {
     DesignateTree(a, b) {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
-                let natUid = Map.GetNatureObject(Coordinate(x, y));
+                let natUid = GameMap.i.GetNatureObject(Coordinate(x, y));
                 if (natUid >= 0) {
                     // boost.shared_ptr < NatureObject > 
-                    let natObj = Game.natureList[natUid];
+                    let natObj = this.natureList[natUid];
                     if (natObj && natObj.Tree() && !natObj.Marked()) {
                         //TODO: Implement proper map marker system and change this to use that
                         natObj.Mark();
@@ -1812,19 +1902,19 @@ export class Game {
     HarvestWildPlant(a, b) {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
-                let natUid = Map.GetNatureObject(Coordinate(x, y));
+                let natUid = GameMap.i.GetNatureObject(Coordinate(x, y));
                 if (natUid >= 0) {
                     // boost.shared_ptr < NatureObject > 
-                    let natObj = Game.natureList[natUid];
+                    let natObj = this.natureList[natUid];
                     if (natObj && natObj.Harvestable() && !natObj.Marked()) {
                         natObj.Mark();
-                        boost.shared_ptr < Job > harvestJob(new Job("Harvest wild plant"));
+                        let harvestJob = new Job("Harvest wild plant");
                         harvestJob.ConnectToEntity(natObj);
                         harvestJob.DisregardTerritory();
-                        harvestJob.tasks.push_back(Task(MOVEADJACENT, natObj.Position(), natObj));
-                        harvestJob.tasks.push_back(Task(HARVESTWILDPLANT, natObj.Position(), natObj));
+                        harvestJob.tasks.push(new Task(Action.MOVEADJACENT, natObj.Position(), natObj));
+                        harvestJob.tasks.push(new Task(Action.HARVESTWILDPLANT, natObj.Position(), natObj));
                         if (NatureObject.Presets[natObj.Type()].components.size() > 0)
-                            harvestJob.tasks.push_back(Task(STOCKPILEITEM));
+                            harvestJob.tasks.push(new Task(Action.STOCKPILEITEM));
                         JobManager.AddJob(harvestJob);
                     }
                 }
@@ -1832,18 +1922,37 @@ export class Game {
         }
     }
 
+    RemoveNatureObject(...args){
+        if(args.length === 2)
+            return this.RemoveNatureObject_coordinate_coordinate(args[0],args[1]);
+        else
+            return this.RemoveNatureObject_natureobject(args[0]);
+    }
 
-    RemoveNatureObject(natObj) {
+    RemoveNatureObject_coordinate_coordinate(a, b) {
+        for (let x = a.X(); x <= b.X(); ++x) {
+            for (let y = a.Y(); y <= b.Y(); ++y) {
+                let p = new Coordinate(x, y);
+                let uid = GameMap.i.GetNatureObject(p);
+                if (uid >= 0) {
+                    GameMap.i.SetNatureObject(p, -1);
+                    this.natureList.erase(uid);
+                }
+            }
+        }
+    }
+
+    RemoveNatureObject_natureobject(natObj) {
         if (natObj.lock()) {
-            Map.SetNatureObject(natObj.lock().Position(), -1);
-            natureList.erase(natObj.lock().Uid());
+            GameMap.i.SetNatureObject(natObj.lock().Position(), -1);
+            this.natureList.erase(natObj.lock().Uid());
         }
     }
 
     CheckTileType(type, target, size) {
         for (let x = target.X(); x < target.X() + size.X(); ++x) {
             for (let y = target.Y(); y < target.Y() + size.Y(); ++y) {
-                if (Map.GetType(Coordinate(x, y)) === type) return true;
+                if (GameMap.i.GetType(Coordinate(x, y)) === type) return true;
             }
         }
         return false;
@@ -1853,9 +1962,9 @@ export class Game {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                if (Map.GetType(p) === TILEBOG) {
-                    StockManager.UpdateBogDesignations(p, true);
-                    Map.Mark(p);
+                if (GameMap.i.GetType(p) === TileType.TILEBOG) {
+                    StockManager.i.UpdateBogDesignations(p, true);
+                    GameMap.i.Mark(p);
                 }
             }
         }
@@ -1865,31 +1974,31 @@ export class Game {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                let natUid = Map.GetNatureObject(p);
+                let natUid = GameMap.i.GetNatureObject(p);
                 if (natUid >= 0) {
                     // boost.weak_ptr < NatureObject > 
-                    let natObj = Game.natureList[natUid];
+                    let natObj = this.natureList[natUid];
                     if (natObj.lock() && natObj.lock().Tree() && natObj.lock().Marked()) {
                         //TODO: Implement proper map marker system and change this to use that
                         natObj.lock().Unmark();
                         StockManager.UpdateTreeDesignations(natObj, false);
                         // Might be designated as "Fell Trees" with jobs pending.
-                        JobManager.RemoveJob(FELL, p);
+                        JobManager.RemoveJob(Action.FELL, p);
                     }
                     // Need to be able to undesignate harvesting wild plants too.
                     if (natObj.lock() && natObj.lock().Harvestable() && natObj.lock().Marked()) {
                         natObj.lock().Unmark();
-                        JobManager.RemoveJob(HARVESTWILDPLANT, p);
+                        JobManager.RemoveJob(Action.HARVESTWILDPLANT, p);
                     }
                 }
 
-                if (Map.GetType(p) === TILEBOG) {
+                if (GameMap.i.GetType(p) === TileType.TILEBOG) {
                     StockManager.UpdateBogDesignations(p, false);
-                    Map.Unmark(p);
+                    GameMap.i.Unmark(p);
                 }
-                if (Map.GroundMarked(p)) {
-                    JobManager.RemoveJob(DIG, p); //A dig job may exist for this tile
-                    Camp.RemoveWaterZone(p, p); //May be marked for water
+                if (GameMap.i.GroundMarked(p)) {
+                    JobManager.RemoveJob(Action.DIG, p); //A dig job may exist for this tile
+                    Camp.i.RemoveWaterZone(p, p); //May be marked for water
                 }
             }
         }
@@ -1897,29 +2006,29 @@ export class Game {
 
     SeasonToString(season) {
         switch (season) {
-            case EarlySpring:
+            case Season.EarlySpring:
                 return "Early Spring";
-            case Spring:
+            case Season.Spring:
                 return "Spring";
-            case LateSpring:
+            case Season.LateSpring:
                 return "Late Spring";
-            case EarlySummer:
+            case Season.EarlySummer:
                 return "Early Summer";
-            case Summer:
+            case Season.Summer:
                 return "Summer";
-            case LateSummer:
+            case Season.LateSummer:
                 return "Late Summer";
-            case EarlyFall:
+            case Season.EarlyFall:
                 return "Early Fall";
-            case Fall:
+            case Season.Fall:
                 return "Fall";
-            case LateFall:
+            case Season.LateFall:
                 return "Late Fall";
-            case EarlyWinter:
+            case Season.EarlyWinter:
                 return "Early Winter";
-            case Winter:
+            case Season.Winter:
                 return "Winter";
-            case LateWinter:
+            case Season.LateWinter:
                 return "Late Winter";
             default:
                 return "???";
@@ -1929,58 +2038,58 @@ export class Game {
     DecayItems() {
         let eraseList = [];
         let creationList = [];
-        for (let itemit = itemList.begin(); itemit !== itemList.end();) {
+        for (let itemit = this.itemMap.begin(); itemit !== this.itemMap.end();) {
 
             if (itemit.second === 0) { // Now, how did we get a null pointer in here..
-                itemit = itemList.erase(itemit); // Get it out of the list!
-                if (itemit === itemList.end()) break;
+                itemit = this.itemMap.erase(itemit); // Get it out of the list!
+                if (itemit === this.itemMap.end()) break;
             }
 
             if (itemit.second.decayCounter > 0) {
                 if (--itemit.second.decayCounter === 0) {
                     for (let decaylisti = Item.Presets[itemit.second.type].decayList.begin(); decaylisti !== Item.Presets[itemit.second.type].decayList.end(); ++decaylisti) {
-                        creationList.push_back(std.pair < ItemType, Coordinate > (decaylisti, itemit.second.Position()));
+                        creationList.push(decaylisti, itemit.second.Position());
                     }
-                    eraseList.push_back(itemit.first);
+                    eraseList.push(itemit.first);
                 }
             }
             ++itemit;
         }
 
         for (let delit = eraseList.begin(); delit !== eraseList.end(); ++delit) {
-            RemoveItem(GetItem(delit));
+            this.RemoveItem(this.GetItem(delit));
         }
 
         for (let crit = creationList.begin(); crit !== creationList.end(); ++crit) {
             if (crit.first >= 0) {
-                CreateItem(crit.second, crit.first, false);
+                this.CreateItem(crit.second, crit.first, false);
             } else {
-                CreateFilth(crit.second);
+                this.CreateFilth(crit.second);
             }
         }
 
-        for (let bli = bloodList.begin(); bli !== bloodList.end();) {
-            let blood;
-            if (blood = bli.lock()) {
+        for (let bli = this.bloodNodes.begin(); bli !== this.bloodNodes.end();) {
+            let blood = bli.lock();
+            if (blood) {
                 blood.Depth(blood.Depth() - 50);
                 if (blood.Depth() <= 0) {
-                    Map.SetBlood(blood.Position(), null);
-                    bli = bloodList.erase(bli);
+                    GameMap.i.SetBlood(blood.Position(), null);
+                    bli = this.bloodNodes.erase(bli);
                 } else ++bli;
             } else {
-                bli = bloodList.erase(bli);
+                bli = this.bloodNodes.erase(bli);
             }
         }
     }
 
     CreateFilth(pos, amount = 1) {
-        Stats.FilthCreated(amount);
-        if (Map.IsInside(pos)) {
+        Stats.i.FilthCreated(amount);
+        if (GameMap.i.IsInside(pos)) {
             let loops = -1;
             while (amount > 0 && loops < 1000) {
                 ++loops;
                 // boost.shared_ptr < WaterNode > 
-                let water = Map.GetWater(pos).lock();
+                let water = GameMap.i.GetWater(pos).lock();
 
                 if (water) { //If water exists here just add the filth there, no need for filthnodes
                     water.AddFilth(amount);
@@ -1988,13 +2097,13 @@ export class Game {
                 }
 
                 // boost.weak_ptr < FilthNode > 
-                let filth = (Map.GetFilth(pos));
+                let filth = (GameMap.i.GetFilth(pos));
                 if (!filth.lock()) { //No existing filth node so create one
                     // boost.shared_ptr < FilthNode > 
                     let newFilth = (new FilthNode(pos, Math.min(5, amount)));
                     amount -= 5;
-                    filthList.push_back(boost.weak_ptr < FilthNode > (newFilth));
-                    Map.SetFilth(pos, newFilth);
+                    this.filthNodes.push(newFilth);
+                    GameMap.i.SetFilth(pos, newFilth);
                 } else {
                     let originalDepth = filth.lock().Depth();
                     filth.lock().Depth(Math.min(5, filth.lock().Depth() + amount));
@@ -2005,64 +2114,64 @@ export class Game {
                 if (amount > 0) {
                     let flowTo = pos;
                     let diff = Math.max(1, loops / 100);
-                    switch (Map.GetFlow(pos)) {
-                        case NORTH:
+                    switch (GameMap.i.GetFlow(pos)) {
+                        case Direction.NORTH:
                             flowTo.Y(flowTo.Y() - diff);
-                            flowTo.X(flowTo.X() + Random.Generate(-diff, diff));
+                            flowTo.X(flowTo.X() + Random.i.Generate(-diff, diff));
                             break;
 
-                        case NORTHEAST:
-                            if (Random.GenerateBool()) {
+                        case Direction.NORTHEAST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() - diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(-diff, 0));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, 0));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case NORTHWEST:
-                            if (Random.GenerateBool()) {
+                        case Direction.NORTHWEST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() - diff);
-                                flowTo.X(flowTo.X() - Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() - Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(-diff, 0));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, 0));
                                 flowTo.X(flowTo.X() - diff);
                             }
                             break;
 
-                        case SOUTH:
+                        case Direction.SOUTH:
                             flowTo.Y(flowTo.Y() + diff);
-                            flowTo.X(flowTo.X() + Random.Generate(-diff, diff));
+                            flowTo.X(flowTo.X() + Random.i.Generate(-diff, diff));
                             break;
 
-                        case SOUTHEAST:
-                            if (Random.GenerateBool()) {
+                        case Direction.SOUTHEAST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() + diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(0, diff));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(0, diff));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case SOUTHWEST:
-                            if (Random.GenerateBool()) {
+                        case Direction.SOUTHWEST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() + diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(0, diff));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(0, diff));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case WEST:
-                            flowTo.Y(flowTo.Y() + Random.Generate(-diff, diff));
+                        case Direction.WEST:
+                            flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, diff));
                             flowTo.X(flowTo.X() - diff);
                             break;
 
-                        case EAST:
-                            flowTo.Y(flowTo.Y() + Random.Generate(-diff, diff));
+                        case Direction.EAST:
+                            flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, diff));
                             flowTo.X(flowTo.X() + diff);
                             break;
 
@@ -2071,12 +2180,12 @@ export class Game {
                     }
 
                     while (flowTo === pos) {
-                        flowTo = Coordinate(pos.X() + Random.Generate(-diff, diff), pos.Y() + Random.Generate(-diff, diff));
+                        flowTo = Coordinate(pos.X() + Random.i.Generate(-diff, diff), pos.Y() + Random.i.Generate(-diff, diff));
                     }
                     pos = flowTo;
 
                     //If the filth flows off-map just stop creating more
-                    if (!Map.IsInside(flowTo)) {
+                    if (!GameMap.i.IsInside(flowTo)) {
                         Stats.FilthFlowsOffEdge(amount);
                         return;
                     }
@@ -2086,17 +2195,17 @@ export class Game {
     }
 
     CreateBlood(pos, amount = 100) {
-        if (Map.IsInside(pos)) {
+        if (GameMap.i.IsInside(pos)) {
             let loops = -1;
             while (amount > 0 && loops < 1000) {
                 ++loops;
 
-                boost.weak_ptr < BloodNode > blood(Map.GetBlood(pos));
+                let blood = (GameMap.i.GetBlood(pos));
                 if (!blood.lock()) { //No existing BloodNode so create one
-                    boost.shared_ptr < BloodNode > newBlood(new BloodNode(pos, Math.min(255, amount)));
+                    let newBlood = (new BloodNode(pos, Math.min(255, amount)));
                     amount -= 255;
-                    bloodList.push_back(boost.weak_ptr < BloodNode > (newBlood));
-                    Map.SetBlood(pos, newBlood);
+                    this.bloodNodes.push(newBlood);
+                    GameMap.i.SetBlood(pos, newBlood);
                 } else {
                     let originalDepth = blood.lock().Depth();
                     blood.lock().Depth(Math.min(255, blood.lock().Depth() + amount));
@@ -2107,64 +2216,64 @@ export class Game {
                 if (amount > 0) {
                     let flowTo = pos;
                     let diff = Math.max(1, loops / 100);
-                    switch (Map.GetFlow(pos)) {
-                        case NORTH:
+                    switch (GameMap.i.GetFlow(pos)) {
+                        case Direction.NORTH:
                             flowTo.Y(flowTo.Y() - diff);
-                            flowTo.X(flowTo.X() + Random.Generate(-diff, diff));
+                            flowTo.X(flowTo.X() + Random.i.Generate(-diff, diff));
                             break;
 
-                        case NORTHEAST:
-                            if (Random.GenerateBool()) {
+                        case Direction.NORTHEAST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() - diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(-diff, 0));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, 0));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case NORTHWEST:
-                            if (Random.GenerateBool()) {
+                        case Direction.NORTHWEST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() - diff);
-                                flowTo.X(flowTo.X() - Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() - Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(-diff, 0));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, 0));
                                 flowTo.X(flowTo.X() - diff);
                             }
                             break;
 
-                        case SOUTH:
+                        case Direction.SOUTH:
                             flowTo.Y(flowTo.Y() + diff);
-                            flowTo.X(flowTo.X() + Random.Generate(-diff, diff));
+                            flowTo.X(flowTo.X() + Random.i.Generate(-diff, diff));
                             break;
 
-                        case SOUTHEAST:
-                            if (Random.GenerateBool()) {
+                        case Direction.SOUTHEAST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() + diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(0, diff));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(0, diff));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case SOUTHWEST:
-                            if (Random.GenerateBool()) {
+                        case Direction.SOUTHWEST:
+                            if (Random.i.GenerateBool()) {
                                 flowTo.Y(flowTo.Y() + diff);
-                                flowTo.X(flowTo.X() + Random.Generate(0, diff));
+                                flowTo.X(flowTo.X() + Random.i.Generate(0, diff));
                             } else {
-                                flowTo.Y(flowTo.Y() + Random.Generate(0, diff));
+                                flowTo.Y(flowTo.Y() + Random.i.Generate(0, diff));
                                 flowTo.X(flowTo.X() + diff);
                             }
                             break;
 
-                        case WEST:
-                            flowTo.Y(flowTo.Y() + Random.Generate(-diff, diff));
+                        case Direction.WEST:
+                            flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, diff));
                             flowTo.X(flowTo.X() - diff);
                             break;
 
-                        case EAST:
-                            flowTo.Y(flowTo.Y() + Random.Generate(-diff, diff));
+                        case Direction.EAST:
+                            flowTo.Y(flowTo.Y() + Random.i.Generate(-diff, diff));
                             flowTo.X(flowTo.X() + diff);
                             break;
 
@@ -2173,12 +2282,12 @@ export class Game {
                     }
 
                     while (flowTo === pos) {
-                        flowTo = Coordinate(pos.X() + Random.Generate(-diff, diff), pos.Y() + Random.Generate(-diff, diff));
+                        flowTo = new Coordinate(pos.X() + Random.i.Generate(-diff, diff), pos.Y() + Random.i.Generate(-diff, diff));
                     }
                     pos = flowTo;
 
                     //If the blood flows off-map just stop creating more
-                    if (!Map.IsInside(flowTo)) {
+                    if (!GameMap.i.IsInside(flowTo)) {
                         return;
                     }
                 }
@@ -2188,24 +2297,24 @@ export class Game {
     }
 
     Pause() {
-        paused = !paused;
+        this.paused = !this.paused;
     }
 
     Paused() {
-        return paused;
+        return this.paused;
     }
 
     CharHeight() {
-        return charHeight;
+        return this.charHeight;
     }
     CharWidth() {
-        return charWidth;
+        return this.charWidth;
     }
 
     RemoveNPC(wnpc) {
-        let npc;
-        if (npc = wnpc.lock()) {
-            npcList.erase(npc.uid);
+        let npc = wnpc.lock();
+        if (npc) {
+            this.npcMap.erase(npc.uid);
             let faction = npc.GetFaction();
             if (faction >= 0 && faction < (Faction.factions.length))
                 Faction.factions[faction].RemoveMember(npc);
@@ -2216,8 +2325,8 @@ export class Game {
         // Holder for orc with most/full health
         // boost.shared_ptr < NPC > 
         let strongest;
-        for (let npci = npcList.begin(); npci != npcList.end(); ++npci) {
-            if (npci.second.type == NPC.StringToNPCType("orc") && npci.second.faction == PLAYERFACTION) {
+        for (let npci = this.npcMap.begin(); npci !== this.npcMap.end(); ++npci) {
+            if (npci.second.type === NPC.StringToNPCType("orc") && npci.second.faction === Constants.PLAYERFACTION) {
                 // Find the orc with the most/full health to prevent near-dead orcs from getting put in the squad
                 if (!npci.second.squad.lock() && (!strongest || npci.second.health > strongest.health)) {
                     strongest = (npci).second;
@@ -2229,25 +2338,25 @@ export class Game {
     }
 
     CreateSquad(name) {
-        squadList.insert((name, (new Squad(name))));
+        this.squadMap.insert((name, (new Squad(name))));
     }
 
     SetSquadTargetCoordinate(order, target, squad, autoClose) {
         squad.AddOrder(order);
         squad.AddTargetCoordinate(target);
-        if (autoClose) UI.CloseMenu();
-        Announce.AddMsg((boost.format("[%1%] guarding position (%2%,%3%)") % squad.Name() % target.X() % target.Y()).str(), Color.white, target);
-        Map.AddMarker(MapMarker(FLASHINGMARKER, 'X', target, UPDATES_PER_SECOND * 5, Color.azure));
+        if (autoClose) 
+            UI.i.CloseMenu();
+        Announce.i.AddMsg(`[${squad.Name()}] guarding position (${target.X()},${target.Y()})`, TCODColor.white, target);
+        GameMap.i.AddMarker(new MapMarker(MarkerType.FLASHINGMARKER, 'X', target,Constants.UPDATES_PER_SECOND * 5, TCODColor.azure));
     }
     SetSquadTargetEntity(order, target, squad) {
-        if (Map.IsInside(target)) {
-            // std.set < int > * 
-            let npcList = Map.NPCList(target);
-            if (!npcList.empty()) {
+        if (GameMap.i.IsInside(target)) {
+            let list = GameMap.i.NPCList(target);
+            if (!list.empty()) {
                 squad.AddOrder(order);
-                squad.AddTargetEntity(Game.npcList[npcList.begin()]);
-                UI.CloseMenu();
-                Announce.AddMsg((boost.format("[%1%] following %2%") % squad.Name() % Game.npcList[npcList.begin()].Name()).str(), Color.white, target);
+                squad.AddTargetEntity(list[list.begin()]);
+                UI.i.CloseMenu();
+                Announce.i.AddMsg(`[${squad.Name()}%] following ${list[list.begin()].Name()}`, TCODColor.white, target);
             }
         }
     }
@@ -2259,7 +2368,7 @@ export class Game {
         // std.vector < int > 
         let uids = [];
         for (let npcs = 0; npcs < quantity; ++npcs)
-            uids.push_back(Game.CreateNPC(Random.ChooseInRectangle(low, high), type));
+            uids.push(this.CreateNPC(Random.ChooseInRectangle(low, high), type));
         return uids;
     }
 
@@ -2268,16 +2377,14 @@ export class Game {
     }
 
     ToMainMenu(value) {
-        Game.toMainMenu = value;
-    }
-    ToMainMenu() {
-        return Game.toMainMenu;
+        if(value !== undefined)
+            this.toMainMenu = value;
+        return this.toMainMenu;
     }
 
     Running(value) {
-        this.running = value;
-    }
-    Running() {
+        if(value !== undefined)
+            this.running = value;
         return this.running;
     }
 
@@ -2287,13 +2394,13 @@ export class Game {
         // boost.weak_ptr < Construction >
         let foundConstruct;
 
-        for (let stati = staticConstructionList.begin(); stati != staticConstructionList.end(); ++stati) {
+        for (let stati = this.staticConstructionMap.begin(); stati !== this.staticConstructionMap.end(); ++stati) {
             if (!stati.second.Reserved() && stati.second.HasTag(tag)) {
-                if (closeTo.X() == -1)
+                if (closeTo.X() === -1)
                     return stati.second;
                 else {
-                    if (distance == -1 || Distance(closeTo, stati.second.Position()) < distance) {
-                        distance = Distance(closeTo, stati.second.Position());
+                    if (distance === -1 || Coordinate.Distance(closeTo, stati.second.Position()) < distance) {
+                        distance = Coordinate.Distance(closeTo, stati.second.Position());
                         foundConstruct = stati.second;
                         if (distance < 5) return foundConstruct;
                     }
@@ -2303,15 +2410,16 @@ export class Game {
 
         if (foundConstruct.lock()) return foundConstruct;
 
-        for (let dynai = dynamicConstructionList.begin(); dynai != dynamicConstructionList.end(); ++dynai) {
+        for (let dynai = this.dynamicConstructionMap.begin(); dynai !== this.dynamicConstructionMap.end(); ++dynai) {
             if (!dynai.second.Reserved() && dynai.second.HasTag(tag)) {
-                if (closeTo.X() == -1)
+                if (closeTo.X() === -1)
                     return dynai.second;
                 else {
-                    if (distance == -1 || Distance(closeTo, dynai.second.Position()) < distance) {
-                        distance = Distance(closeTo, dynai.second.Position());
+                    if (distance === -1 || Coordinate.Distance(closeTo, dynai.second.Position()) < distance) {
+                        distance = Coordinate.Distance(closeTo, dynai.second.Position());
                         foundConstruct = dynai.second;
-                        if (distance < 5) return foundConstruct;
+                        if (distance < 5) 
+                            return foundConstruct;
                     }
                 }
             }
@@ -2322,99 +2430,98 @@ export class Game {
 
     Reset() {
         //TODO: ugly
-        this.npcList = [];
+        this.npcMap = [];
         this.natureList = []; //Ice decays into ice objects and water, so clear this before items and water
-        this.itemList = []; //Destroy current items, that way ~Construction() won't have items to try and stockpile
+        this.itemMap = []; //Destroy current items, that way ~Construction() won't have items to try and stockpile
 
-        this.staticConstructionList.clear();
-        this.dynamicConstructionList.clear();
+        this.staticConstructionMap.clear();
+        this.dynamicConstructionMap.clear();
 
-        GameMap.Reset();
-        JobManager.Reset();
-        StockManager.Reset();
-        Announce.Reset();
-        Camp.Reset();
+        GameMap.i.Reset();
+        JobManager.i.Reset();
+        StockManager.i.Reset();
+        Announce.i.Reset();
+        Camp.i.Reset();
         for (let i = 0; i < Faction.factions.length; ++i) {
             Faction.factions[i].Reset();
         }
-        Stats.Reset();
+        Stats.i.Reset();
 
-        delete StockManagerDialog.stocksDialog;
-        StockManagerDialog.stocksDialog = 0;
+        delete StockManagerDialog.i.stocksDialog;
+        StockManagerDialog.i.stocksDialog = 0;
 
-        delete Menu.mainMenu;
-        Menu.mainMenu = 0;
+        delete Menu.i.mainMenu;
+        Menu.i.mainMenu = 0;
 
-        delete Menu.territoryMenu;
-        Menu.territoryMenu = 0;
+        delete Menu.i.territoryMenu;
+        Menu.i.territoryMenu = 0;
 
-        UI.Reset();
+        UI.i.Reset();
 
     }
 
     GetRandomNPCTypeByTag(tag) {
-        // std.vector < NPCType > 
-        let npcList;
+        // std.vector < NPCType >
+        let foundList = []; 
         for (let i = 0; i < NPC.Presets.size(); ++i) {
-            if (NPC.Presets[i].tags.find(boost.to_lower_copy(tag)) != NPC.Presets[i].tags.end()) {
-                npcList.push_back(i);
+            if (NPC.Presets[i].tags.find(tag.toLowerCase() !== NPC.Presets[i].tags.end())) {
+                foundList.push(i);
             }
         }
-        if (npcList.size() > 0)
-            return Random.ChooseElement(npcList);
+        if (foundList.size() > 0)
+            return Random.ChooseElement(foundList);
         return -1;
     }
 
     CenterOn(target) {
-        camX = target.X() + 0.5;
-        camY = target.Y() + 0.5;
+        this.camY = target.Y() + 0.5;
+        this.camX = target.X() + 0.5;
     }
 
     MoveCam(x, y) {
-        camX = Math.min(Math.max(x * renderer.ScrollRate() + camX, 0.0), Map.Width() + 1.0);
-        camY = Math.min(Math.max(y * renderer.ScrollRate() + camY, 0.0), Map.Height() + 1.0);
+        this.camX = Math.min(Math.max(x * this.renderer.ScrollRate() + this.camX, 0.0), GameMap.i.Width() + 1.0);
+        this.camY = Math.min(Math.max(y * this.renderer.ScrollRate() + this.camY, 0.0), GameMap.i.Height() + 1.0);
     }
 
     SetMark(i) {
-        this.marks[i] = Coordinate(FloorToInt.convert(camX), FloorToInt.convert(camY));
-        Announce.AddMsg("Mark set");
+        this.marks[i] = new Coordinate(Math.floor(this.camX), Math.floor(this.camY));
+        Announce.i.AddMsg("Mark set");
     }
 
     ReturnToMark(i) {
-        camX = this.marks[i].X() + 0.5;
-        camY = this.marks[i].Y() + 0.5;
+        this.camX = this.marks[i].X() + 0.5;
+        this.camY = this.marks[i].Y() + 0.5;
     }
 
     TranslateContainerListeners() {
-        for (let it = itemList.begin(); it != itemList.end(); ++it) {
-            if (boost.dynamic_pointer_cast < Container > (it.second)) {
-                boost.static_pointer_cast < Container > (it.second).TranslateContainerListeners();
+        for (let it = this.itemMap.begin(); it !== this.itemMap.end(); ++it) {
+            if (it.second) {
+                (it.second).TranslateContainerListeners();
             }
         }
-        for (let it = this.staticConstructionList.begin(); it != this.staticConstructionList.end(); ++it) {
-            if (boost.dynamic_pointer_cast < Stockpile > (it.second)) {
-                boost.static_pointer_cast < Stockpile > (it.second).TranslateInternalContainerListeners();
+        for (let it = this.staticConstructionMap.begin(); it !== this.staticConstructionMap.end(); ++it) {
+            if (it.second) {
+                (it.second).TranslateInternalContainerListeners();
             }
         }
-        for (let it = dynamicConstructionList.begin(); it != dynamicConstructionList.end(); ++it) {
-            if (boost.dynamic_pointer_cast < Stockpile > (it.second)) {
-                boost.static_pointer_cast < Stockpile > (it.second).TranslateInternalContainerListeners();
+        for (let it = this.dynamicConstructionMap.begin(); it !== this.dynamicConstructionMap.end(); ++it) {
+            if (it.second) {
+                (it.second).TranslateInternalContainerListeners();
             }
         }
     }
 
-    PeacefulFaunaCount() {
-        return peacefulFaunaCount;
-    }
     PeacefulFaunaCount(add) {
-        peacefulFaunaCount += add;
+        if(Number.isFinite(add))
+            this.peacefulFaunaCount += add;
+        return this.peacefulFaunaCount;
     }
 
     DevMode() {
-        return devMode;
+        return this.devMode;
     }
     EnableDevMode() {
-        devMode = true;
+        this.devMode = true;
     }
 
     Dig(a, b) {
@@ -2423,63 +2530,40 @@ export class Game {
                 /*TODO: Relying on GroundMarked() is iffy, it doesn't necessarily mean that that
                 spot is reserved for digging. */
                 let p = new Coordinate(x, y);
-                std.set < TileType > allowedTypes;
-                allowedTypes.insert(TILEGRASS);
-                allowedTypes.insert(TILEMUD);
-                allowedTypes.insert(TILEBOG);
-                allowedTypes.insert(TILESNOW);
-                if (CheckPlacement(p, Coordinate(1, 1), allowedTypes) && !Map.GroundMarked(p) && !Map.IsLow(p)) {
-                    boost.shared_ptr < Job > digJob(new Job("Dig"));
+                let allowedTypes = new Set();
+                allowedTypes.insert(TileType.TILEGRASS);
+                allowedTypes.insert(TileType.TILEMUD);
+                allowedTypes.insert(TileType.TILEBOG);
+                allowedTypes.insert(TileType.TILESNOW);
+                if (this.CheckPlacement(p, new Coordinate(1, 1), allowedTypes) && !GameMap.i.GroundMarked(p) && !GameMap.i.IsLow(p)) {
+                    let digJob = (new Job("Dig"));
                     digJob.SetRequiredTool(Item.StringToItemCategory("Shovel"));
                     digJob.MarkGround(p);
                     digJob.Attempts(50);
                     digJob.DisregardTerritory();
-                    digJob.tasks.push_back(Task(MOVEADJACENT, p));
-                    digJob.tasks.push_back(Task(DIG, p));
+                    digJob.tasks.push(new Task(Action.MOVEADJACENT, p));
+                    digJob.tasks.push(new Task(Action.DIG, p));
                     JobManager.AddJob(digJob);
                 }
             }
         }
     }
 
-    FindClosestAdjacent(from, target, faction) {
-        let closest = Coordinate(-9999, -9999);
-        let leastDistance = Number.MAX_SAFE_INTEGER;
-        for (let ix = target.X() - 1; ix <= target.X() + 1; ++ix) {
-            for (let iy = target.Y() - 1; iy <= target.Y() + 1; ++iy) {
-                let p = new Coordinate(ix, iy);
-                if (p.onRectangleEdges(target - 1, target + 1) && Map.IsWalkable(p)) {
-                    let distance = Distance(from, p);
-                    if (faction >= 0 && Map.IsDangerous(p, faction)) distance += 100;
-                    if (distance < leastDistance) {
-                        closest = p;
-                        leastDistance = distance;
-                    }
-                }
-            }
-        }
-        return closest;
-    }
-
-    Adjacent(a, b) {
-        return (Math.abs(a.X() - b.X()) < 2 && Math.abs(a.Y() - b.Y()) < 2);
-    }
-
-    CreateNatureObject(pos, surroundingNatureObjects) {
-        if (Map.IsWalkable(pos) && (Map.GetType(pos) == TILEGRASS || Map.GetType(pos) == TILESNOW) && Random.Generate(4) < 2) {
+    CreateNatureObject_coordinate_int(pos, surroundingNatureObjects) {
+        if (GameMap.i.IsWalkable(pos) && (GameMap.i.GetType(pos) === TileType.TILEGRASS || GameMap.i.GetType(pos) === TileType.TILESNOW) && Random.i.Generate(4) < 2) {
             // std.priority_queue < std.pair < int, int > > 
             let natureObjectQueue = [];
-            let height = Map.heightMap.getValue(pos.X(), pos.Y());
+            let height = GameMap.i.heightMap.getValue(pos.X(), pos.Y());
 
             //Populate the priority queue with all possible plants and give each one a random
             //value based on their rarity
-            let evil = Map.GetCorruption(pos) >= 100;
+            let evil = GameMap.i.GetCorruption(pos) >= 100;
             for (let i = 0; i < NatureObject.Presets.size(); ++i) {
                 if (NatureObject.Presets[i].minHeight <= height &&
                     NatureObject.Presets[i].maxHeight >= height &&
-                    NatureObject.Presets[i].evil == evil &&
-                    (NatureObject.Presets[i].tree == (surroundingNatureObjects < 4) || evil))
-                    natureObjectQueue.push(std.make_pair(Random.Generate(NatureObject.Presets[i].rarity - 1) + Random.Generate(2), i));
+                    NatureObject.Presets[i].evil === evil &&
+                    (NatureObject.Presets[i].tree === (surroundingNatureObjects < 4) || evil))
+                    natureObjectQueue.push([Random.i.Generate(NatureObject.Presets[i].rarity - 1) + Random.i.Generate(2), i]);
             }
 
             if (natureObjectQueue.empty()) return;
@@ -2490,76 +2574,69 @@ export class Game {
             if (Math.abs(height - NatureObject.Presets[chosen].minHeight) <= 0.005 ||
                 Math.abs(height - NatureObject.Presets[chosen].maxHeight) <= 0.05) rarity /= 2;
 
-            if (Random.Generate(50) < rarity) {
+            if (Random.i.Generate(50) < rarity) {
                 for (let clus = 0; clus < NatureObject.Presets[chosen].cluster; ++clus) {
-                    let a = Map.Shrink(Random.ChooseInRadius(pos, clus));
-                    if (Map.IsWalkable(a) && (Map.GetType(a) == TILEGRASS || Map.GetType(a) == TILESNOW) &&
-                        Map.GetNatureObject(a) < 0 && Map.GetConstruction(a) < 0) {
+                    let a = GameMap.i.Shrink(Random.ChooseInRadius(pos, clus));
+                    if (GameMap.i.IsWalkable(a) && (GameMap.i.GetType(a) === TileType.TILEGRASS || GameMap.i.GetType(a) === TileType.TILESNOW) &&
+                        GameMap.i.GetNatureObject(a) < 0 && GameMap.i.GetConstruction(a) < 0) {
                         // boost.shared_ptr < NatureObject > 
                         let natObj = (new NatureObject(a, chosen));
-                        natureList.insert((natObj.Uid(), natObj));
-                        Map.SetNatureObject(a, natObj.Uid());
-                        Map.SetWalkable(a, NatureObject.Presets[natObj.Type()].walkable);
-                        Map.SetBuildable(a, false);
-                        Map.SetBlocksLight(a, !NatureObject.Presets[natObj.Type()].walkable);
+                        this.natureList.insert((natObj.Uid(), natObj));
+                        GameMap.i.SetNatureObject(a, natObj.Uid());
+                        GameMap.i.SetWalkable(a, NatureObject.Presets[natObj.Type()].walkable);
+                        GameMap.i.SetBuildable(a, false);
+                        GameMap.i.SetBlocksLight(a, !NatureObject.Presets[natObj.Type()].walkable);
                     }
                 }
             }
         }
     }
-
-    CreateNatureObject(pos, name) {
+    CreateNatureObject(...args){
+        if(typeof args[1] === "string")
+            this.CreateNatureObject_coordinate_string(args[0],args[1]);
+        else
+            this.CreateNatureObject_coordinate_int(args[0],args[1]);
+    }
+    CreateNatureObject_coordinate_string(pos, name) {
         let natureObjectIndex = 0;
-        for (let preseti = NatureObject.Presets.begin(); preseti != NatureObject.Presets.end();
+        for (let preseti = NatureObject.Presets.begin(); preseti !== NatureObject.Presets.end();
             ++preseti) {
-            if (boost.iequals(preseti.name, name)) break;
+            if (preseti.name.toLowerCase() === name.toLowerCase()) break;
             ++natureObjectIndex;
         }
 
         if (natureObjectIndex < NatureObject.Presets.size() &&
-            boost.iequals(NatureObject.Presets[natureObjectIndex].name, name)) {
-            if (Map.IsInside(pos) && Map.GetNatureObject(pos) < 0 && Map.GetConstruction(pos) < 0) {
-                boost.shared_ptr < NatureObject > natObj;
-                if (boost.iequals(NatureObject.Presets[natureObjectIndex].name, "Ice"))
+            iequals(NatureObject.Presets[natureObjectIndex].name, name)) {
+            if (GameMap.i.IsInside(pos) && GameMap.i.GetNatureObject(pos) < 0 && GameMap.i.GetConstruction(pos) < 0) {
+                let natObj;
+                if (iequals(NatureObject.Presets[natureObjectIndex].name, "Ice"))
                     natObj.reset(new Ice(pos, natureObjectIndex));
                 else
                     natObj.reset(new NatureObject(pos, natureObjectIndex));
-                natureList.insert((natObj.Uid(), natObj));
-                Map.SetNatureObject(pos, natObj.Uid());
-                Map.SetWalkable(pos, NatureObject.Presets[natObj.Type()].walkable);
-                Map.SetBuildable(pos, false);
-                Map.SetBlocksLight(pos, !NatureObject.Presets[natObj.Type()].walkable);
+                this.natureList.insert((natObj.Uid(), natObj));
+                GameMap.i.SetNatureObject(pos, natObj.Uid());
+                GameMap.i.SetWalkable(pos, NatureObject.Presets[natObj.Type()].walkable);
+                GameMap.i.SetBuildable(pos, false);
+                GameMap.i.SetBlocksLight(pos, !NatureObject.Presets[natObj.Type()].walkable);
             }
         }
     }
 
-    RemoveNatureObject(a, b) {
-        for (let x = a.X(); x <= b.X(); ++x) {
-            for (let y = a.Y(); y <= b.Y(); ++y) {
-                let p = new Coordinate(x, y);
-                let uid = Map.GetNatureObject(p);
-                if (uid >= 0) {
-                    Map.SetNatureObject(p, -1);
-                    natureList.erase(uid);
-                }
-            }
-        }
-    }
 
     TriggerAttack() {
-        events.SpawnHostileMonsters();
+        this.events.SpawnHostileMonsters();
     }
     TriggerMigration() {
-        events.SpawnMigratingAnimals();
+        this.events.SpawnMigratingAnimals();
     }
 
     GatherItems(a, b) {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                if (Map.IsInside(p)) {
-                    for (let itemuid = Map.ItemList(p).begin(); itemuid != Map.ItemList(p).end(); ++itemuid) {
-                        StockpileItem(GetItem(itemuid), false, true);
+                if (GameMap.i.IsInside(p)) {
+                    for (let itemuid = GameMap.i.ItemList(p).begin(); itemuid !== GameMap.i.ItemList(p).end(); ++itemuid) {
+                        this.StockpileItem(this.GetItem(itemuid), false, true);
                     }
                 }
             }
@@ -2568,59 +2645,60 @@ export class Game {
 
     RemoveFilth(pos) {
         // boost.shared_ptr < FilthNode > 
-        let filth = Map.GetFilth(pos).lock();
+        let filth = GameMap.i.GetFilth(pos).lock();
         if (filth) {
-            for (let filthi = filthList.begin(); filthi != filthList.end(); ++filthi) {
-                if (filthi.lock() == filth) {
-                    filthList.erase(filthi);
+            for (let filthi = this.filthNodes.begin(); filthi !== this.filthNodes.end(); ++filthi) {
+                if (filthi.lock() === filth) {
+                    this.filthNodes.erase(filthi);
                     break;
                 }
             }
-            Map.SetFilth(pos, null); //boost.shared_ptr < FilthNode > ());
+            GameMap.i.SetFilth(pos, null); //boost.shared_ptr < FilthNode > ());
         }
     }
 
     RemoveWater(pos, removeFromList) {
         // boost.shared_ptr < WaterNode > 
-        let water = Map.GetWater(pos).lock();
+        let water = GameMap.i.GetWater(pos).lock();
         if (water) {
             if (removeFromList) {
-                for (let wateri = waterList.begin(); wateri != waterList.end(); ++wateri) {
-                    if (wateri.lock() == water) {
-                        waterList.erase(wateri);
+                for (let wateri = this.waterList.begin(); wateri !== this.waterList.end(); ++wateri) {
+                    if (wateri.lock() === water) {
+                        this.waterList.erase(wateri);
                         break;
                     }
                 }
             }
             let filth = water.GetFilth();
-            Map.SetWater(pos, null); //boost.shared_ptr < WaterNode > ());
-            if (filth > 0) CreateFilth(pos, filth);
+            GameMap.i.SetWater(pos, null); //boost.shared_ptr < WaterNode > ());
+            if (filth > 0) 
+                this.CreateFilth(pos, filth);
         }
     }
 
     Damage(pos) {
         let attack = new Attack();
-        attack.Type(DAMAGE_MAGIC);
-        let dice = new Dice();
+        attack.Type(DamageType.DAMAGE_MAGIC);
+        let dice = new Random.Dice();
         dice.nb_rolls = 10;
         dice.nb_faces = 10;
         dice.addsub = 1000;
         attack.AddDamage(dice);
 
         // boost.shared_ptr < Construction > 
-        let construction = GetConstruction(Map.GetConstruction(pos)).lock();
+        let construction = this.GetConstruction(GameMap.i.GetConstruction(pos)).lock();
         if (construction) {
             construction.Damage(attack);
         }
-        for (let npcuid = Map.NPCList(pos).begin(); npcuid != Map.NPCList(pos).end(); ++npcuid) {
-            boost.shared_ptr < NPC > npc;
-            if (npcList.find(npcuid) != npcList.end()) npc = npcList[npcuid];
+        for (let npcuid = GameMap.i.NPCList(pos).begin(); npcuid !== GameMap.i.NPCList(pos).end(); ++npcuid) {
+            let npc;
+            if (this.npcMap.find(npcuid) !== this.npcMap.end()) npc = this.npcMap[npcuid];
             if (npc) npc.Damage(attack);
         }
     }
 
     AddDelay(delay, callback) {
-        delays.push_back((delay, callback));
+        this.delays.push((delay, callback));
     }
 
     GameOver() {
@@ -2629,19 +2707,19 @@ export class Game {
 
 
     CreateFire(pos, temperature = 10) {
-        if (fireList.empty()) {
-            this.Announce.AddMsg("Fire!", Color.red, pos);
-            if (this.Config.GetCVar("bool", "pauseOnDanger"))
-                this.Game.AddDelay(Constants.UPDATES_PER_SECOND, boost.bind(this.Game.Pause, this.Game));
+        if (this.fireNodes.empty()) {
+            Announce.i.AddMsg("Fire!", TCODColor.red, pos);
+            if (Config.i.GetCVar("bool", "pauseOnDanger"))
+                this.AddDelay(Constants.UPDATES_PER_SECOND, () => this.Pause);
         }
 
         // boost.weak_ptr < FireNode > 
-        let fire = (Map.GetFire(pos));
+        let fire = (GameMap.i.GetFire(pos));
         if (!fire.lock()) { //No existing firenode
             // boost.shared_ptr < FireNode > 
             let newFire = (new FireNode(pos, temperature));
-            fireList.push_back(boost.weak_ptr < FireNode > (newFire));
-            Map.SetFire(pos, newFire);
+            this.fireNodes.push(newFire);
+            GameMap.i.SetFire(pos, newFire);
         } else {
             // boost.shared_ptr < FireNode > 
             let existingFire = fire.lock();
@@ -2652,38 +2730,38 @@ export class Game {
     CreateSpell(pos, type) {
         // boost.shared_ptr < Spell >
         let newSpell = (new Spell(pos, type));
-        spellList.push_back(newSpell);
+        this.spells.push(newSpell);
         return newSpell;
     }
 
     CreateDitch(pos) {
-        RemoveNatureObject(pos, pos);
-        Map.SetLow(pos, true);
-        Map.ChangeType(pos, TILEDITCH);
+        this.RemoveNatureObject(pos, pos);
+        GameMap.i.SetLow(pos, true);
+        GameMap.i.ChangeType(pos, TileType.TILEDITCH);
     }
 
     StartFire(pos) {
         // boost.shared_ptr < Job >
-        let fireJob = (new Job("Start a fire", HIGH, 0, false));
+        let fireJob = (new Job("Start a fire", JobPriority.HIGH, 0, false));
         fireJob.Attempts(2);
         fireJob.DisregardTerritory();
-        fireJob.tasks.push_back(Task(MOVEADJACENT, pos));
-        fireJob.tasks.push_back(Task(STARTFIRE, pos));
-        fireJob.AddMapMarker(MapMarker(FLASHINGMARKER, 'F', pos, -1, Color.red));
+        fireJob.tasks.push(new Task(Action.MOVEADJACENT, pos));
+        fireJob.tasks.push(new Task(Action.STARTFIRE, pos));
+        fireJob.AddMapMarker(new MapMarker(MarkerType.FLASHINGMARKER, 'F', pos, -1, TCODColor.red));
         JobManager.AddJob(fireJob);
     }
 
     GetAge() {
-        return age;
+        return this.age;
     }
 
     UpdateFarmPlotSeedAllowances(type) {
-        for (let cati = Item.Presets[type].categories.begin(); cati != Item.Presets[type].categories.end();
+        for (let cati = Item.Presets[type].categories.begin(); cati !== Item.Presets[type].categories.end();
             ++cati) {
-            if (boost.iequals(Item.Categories[cati].name, "seed")) {
-                for (let dynamicConsi = dynamicConstructionList.begin(); dynamicConsi != dynamicConstructionList.end(); ++dynamicConsi) {
-                    if (dynamicConsi.second.HasTag(FARMPLOT)) {
-                        boost.static_pointer_cast < FarmPlot > (dynamicConsi.second).AllowedSeeds().insert((type, false));
+            if (Item.Categories[cati].name.toLowerCase() === "seed") {
+                for (let dynamicConsi = this.dynamicConstructionMap.begin(); dynamicConsi !== this.dynamicConstructionMap.end(); ++dynamicConsi) {
+                    if (dynamicConsi.second.HasTag(ConstructionTag.FARMPLOT)) {
+                        (dynamicConsi.second).AllowedSeeds().insert((type, false));
                     }
                 }
             }
@@ -2692,10 +2770,10 @@ export class Game {
 
     //TODO factorize all that NPC stuff
     Hungerize(pos) {
-        if (Map.IsInside(pos)) {
-            for (let npci = Map.NPCList(pos).begin(); npci != Map.NPCList(pos).end(); ++npci) {
-                boost.shared_ptr < NPC > npc;
-                if (npcList.find(npci) != npcList.end()) npc = npcList[npci];
+        if (GameMap.i.IsInside(pos)) {
+            for (let npci = GameMap.i.NPCList(pos).begin(); npci !== GameMap.i.NPCList(pos).end(); ++npci) {
+                let npc;
+                if (this.npcMap.find(npci) !== this.npcMap.end()) npc = this.npcMap[npci];
                 if (npc) {
                     npc.hunger = 50000;
                 }
@@ -2704,49 +2782,50 @@ export class Game {
     }
 
     Tire(pos) {
-        if (Map.IsInside(pos)) {
-            for (let npci = Map.NPCList(pos).begin(); npci != Map.NPCList(pos).end(); ++npci) {
-                boost.shared_ptr < NPC > npc;
-                if (npcList.find(npci) != npcList.end()) npc = npcList[npci];
+        if (GameMap.i.IsInside(pos)) {
+            for (let npci = GameMap.i.NPCList(pos).begin(); npci !== GameMap.i.NPCList(pos).end(); ++npci) {
+                let npc;
+                if (this.npcMap.find(npci) !== this.npcMap.end()) npc = this.npcMap[npci];
                 if (npc) {
-                    npc.weariness = (int)(WEARY_THRESHOLD - 1);
+                    npc.weariness = (Constants.WEARY_THRESHOLD - 1);
                 }
             }
         }
     }
 
     Thirstify(pos) {
-        if (Map.IsInside(pos)) {
-            for (let npci = Map.NPCList(pos).begin(); npci != Map.NPCList(pos).end(); ++npci) {
+        if (GameMap.i.IsInside(pos)) {
+            for (let npci = GameMap.i.NPCList(pos).begin(); npci !== GameMap.i.NPCList(pos).end(); ++npci) {
                 // boost.shared_ptr < NPC >
                 let npc;
-                if (npcList.find(npci) != npcList.end()) npc = npcList[npci];
+                if (this.npcMap.find(npci) !== this.npcMap.end()) npc = this.npcMap[npci];
                 if (npc) {
-                    npc.thirst = THIRST_THRESHOLD + 500;
+                    npc.thirst = Constants.THIRST_THRESHOLD + 500;
                 }
             }
         }
     }
     Badsleepify(pos) {
-        if (Map.IsInside(pos)) {
-            for (let npci = Map.NPCList(pos).begin(); npci != Map.NPCList(pos).end(); ++npci) {
-                boost.shared_ptr < NPC > npc;
-                if (npcList.find(npci) != npcList.end()) npc = npcList[npci];
+        if (GameMap.i.IsInside(pos)) {
+            for (let npci = GameMap.i.NPCList(pos).begin(); npci !== GameMap.i.NPCList(pos).end(); ++npci) {
+                let npc;
+                if (this.npcMap.find(npci) !== this.npcMap.end()) 
+                    npc = this.npcMap[npci];
                 if (npc) {
-                    npc.AddEffect(BADSLEEP);
+                    npc.AddEffect(StatusEffectType.BADSLEEP);
                 }
             }
         }
     }
 
     Diseasify(pos) {
-        if (Map.IsInside(pos)) {
-            for (let npci = Map.NPCList(pos).begin(); npci != Map.NPCList(pos).end(); ++npci) {
+        if (GameMap.i.IsInside(pos)) {
+            for (let npci = GameMap.i.NPCList(pos).begin(); npci !== GameMap.i.NPCList(pos).end(); ++npci) {
                 // boost.shared_ptr < NPC > 
                 let npc;
-                if (npcList.find(npci) != npcList.end()) npc = npcList[npci];
+                if (this.npcMap.find(npci) !== this.npcMap.end()) npc = this.npcMap[npci];
                 if (npc) {
-                    npc.AddEffect(COLLYWOBBLES);
+                    npc.AddEffect(StatusEffectType.COLLYWOBBLES);
                 }
             }
         }
@@ -2756,19 +2835,19 @@ export class Game {
         for (let x = a.X(); x <= b.X(); ++x) {
             for (let y = a.Y(); y <= b.Y(); ++y) {
                 let p = new Coordinate(x, y);
-                if (Map.IsInside(p)) {
-                    if (Map.GetType(p) == TILEDITCH) {
-                        boost.shared_ptr < Job > ditchFillJob(new Job("Fill ditch"));
+                if (GameMap.i.IsInside(p)) {
+                    if (GameMap.i.GetType(p) === TileType.TILEDITCH) {
+                        let ditchFillJob = (new Job("Fill ditch"));
                         ditchFillJob.DisregardTerritory();
                         ditchFillJob.Attempts(2);
                         ditchFillJob.SetRequiredTool(Item.StringToItemCategory("shovel"));
                         ditchFillJob.MarkGround(p);
-                        ditchFillJob.tasks.push_back(Task(FIND, p, null, Item.StringToItemCategory("earth")));
-                        ditchFillJob.tasks.push_back(Task(MOVE));
-                        ditchFillJob.tasks.push_back(Task(TAKE));
-                        ditchFillJob.tasks.push_back(Task(FORGET));
-                        ditchFillJob.tasks.push_back(Task(MOVEADJACENT, p));
-                        ditchFillJob.tasks.push_back(Task(FILLDITCH, p));
+                        ditchFillJob.tasks.push(new Task(Action.FIND, p, null, Item.StringToItemCategory("earth")));
+                        ditchFillJob.tasks.push(new Task(Action.MOVE));
+                        ditchFillJob.tasks.push(new Task(Action.TAKE));
+                        ditchFillJob.tasks.push(new Task(Action.FORGET));
+                        ditchFillJob.tasks.push(new Task(Action.MOVEADJACENT, p));
+                        ditchFillJob.tasks.push(new Task(Action.FILLDITCH, p));
                         JobManager.AddJob(ditchFillJob);
                     }
                 }
@@ -2777,28 +2856,28 @@ export class Game {
     }
 
     SetSeason(newSeason) {
-        season = newSeason;
+        this.season = newSeason;
     }
 
     GetNPC(uid) {
-        let npci = npcList.find(uid);
-        if (npci != npcList.end()) {
+        let npci = this.npcMap.find(uid);
+        if (npci !== this.npcMap.end()) {
             return npci.second;
         }
         return null; // boost.shared_ptr < NPC > ();
     }
 
     GetRandomConstruction() {
-        if (dynamicConstructionList.empty() ||
-            (Random.GenerateBool() && !this.staticConstructionList.empty())) {
-            let index = Random.Generate(this.staticConstructionList.size() - 1);
-            for (let consi = this.staticConstructionList.begin(); consi != this.staticConstructionList.end(); ++consi) {
-                if (index-- == 0) return consi.second;
+        if (this.dynamicConstructionMap.empty() ||
+            (Random.i.GenerateBool() && !this.staticConstructionMap.empty())) {
+            let index = Random.i.Generate(this.staticConstructionMap.size() - 1);
+            for (let consi = this.staticConstructionMap.begin(); consi !== this.staticConstructionMap.end(); ++consi) {
+                if (index-- === 0) return consi.second;
             }
-        } else if (!dynamicConstructionList.empty()) {
-            let index = Random.Generate(dynamicConstructionList.size() - 1);
-            for (let consi = dynamicConstructionList.begin(); consi != dynamicConstructionList.end(); ++consi) {
-                if (index-- == 0) return consi.second;
+        } else if (!this.dynamicConstructionMap.empty()) {
+            let index = Random.i.Generate(this.dynamicConstructionMap.size() - 1);
+            for (let consi = this.dynamicConstructionMap.begin(); consi !== this.dynamicConstructionMap.end(); ++consi) {
+                if (index-- === 0) return consi.second;
             }
         }
         return null; // boost.weak_ptr < Construction > ();
@@ -2806,10 +2885,10 @@ export class Game {
 
 
     DrawText(text, count, x, y, width, selected, the_console) {
-        the_console.print(x, y, (boost.format("%s : %d") % text.first % text.second).str().c_str());
+        the_console.print(x, y, `${text.first} : ${text.second}`);
     }
     DrawDeathText(text, count, x, y, width, selected, the_console) {
-        the_console.print(x, y, (boost.format("%d : %s") % text.second % text.first).str().c_str());
+        the_console.print(x, y, `${text.second} : ${text.first}`);
     }
 
 
@@ -2820,36 +2899,36 @@ export class Game {
         let statDialog = new Dialog(contents, "Statistics", 77, 41);
 
         // Label * 
-        let points = new Label((boost.format("Points: %d") % Stats.GetPoints()).str(), 1, 2, TCOD_LEFT);
+        let points = new Label(`Points: ${Stats.i.GetPoints()}`, 1, 2, (TCOD_alignment_t.TCOD_LEFT));
         contents.AddComponent(points);
 
         // Frame * 
         let filthFrame = new Frame("Filth", [], 1, 4, 25, 4);
-        filthFrame.AddComponent(new Label((boost.format("created: %d") % Stats.GetFilthCreated()).str(), 1, 1, TCOD_LEFT));
-        filthFrame.AddComponent(new Label((boost.format("off-map: %d") % Stats.GetFilthFlownOff()).str(), 1, 2, TCOD_LEFT));
+        filthFrame.AddComponent(new Label(`created: ${Stats.i.GetFilthCreated()}`, 1, 1, (TCOD_alignment_t.TCOD_LEFT)));
+        filthFrame.AddComponent(new Label(`off-map: ${Stats.i.GetFilthFlownOff()}`, 1, 2, (TCOD_alignment_t.TCOD_LEFT)));
         contents.AddComponent(filthFrame);
 
         // Label * 
-        let burntItems = new Label((boost.format("Burnt items: %d") % Stats.GetItemsBurned()).str(), 1, 9, TCOD_LEFT);
+        let burntItems = new Label(`Burnt items: ${Stats.i.GetItemsBurned()}`, 1, 9, (TCOD_alignment_t.TCOD_LEFT));
         contents.AddComponent(burntItems);
 
         // Frame * 
         let productionFrame = new Frame("Production", [], 26, 1, 25, 34);
-        productionFrame.AddComponent(new Label((boost.format("items: %d") % Stats.GetItemsBuilt()).str(), 1, 1, TCOD_LEFT));
+        productionFrame.AddComponent(new Label(`items: ${Stats.i.GetItemsBuilt()}`, 1, 1, (TCOD_alignment_t.TCOD_LEFT)));
         productionFrame.AddComponent(new ScrollPanel(1, 2, 23, 15,
-            new UIList(Stats.itemsBuilt, 0, 0, 24, Stats.itemsBuilt.size(),
-                boost.bind(DrawText, _1, _2, _3, _4, _5, _6, _7), 0, false, 0)));
-        productionFrame.AddComponent(new Label((boost.format("constructions: %d") % Stats.GetConstructionsBuilt()).str(), 1, 17, TCOD_LEFT));
+            new UIList(Stats.i.itemsBuilt, 0, 0, 24, Stats.i.itemsBuilt.size(),
+                (...args) => this.DrawText(args[1],args[2],args[3],args[4],args[5],args[6],args[7]), 0, false, 0)));
+        productionFrame.AddComponent(new Label(`constructions: ${Stats.i.GetConstructionsBuilt()}`, 1, 17, (TCOD_alignment_t.TCOD_LEFT)));
         productionFrame.AddComponent(new ScrollPanel(1, 18, 23, 15,
-            new UIList(Stats.constructionsBuilt, 0, 0, 24, Stats.constructionsBuilt.size(),
-                boost.bind(DrawText, _1, _2, _3, _4, _5, _6, _7), 0, false, 0)));
+            new UIList(Stats.i.constructionsBuilt, 0, 0, 24, Stats.i.constructionsBuilt.size(),
+                (...args) => this.DrawText(args[1],args[2],args[3],args[4],args[5],args[6],args[7]), 0, false, 0)));
         contents.AddComponent(productionFrame);
 
         // Frame * 
         let deathFrame = new Frame("Deaths", [], 51, 1, 25, 34);
         deathFrame.AddComponent(new ScrollPanel(1, 1, 23, 32,
             new UIList(Stats.deaths, 0, 0, 24, Stats.deaths.size(),
-                boost.bind(DrawDeathText, _1, _2, _3, _4, _5, _6, _7), 0, false, 0)));
+                (...args) => this.DrawDeathText(args[1],args[2],args[3],args[4],args[5],args[6],args[7]), 0, false, 0)));
         contents.AddComponent(deathFrame);
 
         // Button *
@@ -2861,17 +2940,17 @@ export class Game {
 
     //Check each stockpile for empty not-needed containers, and see if some other pile needs them
     RebalanceStockpiles(requiredCategory, excluded) {
-        for (let stocki = this.staticConstructionList.begin(); stocki != this.staticConstructionList.end(); ++stocki) {
+        for (let stocki = this.staticConstructionMap.begin(); stocki !== this.staticConstructionMap.end(); ++stocki) {
             if (stocki.second.stockpile) {
                 // boost.shared_ptr < Stockpile > 
-                let sp = (boost.static_pointer_cast < Stockpile > (stocki.second));
-                if (sp != excluded && sp.GetAmount(requiredCategory) > sp.GetDemand(requiredCategory)) {
+                let sp = stocki.second;
+                if (sp !== excluded && sp.GetAmount(requiredCategory) > sp.GetDemand(requiredCategory)) {
                     // boost.shared_ptr < Item >
-                    let surplus = sp.FindItemByCategory(requiredCategory, EMPTY).lock();
+                    let surplus = sp.FindItemByCategory(requiredCategory, Constants.EMPTY).lock();
                     if (surplus) {
                         // boost.shared_ptr < Job > 
-                        let stockpileJob = StockpileItem(surplus, true);
-                        if (stockpileJob && stockpileJob.ConnectedEntity().lock() != sp)
+                        let stockpileJob = this.StockpileItem(surplus, true);
+                        if (stockpileJob && stockpileJob.ConnectedEntity().lock() !== sp)
                             JobManager.AddJob(stockpileJob);
                     }
                 }
@@ -2880,22 +2959,21 @@ export class Game {
     }
 
     ProvideMap() {
-        for (let itemIterator = itemList.begin(); itemIterator != itemList.end(); ++itemIterator) {
-            itemIterator.second.SetMap(Map);
+        for (let itemIterator = this.itemMap.begin(); itemIterator !== this.itemMap.end(); ++itemIterator) {
+            itemIterator.second.SetMap(GameMap.i);
         }
-        for (let npcIterator = npcList.begin(); npcIterator != npcList.end(); ++npcIterator) {
-            npcIterator.second.SetMap(Map);
+        for (let npcIterator = this.npcMap.begin(); npcIterator !== this.npcMap.end(); ++npcIterator) {
+            npcIterator.second.SetMap(GameMap.i);
         }
-        for (let consIterator = this.staticConstructionList.begin(); consIterator != staticConstructionList.end(); ++consIterator) {
-            consIterator.second.SetMap(Map);
+        for (let consIterator = this.staticConstructionMap.begin(); consIterator !== this.staticConstructionMap.end(); ++consIterator) {
+            consIterator.second.SetMap(GameMap.i);
         }
-        for (let consIterator = dynamicConstructionList.begin(); consIterator != dynamicConstructionList.end(); ++consIterator) {
-            consIterator.second.SetMap(Map);
+        for (let consIterator = this.dynamicConstructionMap.begin(); consIterator !== this.dynamicConstructionMap.end(); ++consIterator) {
+            consIterator.second.SetMap(GameMap.i);
         }
     }
 
-    save(ar,
-        version) {
+    save(ar, version) {
         ar.register_type(Container);
         ar.register_type(Item);
         ar.register_type(Entity);
@@ -2907,33 +2985,33 @@ export class Game {
         ar.register_type(Ice);
         ar.register_type(Stats);
         ar.register_type(WaterItem);
-        ar & season;
-        ar & time;
-        ar & orcCount;
-        ar & goblinCount;
-        ar & peacefulFaunaCount;
-        ar & safeMonths;
+        ar & this.season;
+        ar & this.time;
+        ar & this.orcCount;
+        ar & this.goblinCount;
+        ar & this.peacefulFaunaCount;
+        ar & this.safeMonths;
         ar & this.marks;
-        ar & camX;
-        ar & camY;
+        ar & this.camX;
+        ar & this.camY;
         ar & Faction.factions;
-        ar & npcList;
-        ar & squadList;
-        ar & hostileSquadList;
-        ar & this.staticConstructionList;
-        ar & dynamicConstructionList;
-        ar & itemList;
-        ar & freeItems;
-        ar & flyingItems;
-        ar & stoppedItems;
-        ar & natureList;
-        ar & waterList;
-        ar & filthList;
-        ar & bloodList;
-        ar & fireList;
-        ar & spellList;
-        ar & age;
-        ar & Stats.this;
+        ar & this.npcMap;
+        ar & this.squadMap;
+        ar & this.hostileSquadList;
+        ar & this.staticConstructionMap;
+        ar & this.dynamicConstructionMap;
+        ar & this.itemMap;
+        ar & this.freeItemsSet;
+        ar & this.flyingItemsSet;
+        ar & this.stoppedItems;
+        ar & this.natureList;
+        ar & this.waterList;
+        ar & this.filthNodes;
+        ar & this.bloodNodes;
+        ar & this.fireNodes;
+        ar & this.spells;
+        ar & this.age;
+        ar & Stats.i;
     }
 
     load(ar, version) {
@@ -2950,69 +3028,70 @@ export class Game {
             ar.register_type(Stats);
             ar.register_type(WaterItem);
         }
-        ar & season;
-        ar & time;
-        ar & orcCount;
-        ar & goblinCount;
-        ar & peacefulFaunaCount;
-        ar & safeMonths;
+        ar & this.season;
+        ar & this.time;
+        ar & this.orcCount;
+        ar & this.goblinCount;
+        ar & this.peacefulFaunaCount;
+        ar & this.safeMonths;
         ar & this.marks;
-        ar & camX;
-        ar & camY;
+        ar & this.camX;
+        ar & this.camY;
 
         //Save games may not have all of the current factions saved, which is why we need to store
         //a list of current factions here, and make sure they all exist after loading
-        {
-            std.list < std.string > factionNames;
-            for (let i = 0; i < Faction.factions.length; ++i) {
-                factionNames.push_back(Faction.FactionTypeToString(i));
-            }
-            if (version < 1) {
-                /* Earlier versions didn't use factions for more than storing trap data, 
-                               so transfer that and use the new defaults otherwise */
-                // std.vector < boost.shared_ptr < Faction > > 
-                let oldFactionData = [];
-                ar & oldFactionData;
-                oldFactionData[0].TransferTrapInfo(Faction.factions[PLAYERFACTION]);
-            } else {
-                ar & Faction.factions;
-                Faction.InitAfterLoad(); //Initialize names and default friends, before loading npcs
-            }
-            for (let factionName = factionNames.begin(); factionName != factionNames.end(); ++factionName) {
-                Faction.StringToFactionType(factionName);
-            }
+    
+        let factionNames = [];
+        for (let i = 0; i < Faction.factions.length; ++i) {
+            factionNames.push(Faction.FactionTypeToString(i));
         }
+        if (version < 1) {
+            /* Earlier versions didn't use factions for more than storing trap data, 
+                            so transfer that and use the new defaults otherwise */
+            // std.vector < boost.shared_ptr < Faction > > 
+            let oldFactionData = [];
+            ar & oldFactionData;
+            oldFactionData[0].TransferTrapInfo(Faction.factions[Constants.PLAYERFACTION]);
+        } else {
+            ar & Faction.factions;
+            Faction.InitAfterLoad(); //Initialize names and default friends, before loading npcs
+        }
+        for (let factionName = factionNames.begin(); factionName !== factionNames.end(); ++factionName) {
+            Faction.StringToFactionType(factionName);
+        }
+    
 
-        ar & npcList;
+        ar & this.npcMap;
 
         Faction.TranslateMembers(); //Translate uid's into pointers, do this after loading npcs
 
-        ar & squadList;
-        ar & hostileSquadList;
-        ar & this.staticConstructionList;
-        ar & dynamicConstructionList;
-        ar & itemList;
-        ar & freeItems;
-        ar & flyingItems;
-        ar & stoppedItems;
-        ar & natureList;
-        ar & waterList;
-        ar & filthList;
-        ar & bloodList;
-        ar & fireList;
-        ar & spellList;
-        ar & age;
+        ar & this.squadMap;
+        ar & this.hostileSquadList;
+        ar & this.staticConstructionMap;
+        ar & this.dynamicConstructionMap;
+        ar & this.itemMap;
+        ar & this.freeItemsSet;
+        ar & this.flyingItemsSet;
+        ar & this.stoppedItems;
+        ar & this.natureList;
+        ar & this.waterList;
+        ar & this.filthNodes;
+        ar & this.bloodNodes;
+        ar & this.fireNodes;
+        ar & this.spells;
+        ar & this.age;
         if (version >= 1) {
-            ar & Stats.this;
+            ar & Stats.i;
         }
     }
-    static Reset() {
-        this.instance = null;
-        this.instance = new Game();
-        this.instance.Init(!Game.initializedOnce);
-        Game.initializedOnce = true;
-
-        return this.instance;
+    static reset() {
+        this.instance.Init(!this.initializedOnce);
+        this.initializedOnce = true;
     }
 }
 
+Singletonify(Game);
+Game.ItemTypeCount = 0;
+Game.ItemCatCount = 0;
+Game.initializedOnce = false;
+Game.devMode = false;

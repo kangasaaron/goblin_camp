@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -33,7 +33,7 @@ export class Attack extends Serializable {
     */
     damageAmount = new Dice(1, 1, 1, 1);
     cooldown = 0;
-    cooldownMax = UPDATES_PER_SECOND;
+    cooldownMax = Constants.UPDATES_PER_SECOND;
     statusEffects = [];
     projectile = 0;
     magicProjectile = false;
@@ -71,7 +71,7 @@ export class Attack extends Serializable {
         return this.statusEffects;
     }
     Ranged() {
-        return this.damageType == DamageType.DAMAGE_RANGED;
+        return this.damageType === DamageType.DAMAGE_RANGED;
     }
 
     Projectile(value) {
@@ -82,7 +82,7 @@ export class Attack extends Serializable {
     }
 
     AddDamage(value) {
-        this.damageAmount.addsub += Game.DiceToInt(value);
+        this.damageAmount.addsub += Game.i.DiceToInt(value);
     }
 
     SetMagicProjectile() {
@@ -94,46 +94,46 @@ export class Attack extends Serializable {
 
     static StringToDamageType(type) {
         type = type.toLowerCase();
-        if (type == "slashing") {
+        if (type === "slashing") {
             return DamageType.DAMAGE_SLASH;
-        } else if (type == "piercing") {
+        } else if (type === "piercing") {
             return DamageType.DAMAGE_PIERCE;
-        } else if (type == "blunt") {
+        } else if (type === "blunt") {
             return DamageType.DAMAGE_BLUNT;
-        } else if (type == "magic") {
+        } else if (type === "magic") {
             return DamageType.DAMAGE_MAGIC;
-        } else if (type == "fire") {
+        } else if (type === "fire") {
             return DamageType.DAMAGE_FIRE;
-        } else if (type == "cold") {
+        } else if (type === "cold") {
             return DamageType.DAMAGE_COLD;
-        } else if (type == "poison") {
+        } else if (type === "poison") {
             return DamageType.DAMAGE_POISON;
-        } else if (type == "wielded") {
+        } else if (type === "wielded") {
             return DamageType.DAMAGE_WIELDED;
-        } else if (type == "ranged") {
+        } else if (type === "ranged") {
             return DamageType.DAMAGE_RANGED;
         }
         return DamageType.DAMAGE_SLASH;
     }
     static DamageTypeToString(type) {
         //TODO (easy) use switch
-        if (type == DamageType.DAMAGE_SLASH) {
+        if (type === DamageType.DAMAGE_SLASH) {
             return "slashing";
-        } else if (type == DamageType.DAMAGE_PIERCE) {
+        } else if (type === DamageType.DAMAGE_PIERCE) {
             return "piercing";
-        } else if (type == DamageType.DAMAGE_BLUNT) {
+        } else if (type === DamageType.DAMAGE_BLUNT) {
             return "blunt";
-        } else if (type == DamageType.DAMAGE_MAGIC) {
+        } else if (type === DamageType.DAMAGE_MAGIC) {
             return "magic";
-        } else if (type == DamageType.DAMAGE_FIRE) {
+        } else if (type === DamageType.DAMAGE_FIRE) {
             return "fire";
-        } else if (type == DamageType.DAMAGE_COLD) {
+        } else if (type === DamageType.DAMAGE_COLD) {
             return "cold";
-        } else if (type == DamageType.DAMAGE_POISON) {
+        } else if (type === DamageType.DAMAGE_POISON) {
             return "poison";
-        } else if (type == DamageType.DAMAGE_WIELDED) {
+        } else if (type === DamageType.DAMAGE_WIELDED) {
             return "wielded";
-        } else if (type == DamageType.DAMAGE_RANGED) {
+        } else if (type === DamageType.DAMAGE_RANGED) {
             return "ranged";
         }
         return "";

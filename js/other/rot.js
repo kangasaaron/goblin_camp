@@ -7,7 +7,7 @@ function _assertThisInitialized(self) {
 
 function _createForOfIteratorHelperLoose(o, allowArrayLike) {
     var it;
-    if (typeof Symbol === "undefined" || o[Symbol.iterator] == null) {
+    if (typeof Symbol === "undefined" || o[Symbol.iterator] === null) {
         if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") {
             if (it) o = it;
             var i = 0;
@@ -37,7 +37,7 @@ function _unsupportedIterableToArray(o, minLen) {
 }
 
 function _arrayLikeToArray(arr, len) {
-    if (len == null || len > arr.length) len = arr.length;
+    if (len === null || len > arr.length) len = arr.length;
     for (var i = 0, arr2 = new Array(len); i < len; i++) {
         arr2[i] = arr[i];
     }
@@ -139,7 +139,7 @@ function _inheritsLoose(subClass, superClass) {
                 u = 2 * this.getUniform() - 1;
                 v = 2 * this.getUniform() - 1;
                 r = u * u + v * v;
-            } while (r > 1 || r == 0);
+            } while (r > 1 || r === 0);
 
             var gauss = u * Math.sqrt(-2 * Math.log(r) / r);
             return mean + gauss * stddev;
@@ -368,7 +368,7 @@ function _inheritsLoose(subClass, superClass) {
         var map = format.map;
 
         var replacer = function replacer(match, group1, group2, index) {
-            if (template.charAt(index - 1) == "%") {
+            if (template.charAt(index - 1) === "%") {
                 return match.substring(1);
             }
 
@@ -390,7 +390,7 @@ function _inheritsLoose(subClass, superClass) {
             var replaced = obj[method].apply(obj, parts);
             var first = name.charAt(0);
 
-            if (first != first.toLowerCase()) {
+            if (first !== first.toLowerCase()) {
                 replaced = capitalize(replaced);
             }
 
@@ -790,13 +790,13 @@ function _inheritsLoose(subClass, superClass) {
                     var _bg = bgs[i];
                     context.drawImage(this._options.tileSet, tile[0], tile[1], tileWidth, tileHeight, 0, 0, tileWidth, tileHeight);
 
-                    if (_fg != "transparent") {
+                    if (_fg !== "transparent") {
                         context.fillStyle = _fg;
                         context.globalCompositeOperation = "source-atop";
                         context.fillRect(0, 0, tileWidth, tileHeight);
                     }
 
-                    if (_bg != "transparent") {
+                    if (_bg !== "transparent") {
                         context.fillStyle = _bg;
                         context.globalCompositeOperation = "destination-over";
                         context.fillRect(0, 0, tileWidth, tileHeight);
@@ -841,14 +841,14 @@ function _inheritsLoose(subClass, superClass) {
         if (str in CACHE) {
             cached = CACHE[str];
         } else {
-            if (str.charAt(0) == "#") {
+            if (str.charAt(0) === "#") {
                 // hex rgb
                 var matched = str.match(/[0-9a-f]/gi) || [];
                 var values = matched.map(function (x) {
                     return parseInt(x, 16);
                 });
 
-                if (values.length == 3) {
+                if (values.length === 3) {
                     cached = values.map(function (x) {
                         return x * 17;
                     });
@@ -1029,7 +1029,7 @@ function _inheritsLoose(subClass, superClass) {
             s,
             l = (max + min) / 2;
 
-        if (max == min) {
+        if (max === min) {
             s = 0; // achromatic
         } else {
             var d = max - min;
@@ -1071,7 +1071,7 @@ function _inheritsLoose(subClass, superClass) {
     function hsl2rgb(color) {
         var l = color[2];
 
-        if (color[1] == 0) {
+        if (color[1] === 0) {
             l = Math.round(l * 255);
             return [l, l, l];
         } else {
@@ -1387,13 +1387,13 @@ function _inheritsLoose(subClass, superClass) {
                                 0, 0, tileWidth, tileHeight
                             );
             
-                            if (fg != "transparent") {
+                            if (fg !== "transparent") {
                                 context.fillStyle = fg;
                                 context.globalCompositeOperation = "source-atop";
                                 context.fillRect(0, 0, tileWidth, tileHeight);
                             }
             
-                            if (bg != "transparent") {
+                            if (bg !== "transparent") {
                                 context.fillStyle = bg;
                                 context.globalCompositeOperation = "destination-over";
                                 context.fillRect(0, 0, tileWidth, tileHeight);
@@ -1547,7 +1547,7 @@ function _inheritsLoose(subClass, superClass) {
         if (!(color in colorCache)) {
             var parsed;
 
-            if (color == "transparent") {
+            if (color === "transparent") {
                 parsed = [0, 0, 0, 0];
             } else if (color.indexOf("rgba") > -1) {
                 parsed = (color.match(/[\d.]+/g) || []).map(Number);
@@ -1671,7 +1671,7 @@ function _inheritsLoose(subClass, superClass) {
                 this._lastColor = newColor;
             }
 
-            if (ch != '\t') {
+            if (ch !== '\t') {
                 // write the provided symbol to the display
                 var chars = [].concat(ch);
                 process.stdout.write(chars[0]);
@@ -1767,7 +1767,7 @@ function _inheritsLoose(subClass, superClass) {
 
 
             result.push({
-                type: type == "c" ? TYPE_FG : TYPE_BG,
+                type: type === "c" ? TYPE_FG : TYPE_BG,
                 value: name.trim()
             });
             offset = index + match.length;
@@ -1802,13 +1802,13 @@ function _inheritsLoose(subClass, superClass) {
             /* take all text tokens, remove space, apply linebreaks */
             var token = tokens[i];
 
-            if (token.type == TYPE_NEWLINE) {
+            if (token.type === TYPE_NEWLINE) {
                 /* reset */
                 lineLength = 0;
                 lastTokenWithSpace = -1;
             }
 
-            if (token.type != TYPE_TEXT) {
+            if (token.type !== TYPE_TEXT) {
                 /* skip non-text tokens */
                 i++;
                 continue;
@@ -1816,7 +1816,7 @@ function _inheritsLoose(subClass, superClass) {
             /* remove spaces at the beginning of line */
 
 
-            while (lineLength == 0 && token.value.charAt(0) == " ") {
+            while (lineLength === 0 && token.value.charAt(0) === " ") {
                 token.value = token.value.substring(1);
             }
             /* forced newline? insert two new tokens after this one */
@@ -1824,13 +1824,13 @@ function _inheritsLoose(subClass, superClass) {
 
             var _index2 = token.value.indexOf("\n");
 
-            if (_index2 != -1) {
+            if (_index2 !== -1) {
                 token.value = breakInsideToken(tokens, i, _index2, true);
                 /* if there are spaces at the end, we must remove them (we do not want the line too long) */
 
                 var arr = token.value.split("");
 
-                while (arr.length && arr[arr.length - 1] == " ") {
+                while (arr.length && arr[arr.length - 1] === " ") {
                     arr.pop();
                 }
 
@@ -1853,7 +1853,7 @@ function _inheritsLoose(subClass, superClass) {
                 while (1) {
                     var nextIndex = token.value.indexOf(" ", _index3 + 1);
 
-                    if (nextIndex == -1) {
+                    if (nextIndex === -1) {
                         break;
                     }
 
@@ -1864,10 +1864,10 @@ function _inheritsLoose(subClass, superClass) {
                     _index3 = nextIndex;
                 }
 
-                if (_index3 != -1) {
+                if (_index3 !== -1) {
                     /* break at space within this one */
                     token.value = breakInsideToken(tokens, i, _index3, true);
-                } else if (lastTokenWithSpace != -1) {
+                } else if (lastTokenWithSpace !== -1) {
                     /* is there a previous token where a break can occur? */
                     var _token = tokens[lastTokenWithSpace];
 
@@ -1883,7 +1883,7 @@ function _inheritsLoose(subClass, superClass) {
                 /* line not long, continue */
                 lineLength += token.value.length;
 
-                if (token.value.indexOf(" ") != -1) {
+                if (token.value.indexOf(" ") !== -1) {
                     lastTokenWithSpace = i;
                 }
             }
@@ -1914,7 +1914,7 @@ function _inheritsLoose(subClass, superClass) {
                         /* remove trailing space */
                         var _arr = lastTextToken.value.split("");
 
-                        while (_arr.length && _arr[_arr.length - 1] == " ") {
+                        while (_arr.length && _arr[_arr.length - 1] === " ") {
                             _arr.pop();
                         }
 
@@ -2700,7 +2700,7 @@ function _inheritsLoose(subClass, superClass) {
 
                                     isFullWidth = cc > 0xff00 && cc < 0xff61 || cc > 0xffdc && cc < 0xffe8 || cc > 0xffee; // Current char is space, whatever full-width or half-width both are OK.
 
-                                    isSpace = c.charCodeAt(0) == 0x20 || c.charCodeAt(0) == 0x3000; // The previous char is full-width and
+                                    isSpace = c.charCodeAt(0) === 0x20 || c.charCodeAt(0) === 0x3000; // The previous char is full-width and
                                     // current char is nether half-width nor a space.
 
                                     if (isPrevFullWidth && !isFullWidth && !isSpace) {
@@ -2778,7 +2778,7 @@ function _inheritsLoose(subClass, superClass) {
                 _proto9._draw = function _draw(key, clearBefore) {
                     var data = this._data[key];
 
-                    if (data[4] != this._options.bg) {
+                    if (data[4] !== this._options.bg) {
                         clearBefore = true;
                     }
 
@@ -2841,7 +2841,7 @@ function _inheritsLoose(subClass, superClass) {
         _proto10.generate = function generate() {
             var result = [this._sample(this._prefix)];
 
-            while (result[result.length - 1] != this._boundary) {
+            while (result[result.length - 1] !== this._boundary) {
                 result.push(this._sample(result));
             }
 
@@ -2990,7 +2990,7 @@ function _inheritsLoose(subClass, superClass) {
         var _proto11 = MinHeap.prototype;
 
         _proto11.lessThan = function lessThan(a, b) {
-            return a.key == b.key ? a.timestamp < b.timestamp : a.key < b.key;
+            return a.key === b.key ? a.timestamp < b.timestamp : a.key < b.key;
         };
 
         _proto11.shift = function shift(v) {
@@ -3022,7 +3022,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto11.pop = function pop() {
-            if (this.len() == 0) {
+            if (this.len() === 0) {
                 throw new Error("no element to pop");
             }
 
@@ -3040,7 +3040,7 @@ function _inheritsLoose(subClass, superClass) {
 
         _proto11.find = function find(v) {
             for (var i = 0; i < this.len(); i++) {
-                if (v == this.heap[i].value) {
+                if (v === this.heap[i].value) {
                     return this.heap[i];
                 }
             }
@@ -3052,7 +3052,7 @@ function _inheritsLoose(subClass, superClass) {
             var index = null;
 
             for (var i = 0; i < this.len(); i++) {
-                if (v == this.heap[i].value) {
+                if (v === this.heap[i].value) {
                     index = i;
                 }
             }
@@ -3064,7 +3064,7 @@ function _inheritsLoose(subClass, superClass) {
             if (this.len() > 1) {
                 var last = this.heap.pop();
 
-                if (last.value != v) {
+                if (last.value !== v) {
                     // if the last one is being removed, do nothing
                     this.heap[index] = last;
                     this.updateDown(index);
@@ -3116,7 +3116,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto11.updateUp = function updateUp(x) {
-            if (x == 0) {
+            if (x === 0) {
                 return;
             }
 
@@ -3138,7 +3138,7 @@ function _inheritsLoose(subClass, superClass) {
 
             var m = this.minNode([x, leftChild, rightChild]);
 
-            if (m != x) {
+            if (m !== x) {
                 this.swap(x, m);
                 this.updateDown(m);
             }
@@ -3308,11 +3308,11 @@ function _inheritsLoose(subClass, superClass) {
 
             var index = this._repeat.indexOf(item);
 
-            if (index != -1) {
+            if (index !== -1) {
                 this._repeat.splice(index, 1);
             }
 
-            if (this._current == item) {
+            if (this._current === item) {
                 this._current = null;
             }
 
@@ -3352,7 +3352,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto14.next = function next() {
-            if (this._current !== null && this._repeat.indexOf(this._current) != -1) {
+            if (this._current !== null && this._repeat.indexOf(this._current) !== -1) {
                 this._queue.add(this._current, 0);
             }
 
@@ -3392,7 +3392,7 @@ function _inheritsLoose(subClass, superClass) {
         ;
 
         _proto15.next = function next() {
-            if (this._current && this._repeat.indexOf(this._current) != -1) {
+            if (this._current && this._repeat.indexOf(this._current) !== -1) {
                 this._queue.add(this._current, 1 / this._current.getSpeed());
             }
 
@@ -3444,7 +3444,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto16.remove = function remove(item) {
-            if (item == this._current) {
+            if (item === this._current) {
                 this._duration = this._defaultDuration;
             }
 
@@ -3456,7 +3456,7 @@ function _inheritsLoose(subClass, superClass) {
         ;
 
         _proto16.next = function next() {
-            if (this._current !== null && this._repeat.indexOf(this._current) != -1) {
+            if (this._current !== null && this._repeat.indexOf(this._current) !== -1) {
                 this._queue.add(this._current, this._duration || this._defaultDuration);
 
                 this._duration = this._defaultDuration;
@@ -3606,7 +3606,7 @@ function _inheritsLoose(subClass, superClass) {
                         callback(cx, cy, r, 1);
                     }
 
-                    if (DATA.length == 2 && DATA[0] == 0 && DATA[1] == 360) {
+                    if (DATA.length === 2 && DATA[0] === 0 && DATA[1] === 360) {
                         return;
                     }
                     /* cutoff? */
@@ -3641,7 +3641,7 @@ function _inheritsLoose(subClass, superClass) {
                 index++;
             }
 
-            if (index == DATA.length) {
+            if (index === DATA.length) {
                 /* completely new shadow */
                 if (blocks) {
                     DATA.push(A, B);
@@ -3659,7 +3659,7 @@ function _inheritsLoose(subClass, superClass) {
                     count++;
                 }
 
-                if (count == 0) {
+                if (count === 0) {
                     return false;
                 }
 
@@ -3681,7 +3681,7 @@ function _inheritsLoose(subClass, superClass) {
                 /* visible when outside an existing shadow, or when overlapping */
 
 
-                if (A == DATA[index - count] && count == 1) {
+                if (A === DATA[index - count] && count === 1) {
                     return false;
                 }
 
@@ -3748,7 +3748,7 @@ function _inheritsLoose(subClass, superClass) {
                         callback(cx, cy, r, visibility);
                     }
 
-                    if (SHADOWS.length == 2 && SHADOWS[0][0] == 0 && SHADOWS[1][0] == SHADOWS[1][1]) {
+                    if (SHADOWS.length === 2 && SHADOWS[0][0] === 0 && SHADOWS[1][0] === SHADOWS[1][1]) {
                         return;
                     }
                     /* cutoff? */
@@ -3789,7 +3789,7 @@ function _inheritsLoose(subClass, superClass) {
 
                 if (diff >= 0) {
                     /* old >= A1 */
-                    if (diff == 0 && !(index1 % 2)) {
+                    if (diff === 0 && !(index1 % 2)) {
                         edge1 = true;
                     }
 
@@ -3811,7 +3811,7 @@ function _inheritsLoose(subClass, superClass) {
 
                 if (_diff >= 0) {
                     /* old <= A2 */
-                    if (_diff == 0 && index2 % 2) {
+                    if (_diff === 0 && index2 % 2) {
                         edge2 = true;
                     }
 
@@ -3821,10 +3821,10 @@ function _inheritsLoose(subClass, superClass) {
 
             var visible = true;
 
-            if (index1 == index2 && (edge1 || edge2)) {
+            if (index1 === index2 && (edge1 || edge2)) {
                 /* subset of existing shadow, one of the edges match */
                 visible = false;
-            } else if (edge1 && edge2 && index1 + 1 == index2 && index2 % 2) {
+            } else if (edge1 && edge2 && index1 + 1 === index2 && index2 % 2) {
                 /* completely equivalent with existing shadow */
                 visible = false;
             } else if (index1 > index2 && index1 % 2) {
@@ -4097,7 +4097,7 @@ function _inheritsLoose(subClass, superClass) {
             this._height = height;
         }
 
-        var _proto21 = Map.prototype;
+        var _proto21 = GameMap.i.prototype;
 
         _proto21._fillMap = function _fillMap(value) {
             var map = [];
@@ -4165,7 +4165,7 @@ function _inheritsLoose(subClass, superClass) {
         }
         /**
          * Get all generated rooms
-         * @returns {ROT.Map.Feature.Room[]}
+         * @returns {ROT.GameMap.i.Feature.Room[]}
          */
 
 
@@ -4176,7 +4176,7 @@ function _inheritsLoose(subClass, superClass) {
         }
         /**
          * Get all generated corridors
-         * @returns {ROT.Map.Feature.Corridor[]}
+         * @returns {ROT.GameMap.i.Feature.Corridor[]}
          */
         ;
 
@@ -4194,7 +4194,7 @@ function _inheritsLoose(subClass, superClass) {
     var Feature = function Feature() {};
     /**
      * @class Room
-     * @augments ROT.Map.Feature
+     * @augments ROT.GameMap.i.Feature
      * @param {int} x1
      * @param {int} y1
      * @param {int} x2
@@ -4235,26 +4235,26 @@ function _inheritsLoose(subClass, superClass) {
             max = options.roomHeight[1];
             var height = RNG$1.getUniformInt(min, max);
 
-            if (dx == 1) {
+            if (dx === 1) {
                 /* to the right */
                 var y2 = y - Math.floor(RNG$1.getUniform() * height);
                 return new this(x + 1, y2, x + width, y2 + height - 1, x, y);
             }
 
-            if (dx == -1) {
+            if (dx === -1) {
                 /* to the left */
                 var _y = y - Math.floor(RNG$1.getUniform() * height);
 
                 return new this(x - width, _y, x - 1, _y + height - 1, x, y);
             }
 
-            if (dy == 1) {
+            if (dy === 1) {
                 /* to the bottom */
                 var x2 = x - Math.floor(RNG$1.getUniform() * width);
                 return new this(x2, y + 1, x2 + width - 1, y + height, x, y);
             }
 
-            if (dy == -1) {
+            if (dy === -1) {
                 /* to the top */
                 var _x = x - Math.floor(RNG$1.getUniform() * width);
 
@@ -4335,7 +4335,7 @@ function _inheritsLoose(subClass, superClass) {
 
             for (var x = left; x <= right; x++) {
                 for (var y = top; y <= bottom; y++) {
-                    if (x != left && x != right && y != top && y != bottom) {
+                    if (x !== left && x !== right && y !== top && y !== bottom) {
                         continue;
                     }
 
@@ -4362,7 +4362,7 @@ function _inheritsLoose(subClass, superClass) {
 
             for (var x = left; x <= right; x++) {
                 for (var y = top; y <= bottom; y++) {
-                    if (x == left || x == right || y == top || y == bottom) {
+                    if (x === left || x === right || y === top || y === bottom) {
                         if (!isWallCallback(x, y)) {
                             return false;
                         }
@@ -4392,7 +4392,7 @@ function _inheritsLoose(subClass, superClass) {
                 for (var y = top; y <= bottom; y++) {
                     if (x + "," + y in this._doors) {
                         value = 2;
-                    } else if (x == left || x == right || y == top || y == bottom) {
+                    } else if (x === left || x === right || y === top || y === bottom) {
                         value = 1;
                     } else {
                         value = 0;
@@ -4427,7 +4427,7 @@ function _inheritsLoose(subClass, superClass) {
     }(Feature);
     /**
      * @class Corridor
-     * @augments ROT.Map.Feature
+     * @augments ROT.GameMap.i.Feature
      * @param {int} startX
      * @param {int} startY
      * @param {int} endX
@@ -4512,13 +4512,13 @@ function _inheritsLoose(subClass, superClass) {
             /* not supported */
 
 
-            if (length == 0) {
+            if (length === 0) {
                 return false;
             }
             /* length 1 allowed only if the next space is empty */
 
 
-            if (length == 1 && isWallCallback(this._endX + dx, this._endY + dy)) {
+            if (length === 1 && isWallCallback(this._endX + dx, this._endY + dy)) {
                 return false;
             }
             /**
@@ -4603,7 +4603,7 @@ function _inheritsLoose(subClass, superClass) {
     }(Feature);
     /**
      * @class Dungeon generator which tries to fill the space evenly. Generates independent rooms and tries to connect them.
-     * @augments ROT.Map.Dungeon
+     * @augments ROT.GameMap.i.Dungeon
      */
 
 
@@ -4953,7 +4953,7 @@ function _inheritsLoose(subClass, superClass) {
             room2.addDoor(end[0], end[1]);
             index = this._unconnected.indexOf(room1);
 
-            if (index != -1) {
+            if (index !== -1) {
                 this._unconnected.splice(index, 1);
 
                 this._connected.push(room1);
@@ -4961,7 +4961,7 @@ function _inheritsLoose(subClass, superClass) {
 
             index = this._unconnected.indexOf(room2);
 
-            if (index != -1) {
+            if (index !== -1) {
                 this._unconnected.splice(index, 1);
 
                 this._connected.push(room2);
@@ -5008,10 +5008,10 @@ function _inheritsLoose(subClass, superClass) {
                 var x = start[0] + i * dir[0];
                 var y = start[1] + i * dir[1];
                 avail.push(null);
-                var isWall = this._map[x][y] == 1;
+                var isWall = this._map[x][y] === 1;
 
                 if (isWall) {
-                    if (lastBadIndex != i - 1) {
+                    if (lastBadIndex !== i - 1) {
                         avail[i] = [x, y];
                     }
                 } else {
@@ -5050,7 +5050,7 @@ function _inheritsLoose(subClass, superClass) {
         _proto26._digCallback = function _digCallback(x, y, value) {
             this._map[x][y] = value;
 
-            if (value == 0) {
+            if (value === 0) {
                 this._dug++;
             }
         };
@@ -5060,7 +5060,7 @@ function _inheritsLoose(subClass, superClass) {
                 return false;
             }
 
-            return this._map[x][y] == 1;
+            return this._map[x][y] === 1;
         };
 
         _proto26._canBeDugCallback = function _canBeDugCallback(x, y) {
@@ -5068,7 +5068,7 @@ function _inheritsLoose(subClass, superClass) {
                 return false;
             }
 
-            return this._map[x][y] == 1;
+            return this._map[x][y] === 1;
         };
 
         return Uniform;
@@ -5127,7 +5127,7 @@ function _inheritsLoose(subClass, superClass) {
         }
         /**
          * Change options.
-         * @see ROT.Map.Cellular
+         * @see ROT.GameMap.i.Cellular
          */
         ;
 
@@ -5149,7 +5149,7 @@ function _inheritsLoose(subClass, superClass) {
                 var widthStep = 1;
                 var widthStart = 0;
 
-                if (this._options.topology == 6) {
+                if (this._options.topology === 6) {
                     widthStep = 2;
                     widthStart = j % 2;
                 }
@@ -5159,10 +5159,10 @@ function _inheritsLoose(subClass, superClass) {
 
                     var ncount = this._getNeighbors(i, j);
 
-                    if (cur && survive.indexOf(ncount) != -1) {
+                    if (cur && survive.indexOf(ncount) !== -1) {
                         /* survive */
                         newMap[i][j] = 1;
-                    } else if (!cur && born.indexOf(ncount) != -1) {
+                    } else if (!cur && born.indexOf(ncount) !== -1) {
                         /* born */
                         newMap[i][j] = 1;
                     }
@@ -5178,7 +5178,7 @@ function _inheritsLoose(subClass, superClass) {
                 var widthStep = 1;
                 var widthStart = 0;
 
-                if (this._options.topology == 6) {
+                if (this._options.topology === 6) {
                     widthStep = 2;
                     widthStart = j % 2;
                 }
@@ -5205,7 +5205,7 @@ function _inheritsLoose(subClass, superClass) {
                     continue;
                 }
 
-                result += this._map[x][y] == 1 ? 1 : 0;
+                result += this._map[x][y] === 1 ? 1 : 0;
             }
 
             return result;
@@ -5226,7 +5226,7 @@ function _inheritsLoose(subClass, superClass) {
             var widthStep = 1;
             var widthStarts = [0, 0];
 
-            if (this._options.topology == 6) {
+            if (this._options.topology === 6) {
                 widthStep = 2;
                 widthStarts = [0, 1];
             }
@@ -5266,7 +5266,7 @@ function _inheritsLoose(subClass, superClass) {
                 this._findConnected(local, notConnected, [from], true, value); // connect to a connected cell
 
 
-                var tunnelFn = this._options.topology == 6 ? this._tunnelToConnected6 : this._tunnelToConnected;
+                var tunnelFn = this._options.topology === 6 ? this._tunnelToConnected6 : this._tunnelToConnected;
                 tunnelFn.call(this, to, from, connected, notConnected, value, connectionCallback); // now all of local is connected
 
                 for (var k in local) {
@@ -5322,7 +5322,7 @@ function _inheritsLoose(subClass, superClass) {
                 var p = space[k];
                 var d = (p[0] - point[0]) * (p[0] - point[0]) + (p[1] - point[1]) * (p[1] - point[1]);
 
-                if (minDist == null || d < minDist) {
+                if (minDist === null || d < minDist) {
                     minDist = d;
                     minPoint = p;
                 }
@@ -5336,7 +5336,7 @@ function _inheritsLoose(subClass, superClass) {
                 var p = stack.splice(0, 1)[0];
                 var tests = void 0;
 
-                if (this._options.topology == 6) {
+                if (this._options.topology === 6) {
                     tests = [
                         [p[0] + 2, p[1]],
                         [p[0] + 1, p[1] - 1],
@@ -5357,7 +5357,7 @@ function _inheritsLoose(subClass, superClass) {
                 for (var i = 0; i < tests.length; i++) {
                     var key = this._pointKey(tests[i]);
 
-                    if (connected[key] == null && this._freeSpace(tests[i][0], tests[i][1], value)) {
+                    if (connected[key] === null && this._freeSpace(tests[i][0], tests[i][1], value)) {
                         connected[key] = tests[i];
 
                         if (!keepNotConnected) {
@@ -5436,7 +5436,7 @@ function _inheritsLoose(subClass, superClass) {
             var xx = a[0];
             var yy = a[1];
 
-            while (!(xx == b[0] && yy == b[1])) {
+            while (!(xx === b[0] && yy === b[1])) {
                 var stepWidth = 2;
 
                 if (yy < b[1]) {
@@ -5474,7 +5474,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto27._freeSpace = function _freeSpace(x, y, value) {
-            return x >= 0 && x < this._width && y >= 0 && y < this._height && this._map[x][y] == value;
+            return x >= 0 && x < this._width && y >= 0 && y < this._height && this._map[x][y] === value;
         };
 
         _proto27._pointKey = function _pointKey(p) {
@@ -5588,7 +5588,7 @@ function _inheritsLoose(subClass, superClass) {
 
                     if (this._tryFeature(x, y, dir[0], dir[1])) {
                         /* feature added */
-                        //if (this._rooms.length + this._corridors.length == 2) { this._rooms[0].addDoor(x, y); } /* first room oficially has doors */
+                        //if (this._rooms.length + this._corridors.length === 2) { this._rooms[0].addDoor(x, y); } /* first room oficially has doors */
                         this._removeSurroundingWalls(x, y);
 
                         this._removeSurroundingWalls(x - dir[0], y - dir[1]);
@@ -5622,7 +5622,7 @@ function _inheritsLoose(subClass, superClass) {
         };
 
         _proto28._digCallback = function _digCallback(x, y, value) {
-            if (value == 0 || value == 2) {
+            if (value === 0 || value === 2) {
                 /* empty */
                 this._map[x][y] = 0;
                 this._dug++;
@@ -5637,7 +5637,7 @@ function _inheritsLoose(subClass, superClass) {
                 return false;
             }
 
-            return this._map[x][y] == 1;
+            return this._map[x][y] === 1;
         };
 
         _proto28._canBeDugCallback = function _canBeDugCallback(x, y) {
@@ -5645,7 +5645,7 @@ function _inheritsLoose(subClass, superClass) {
                 return false;
             }
 
-            return this._map[x][y] == 1;
+            return this._map[x][y] === 1;
         };
 
         _proto28._priorityWallCallback = function _priorityWallCallback(x, y) {
@@ -5673,7 +5673,7 @@ function _inheritsLoose(subClass, superClass) {
             for (var _id2 in this._walls) {
                 var prio = this._walls[_id2];
 
-                if (prio == 2) {
+                if (prio === 2) {
                     prio2.push(_id2);
                 } else {
                     prio1.push(_id2);
@@ -5783,7 +5783,7 @@ function _inheritsLoose(subClass, superClass) {
             var data = this._map;
 
             function isWallCallback(x, y) {
-                return data[x][y] == 1;
+                return data[x][y] === 1;
             }
 
             for (var i = 0; i < this._rooms.length; i++) {
@@ -5859,14 +5859,14 @@ function _inheritsLoose(subClass, superClass) {
                     map[x][y] = 0;
                     /* right connection */
 
-                    if (_i4 != L[_i4 + 1] && RNG$1.getUniform() > rand) {
+                    if (_i4 !== L[_i4 + 1] && RNG$1.getUniform() > rand) {
                         addToList(_i4, L, R);
                         map[x + 1][y] = 0;
                     }
                     /* bottom connection */
 
 
-                    if (_i4 != L[_i4] && RNG$1.getUniform() > rand) {
+                    if (_i4 !== L[_i4] && RNG$1.getUniform() > rand) {
                         /* remove connection */
                         removeFromList(_i4, L, R);
                     } else {
@@ -5886,7 +5886,7 @@ function _inheritsLoose(subClass, superClass) {
                 map[_x2][_y2] = 0;
                 /* right connection */
 
-                if (_i5 != L[_i5 + 1] && (_i5 == L[_i5] || RNG$1.getUniform() > rand)) {
+                if (_i5 !== L[_i5 + 1] && (_i5 === L[_i5] || RNG$1.getUniform() > rand)) {
                     /* dig right also if the cell is separated, so it gets connected to the rest of maze */
                     addToList(_i5, L, R);
                     map[_x2 + 1][_y2] = 0;
@@ -5935,7 +5935,7 @@ function _inheritsLoose(subClass, superClass) {
                 this._map.push([]);
 
                 for (var j = 0; j < h; j++) {
-                    var border = i == 0 || j == 0 || i + 1 == w || j + 1 == h;
+                    var border = i === 0 || j === 0 || i + 1 === w || j + 1 === h;
 
                     this._map[i].push(border ? 1 : 0);
                 }
@@ -6038,7 +6038,7 @@ function _inheritsLoose(subClass, superClass) {
             for (var _i10 = 0; _i10 < walls.length; _i10++) {
                 var _w = walls[_i10];
 
-                if (_w == solid) {
+                if (_w === solid) {
                     continue;
                 }
 
@@ -6122,7 +6122,7 @@ function _inheritsLoose(subClass, superClass) {
                     this._randomize(dirs);
 
                     do {
-                        if (Math.floor(RNG$1.getUniform() * (this._regularity + 1)) == 0) {
+                        if (Math.floor(RNG$1.getUniform() * (this._regularity + 1)) === 0) {
                             this._randomize(dirs);
                         }
 
@@ -6340,21 +6340,21 @@ function _inheritsLoose(subClass, superClass) {
 
                     if (room["connections"].length > 0) {
                         // as long as this room doesn't already coonect to me, we are ok with it.
-                        if (room["connections"][0][0] == ncgx && room["connections"][0][1] == ncgy) {
+                        if (room["connections"][0][0] === ncgx && room["connections"][0][1] === ncgy) {
                             break;
                         }
                     }
 
                     otherRoom = this.rooms[ncgx][ncgy];
 
-                    if (otherRoom["connections"].length == 0) {
+                    if (otherRoom["connections"].length === 0) {
                         otherRoom["connections"].push([cgx, cgy]);
                         this.connectedCells.push([ncgx, ncgy]);
                         cgx = ncgx;
                         cgy = ncgy;
                         found = true;
                     }
-                } while (dirToCheck.length > 0 && found == false);
+                } while (dirToCheck.length > 0 && found === false);
             } while (dirToCheck.length > 0);
         };
 
@@ -6372,7 +6372,7 @@ function _inheritsLoose(subClass, superClass) {
                 for (var j = 0; j < this._options.cellHeight; j++) {
                     room = this.rooms[i][j];
 
-                    if (room["connections"].length == 0) {
+                    if (room["connections"].length === 0) {
                         var directions = [0, 2, 4, 6];
                         directions = RNG$1.shuffle(directions);
                         validRoom = false;
@@ -6389,12 +6389,12 @@ function _inheritsLoose(subClass, superClass) {
                             otherRoom = this.rooms[newI][newJ];
                             validRoom = true;
 
-                            if (otherRoom["connections"].length == 0) {
+                            if (otherRoom["connections"].length === 0) {
                                 break;
                             }
 
                             for (var k = 0; k < otherRoom["connections"].length; k++) {
-                                if (otherRoom["connections"][k][0] == i && otherRoom["connections"][k][1] == j) {
+                                if (otherRoom["connections"][k][0] === i && otherRoom["connections"][k][1] === j) {
                                     validRoom = false;
                                     break;
                                 }
@@ -6438,11 +6438,11 @@ function _inheritsLoose(subClass, superClass) {
                     sx = cwp * i;
                     sy = chp * j;
 
-                    if (sx == 0) {
+                    if (sx === 0) {
                         sx = 1;
                     }
 
-                    if (sy == 0) {
+                    if (sy === 0) {
                         sy = 1;
                     }
 
@@ -6505,10 +6505,10 @@ function _inheritsLoose(subClass, superClass) {
             var ry;
             var door;
 
-            if (aDirection == 1 || aDirection == 3) {
+            if (aDirection === 1 || aDirection === 3) {
                 rx = RNG$1.getUniformInt(aRoom["x"] + 1, aRoom["x"] + aRoom["width"] - 2);
 
-                if (aDirection == 1) {
+                if (aDirection === 1) {
                     ry = aRoom["y"] - 2;
                     door = ry + 1;
                 } else {
@@ -6520,7 +6520,7 @@ function _inheritsLoose(subClass, superClass) {
             } else {
                 ry = RNG$1.getUniformInt(aRoom["y"] + 1, aRoom["y"] + aRoom["height"] - 2);
 
-                if (aDirection == 2) {
+                if (aDirection === 2) {
                     rx = aRoom["x"] + aRoom["width"] + 1;
                     door = rx - 1;
                 } else {
@@ -6812,7 +6812,7 @@ function _inheritsLoose(subClass, superClass) {
             }, options);
             this._dirs = DIRS[this._options.topology];
 
-            if (this._options.topology == 8) {
+            if (this._options.topology === 8) {
                 /* reorder dirs for more aesthetic result (vertical/horizontal first) */
                 this._dirs = [this._dirs[0], this._dirs[2], this._dirs[4], this._dirs[6], this._dirs[1], this._dirs[3], this._dirs[5], this._dirs[7]];
             }
@@ -6896,7 +6896,7 @@ function _inheritsLoose(subClass, superClass) {
             while (this._todo.length) {
                 var item = this._todo.shift();
 
-                if (item.x == fromX && item.y == fromY) {
+                if (item.x === fromX && item.y === fromY) {
                     return;
                 }
 
@@ -6981,7 +6981,7 @@ function _inheritsLoose(subClass, superClass) {
 
                 this._done[id] = _item;
 
-                if (_item.x == fromX && _item.y == fromY) {
+                if (_item.x === fromX && _item.y === fromY) {
                     break;
                 }
 
@@ -7032,7 +7032,7 @@ function _inheritsLoose(subClass, superClass) {
                 var item = this._todo[i];
                 var itemF = item.g + item.h;
 
-                if (f < itemF || f == itemF && h < item.h) {
+                if (f < itemF || f === itemF && h < item.h) {
                     this._todo.splice(i, 0, obj);
 
                     return;
@@ -7189,7 +7189,7 @@ function _inheritsLoose(subClass, superClass) {
             var key = x + "," + y;
 
             if (color) {
-                this._lights[key] = typeof color == "string" ? fromString(color) : color;
+                this._lights[key] = typeof color === "string" ? fromString(color) : color;
             } else {
                 delete this._lights[key];
             }
@@ -7235,7 +7235,7 @@ function _inheritsLoose(subClass, superClass) {
                 /* main loop */
                 this._emitLight(emittingCells, litCells, doneCells);
 
-                if (i + 1 == this._options.passes) {
+                if (i + 1 === this._options.passes) {
                     continue;
                 }
                 /* not for the last pass */
@@ -7303,7 +7303,7 @@ function _inheritsLoose(subClass, superClass) {
                     this._reflectivityCache[key] = reflectivity;
                 }
 
-                if (reflectivity == 0) {
+                if (reflectivity === 0) {
                     continue;
                 }
                 /* will not reflect at all */
@@ -7379,7 +7379,7 @@ function _inheritsLoose(subClass, superClass) {
                 var key2 = x + "," + y;
                 var formFactor = vis * (1 - r / range);
 
-                if (formFactor == 0) {
+                if (formFactor === 0) {
                     return;
                 }
 

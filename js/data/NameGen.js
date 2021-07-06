@@ -126,7 +126,7 @@ function namegen_get_sets_on_error() {
 
 /** get the appropriate syllables set */
 function namegen_generator_get(nam) {
-    if (namegen_generator_check(nam) == true) {
+    if (namegen_generator_check(nam) === true) {
         return namegen_generators_list.find((it) => it.name === nam);
     }
     else {
@@ -174,7 +174,7 @@ function namegen_populate_list(source, list, wildcards) {
         /* append a normal character */
         if (/[A-Za-z'-]/.test(it)) token += it;
         /* special character */
-        else if (it == "/") {
+        else if (it === "/") {
             if (wildcards) {
                 token += it + source[i + 1];
             }
@@ -184,7 +184,7 @@ function namegen_populate_list(source, list, wildcards) {
             i++;
         }
         /* underscore is converted to space */
-        else if (it == "_") {
+        else if (it === "_") {
             if (wildcards) {
                 token += it;
             }
@@ -193,7 +193,7 @@ function namegen_populate_list(source, list, wildcards) {
             }
         }
         /* add wildcards if they are allowed */
-        else if (wildcards && (it == "$" || it == "%" || /[0-9]/.test(it)))
+        else if (wildcards && (it === "$" || it === "%" || /[0-9]/.test(it)))
             token += it;
         /* all other characters are treated as seperators and cause adding the current token to the list */
         else if (it.length) {
@@ -242,15 +242,15 @@ function namegen_parser_flag(name) {
 }
 
 function namegen_parser_property(name, value) {
-    if (name == "syllablesStart") parser_data.start = value.slice();
-    if (name == "syllablesMiddle") parser_data.middle = value.slice();
-    if (name == "syllablesEnd") parser_data.end = value.slice();
-    if (name == "syllablesPre") parser_data.pre = value.slice();
-    if (name == "syllablesPost") parser_data.post = value.slice();
-    if (name == "phonemesVocals") parser_data.vocals = value.slice();
-    if (name == "phonemesConsonants") parser_data.consonants = value.slice();
-    if (name == "rules") parser_data.rules = value.slice();
-    if (name == "illegal") {
+    if (name === "syllablesStart") parser_data.start = value.slice();
+    if (name === "syllablesMiddle") parser_data.middle = value.slice();
+    if (name === "syllablesEnd") parser_data.end = value.slice();
+    if (name === "syllablesPre") parser_data.pre = value.slice();
+    if (name === "syllablesPost") parser_data.post = value.slice();
+    if (name === "phonemesVocals") parser_data.vocals = value.slice();
+    if (name === "phonemesConsonants") parser_data.consonants = value.slice();
+    if (name === "rules") parser_data.rules = value.slice();
+    if (name === "illegal") {
         let str = "", i = 0;
         parser_data.illegal = value.toLowerCase();
     }
@@ -338,13 +338,13 @@ function namegen_word_prune_syllables(str) {
     let data = str.toLowerCase();
     // 2-character direct repetitions
     for (let i = 0; i < data.length - 4; i++) {
-        if (data.slice(i, i + 2) == data.slice(i + 2, i + 4))
+        if (data.slice(i, i + 2) === data.slice(i + 2, i + 4))
             return true;
     }
     // 3 character repetitions
     for (let i = 0; i < data.length - 6; i++) {
         for (let j = 3; j < data.length - 3; j++) {
-            if (data.slice(i, i + 3) == data.slice(j, j + 3))
+            if (data.slice(i, i + 3) === data.slice(j, j + 3))
                 return true;
         }
     }
@@ -397,18 +397,18 @@ export function TCOD_namegen_generate_custom(name, rule) {
             /* append a normal character */
             if ((rule.charCodeAt(it) >= 'a'.charCodeAt(0) && rule.charCodeAt(it) <= 'z'.charCodeAt(0)) ||
                 (rule.charCodeAt(it) >= 'A'.charCodeAt(0) && rule.charCodeAt(it) <= 'Z'.charCodeAt(0)) ||
-                (rule.charAt(it) == "'") ||
-                (rule.charAt(it) == "-")) buf += it;
+                (rule.charAt(it) === "'") ||
+                (rule.charAt(it) === "-")) buf += it;
             /* special character */
-            else if (rule.charAt(it) == "/") {
+            else if (rule.charAt(it) === "/") {
                 it++;
                 buf += it;
             }
             /* underscore is converted to space */
-            else if (rule.charAt(it) == "_")
+            else if (rule.charAt(it) === "_")
                 buf += " ";
             /* interpret a wildcard */
-            else if (rule.charAt(it) == "/") {
+            else if (rule.charAt(it) === "/") {
                 let chance = 100;
                 it++;
                 /* food for the randomizer */
@@ -479,7 +479,7 @@ function TCOD_namegen_generate(Name) {
         rule_rolled = data.rules[rule_number];
         chance = 100;
         truncation = 0;
-        if (rule_rolled.charAt(0) == "%") {
+        if (rule_rolled.charAt(0) === "%") {
             truncation = 1;
             chance = 0;
             while (rule_rolled.charCodeAt(truncation) >= '0'.charCodeAt(0) && rule_rolled.charCodeAt(truncation) <= '9'.charCodeAt(0)) {
@@ -517,7 +517,7 @@ export class NameGenerator {
     /**
      * 
      * @param {string} filename     the file where the desired syllable set is saved, along with it's relative path, for intsance, "data/names.txt"
-     * @param {*} random    A random number generator object, use NULL for the default random number generator
+     * @param {*} random    A random number generator object, use null for the default random number generator
      */
     parse(filename, random = null) {
         TCOD_namegen_parse(filename, random ? random.data : null);

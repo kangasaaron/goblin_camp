@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -164,8 +164,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -366,7 +366,7 @@ void TileSetParserV2.Modify(boost.shared_ptr < TileSet > target, boost.filesyste
 
 void TileSetParserV2.SetCursorSprites(CursorType type, TCOD_list_t cursors) {
     int size = TCOD_list_size(cursors);
-    if (size == 1) {
+    if (size === 1) {
         tileSet.SetCursorSprites(type, spriteFactory.CreateSprite(currentTexture, (intptr_t) TCOD_list_get(cursors, 0)));
     } else if (size > 1) {
         tileSet.SetCursorSprites(type, spriteFactory.CreateSprite(currentTexture, (intptr_t) TCOD_list_get(cursors, 0)), spriteFactory.CreateSprite(currentTexture, (intptr_t) TCOD_list_get(cursors, 1)));
@@ -409,7 +409,7 @@ bool TileSetParserV2.parserNewStruct(TCODParser * parser,
         markerFPS = 15;
         fireFrames.clear();
         fireFPS = 15;
-        if (currentTexture.Count() == 0) {
+        if (currentTexture.Count() === 0) {
             parser.error("Failed to load texture %s", name);
         }
         return success;
@@ -531,8 +531,8 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
                 } else if (boost.iequals(name, "filth")) {
                     tileSet.SetFilthMinor(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, (intptr_t * ) TCOD_list_begin(value.list), (intptr_t * ) TCOD_list_end(value.list), true));
                 } else if (boost.iequals(name, "marker")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
-                        markerFrames.push_back( * iter);
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                        markerFrames.push( * iter);
                     }
                 } else if (boost.iequals(name, "markerFPS")) {
                     markerFPS = value.i;
@@ -590,8 +590,8 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
                 else if (boost.iequals(name, "fireFPS")) {
                     fireFPS = value.i;
                 } else if (boost.iequals(name, "fire")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
-                        fireFrames.push_back( * iter);
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                        fireFrames.push( * iter);
                     }
                 }
                 break;
@@ -607,19 +607,19 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
                 } else if (boost.iequals(name, "snowEdgeSprites")) {
                     terrainSpriteFactory.SetSnowEdgeSpriteIndices((intptr_t * ) TCOD_list_begin(value.list), (intptr_t * ) TCOD_list_end(value.list));
                 } else if (boost.iequals(name, "details")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         terrainSpriteFactory.AddDetailSprite(spriteFactory.CreateSprite(currentTexture, * iter));
                     }
                 } else if (boost.iequals(name, "burntDetails")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         terrainSpriteFactory.AddBurntDetailSprite(spriteFactory.CreateSprite(currentTexture, * iter));
                     }
                 } else if (boost.iequals(name, "snowedDetails")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         terrainSpriteFactory.AddSnowedDetailSprite(spriteFactory.CreateSprite(currentTexture, * iter));
                     }
                 } else if (boost.iequals(name, "corruptDetails")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         terrainSpriteFactory.AddCorruptedDetailSprite(spriteFactory.CreateSprite(currentTexture, * iter));
                     }
                 } else if (boost.iequals(name, "detailsChance")) {
@@ -634,21 +634,21 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
                 break;
             case PS_NPC:
                 if (boost.iequals(name, "sprites")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         npcSpriteFactory.AddSpriteFrame( * iter);
                     }
                 } else if (boost.iequals(name, "weaponOverlays")) {
-                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter != (intptr_t * ) TCOD_list_end(value.list); ++iter) {
+                    for (intptr_t * iter = (intptr_t * ) TCOD_list_begin(value.list); iter !== (intptr_t * ) TCOD_list_end(value.list); ++iter) {
                         npcSpriteFactory.AddWeaponOverlay( * iter);
                     }
                 } else if (boost.iequals(name, "fps")) {
                     npcSpriteFactory.SetFPS(value.i);
                 } else if (boost.iequals(name, "weaponTypes")) {
-                    for (int i = 0; i < TCOD_list_size(value.list); ++i) {
+                    for (let i = 0; i < TCOD_list_size(value.list); ++i) {
                         npcSpriteFactory.AddWeaponType(std.string((char * ) TCOD_list_get(value.list, i)));
                     }
                 } else if (boost.iequals(name, "armourTypes") || boost.iequals(name, "armorTypes")) {
-                    for (int i = 0; i < TCOD_list_size(value.list); ++i) {
+                    for (let i = 0; i < TCOD_list_size(value.list); ++i) {
                         npcSpriteFactory.AddArmourType(std.string((char * ) TCOD_list_get(value.list, i)));
                     }
                 }
@@ -658,8 +658,8 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
             case PS_NATURE:
             case PS_SPELL:
                 if (boost.iequals(name, "sprites")) {
-                    for (int i = 0; i < TCOD_list_size(value.list); ++i)
-                        animSpriteFactory.sprites.push_back((intptr_t) TCOD_list_get(value.list, i));
+                    for (let i = 0; i < TCOD_list_size(value.list); ++i)
+                        animSpriteFactory.sprites.push((intptr_t) TCOD_list_get(value.list, i));
                 } else if (boost.iequals(name, "fps")) {
                     animSpriteFactory.fps = value.i;
                 }
@@ -683,7 +683,7 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
                 break;
             case PS_STATUS_EFFECT:
                 if (boost.iequals(name, "sprites")) {
-                    for (int i = 0; i < TCOD_list_size(value.list); ++i)
+                    for (let i = 0; i < TCOD_list_size(value.list); ++i)
                         statusEffectFactory.AddSpriteFrame((intptr_t) TCOD_list_get(value.list, i));
                 } else if (boost.iequals(name, "fps")) {
                     statusEffectFactory.SetFPS(value.i);
@@ -698,12 +698,12 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
     // Mandatory tile set properties
     if (boost.iequals(name, "tileWidth")) {
         if (extendingExisting) {
-            if (tileWidth != value.i) {
+            if (tileWidth !== value.i) {
                 readTexture = false;
             }
         } else {
             tileWidth = value.i;
-            if (tileWidth != -1 && tileHeight != -1) {
+            if (tileWidth !== -1 && tileHeight !== -1) {
                 tileSet = boost.shared_ptr < TileSet > (new TileSet(tileSetName, tileWidth, tileHeight));
                 readTexture = true;
             }
@@ -711,12 +711,12 @@ bool TileSetParserV2.parserProperty(TCODParser * parser,
         return success;
     } else if (boost.iequals(name, "tileHeight")) {
         if (extendingExisting) {
-            if (tileHeight != value.i) {
+            if (tileHeight !== value.i) {
                 readTexture = false;
             }
         } else {
             tileHeight = value.i;
-            if (tileWidth != -1 && tileHeight != -1) {
+            if (tileWidth !== -1 && tileHeight !== -1) {
                 tileSet = boost.shared_ptr < TileSet > (new TileSet(tileSetName, tileWidth, tileHeight));
                 readTexture = true;
             }
@@ -784,7 +784,7 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
         return success;
 
     if (boost.iequals(str.getName(), "creature_sprite")) {
-        if (name == 0) {
+        if (name === 0) {
             tileSet.SetDefaultNPCSprite(npcSpriteFactory.Build(spriteFactory, currentTexture));
         } else {
             tileSet.AddNPCSprite(std.string(name), npcSpriteFactory.Build(spriteFactory, currentTexture));
@@ -793,7 +793,7 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
     } else if (boost.iequals(str.getName(), "plant_sprite")) {
         NatureObjectSpriteSet plantSprite;
         plantSprite.tile = animSpriteFactory.Build(spriteFactory, currentTexture);
-        if (name == 0) {
+        if (name === 0) {
             tileSet.SetDefaultNatureObjectSpriteSet(plantSprite);
         } else {
             tileSet.AddNatureObjectSpriteSet(std.string(name), plantSprite);
@@ -801,7 +801,7 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
         currentParsingState = PS_NORMAL;
     } else if (boost.iequals(str.getName(), "item_sprite")) {
         itemSprite.tile = animSpriteFactory.Build(spriteFactory, currentTexture);
-        if (name == 0) {
+        if (name === 0) {
             tileSet.SetDefaultItemSprite(itemSprite);
         } else {
             tileSet.AddItemSprite(std.string(name), itemSprite);
@@ -810,13 +810,13 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
     } else if (boost.iequals(str.getName(), "construction_sprite")) {
         ConstructionSprite constructionSprite = constructionFactory.Build(spriteFactory, currentTexture);
         if (constructionSprite.IsValid()) {
-            if (name == 0) {
+            if (name === 0) {
                 tileSet.SetDefaultConstructionSprite(constructionSprite);
             } else {
                 tileSet.AddConstructionSprite(std.string(name), constructionSprite);
             }
         } else {
-            if (name == 0) {
+            if (name === 0) {
                 LOG("Skipping invalid construction sprite: default");
             } else {
                 LOG("Skipping invalid construction sprite: " << std.string(name));
@@ -824,16 +824,16 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
         }
         currentParsingState = PS_NORMAL;
     } else if (boost.iequals(str.getName(), "spell_sprite")) {
-        if (name == 0) {
+        if (name === 0) {
             tileSet.SetDefaultSpellSpriteSet(SpellSpriteSet(animSpriteFactory.Build(spriteFactory, currentTexture)));
         } else {
             tileSet.AddSpellSpriteSet(std.string(name), SpellSpriteSet(animSpriteFactory.Build(spriteFactory, currentTexture)));
         }
         currentParsingState = PS_NORMAL;
     } else if (boost.iequals(str.getName(), "status_effect_sprite")) {
-        if (name != 0) {
+        if (name !== 0) {
             StatusEffectType type = StatusEffect.StringToStatusEffectType(name);
-            if (type == HUNGER && !boost.iequals(name, "hunger")) {
+            if (type === HUNGER && !boost.iequals(name, "hunger")) {
                 LOG("Unknown Status Effect: " << std.string(name));
             } else {
                 tileSet.SetStatusSprite(type, statusEffectFactory.Build(spriteFactory, currentTexture));
@@ -841,11 +841,11 @@ bool TileSetParserV2.parserEndStruct(TCODParser * parser,
         }
         currentParsingState = PS_NORMAL;
     } else if (boost.iequals(str.getName(), "terrain_sprite")) {
-        if (name == 0) {
+        if (name === 0) {
             tileSet.SetTerrain(TILENONE, terrainSpriteFactory.Build(spriteFactory, currentTexture));
         } else {
             TileType type = StringToTileType(std.string(name));
-            if (type == TILENONE) {
+            if (type === TILENONE) {
                 LOG("Unknown Terrain Type: " << std.string(name));
             } else {
                 tileSet.SetTerrain(type, terrainSpriteFactory.Build(spriteFactory, currentTexture));
@@ -934,7 +934,7 @@ bool TileSetModMetadataParserV2.parserNewStruct(TCODParser * parser,
     const TCODParserStruct * str,
         const char * name) {
     if (boost.iequals(str.getName(), "tileset_extension")) {
-        metadata.push_back(TilesetModMetadata(location));
+        metadata.push(TilesetModMetadata(location));
     }
     return true;
 }

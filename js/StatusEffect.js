@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -28,9 +28,7 @@ import {
 import {
     StatusEffectType
 } from "./StatusEffectType.js";
-import {
-    Color
-} from "./libtcod.js";
+import {TCODColor} from "../fakeTCOD/libtcod.js";
 
 export class StatusEffect extends Serializable {
     static CLASS_VERSION = 1;
@@ -64,7 +62,7 @@ export class StatusEffect extends Serializable {
         this.color = col;
         this.type = typeval;
 
-        this.damage[0] = UPDATES_PER_SECOND;
+        this.damage[0] =Constants.UPDATES_PER_SECOND;
         this.damage[1] = 0;
 
         //TODO: All this needs to be put into data files at some point
@@ -85,14 +83,14 @@ export class StatusEffect extends Serializable {
                 this.name = "Panicking";
                 this.graphic = '!';
                 this.color = Color.white;
-                this.cooldown = UPDATES_PER_SECOND * 5;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 5;
                 this.contagionChance = 75;
                 break;
             case StatusEffectType.CONCUSSION:
                 this.name = "Concussed";
                 this.graphic = '?';
                 this.color = Color.grey;
-                this.cooldown = UPDATES_PER_SECOND * 5;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 5;
                 this.statChanges[NPCStat.MOVESPEED] = 0.5;
                 this.statChanges[NPCStat.DODGE] = 0.5;
                 break;
@@ -108,13 +106,13 @@ export class StatusEffect extends Serializable {
                 this.name = "Sleeping";
                 this.graphic = 'Z';
                 this.color = Color.lightGrey;
-                this.cooldown = UPDATES_PER_SECOND;
+                this.cooldown =Constants.UPDATES_PER_SECOND;
                 break;
             case StatusEffectType.POISON:
                 this.name = "Poisoned";
                 this.graphic = '#';
                 this.color = Color.green;
-                this.cooldown = (MONTH_LENGTH * 2);
+                this.cooldown = (Constants.MONTH_LENGTH * 2);
                 this.statChanges[NPCStat.STRENGTH] = 0.5;
                 this.statChanges[NPCStat.MOVESPEED] = 0.8;
                 this.statChanges[NPCStat.DODGE] = 0.5;
@@ -124,7 +122,7 @@ export class StatusEffect extends Serializable {
                 this.name = "Bleeding";
                 this.graphic = '#';
                 this.color = Color.red;
-                this.cooldown = UPDATES_PER_SECOND * 4;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 4;
                 this.damage.second = 4;
                 this.damageType = DAMAGE_SLASH;
                 this.applicableResistance = Resistance.BLEEDING_RES;
@@ -141,7 +139,7 @@ export class StatusEffect extends Serializable {
                 this.name = "Sluggish";
                 this.graphic = '-';
                 this.color = Color.grey;
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.statChanges[NPCStat.MOVESPEED] = 0.75;
                 this.statChanges[NPCStat.DODGE] = 0.75;
                 this.resistanceChanges[Resistance.POISON_RES] = 0.75;
@@ -151,7 +149,7 @@ export class StatusEffect extends Serializable {
                 this.name = "Enraged";
                 this.graphic = '!';
                 this.color = Color.red;
-                this.cooldown = UPDATES_PER_SECOND * 7;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 7;
                 this.statChanges[NPCStat.STRENGTH] = 2;
                 this.statChanges[NPCStat.DODGE] = 0.5;
                 this.negative = false;
@@ -195,7 +193,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.BURNING:
                 this.name = "On fire!";
-                this.cooldown = UPDATES_PER_SECOND * 10;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 10;
                 this.graphic = '!';
                 this.color = Color.red;
                 this.damage.second = 7;
@@ -210,7 +208,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.INVIGORATED:
                 this.name = "Invigorated";
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.graphic = 11;
                 this.color = Color(127, 255, 255);
                 this.visible = false;
@@ -222,13 +220,13 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.DRUNK:
                 this.name = "Drunk";
-                this.cooldown = MONTH_LENGTH;
+                this.cooldown = Constants.MONTH_LENGTH;
                 this.graphic = 63;
                 this.color = Color(218, 255, 127);
                 break;
             case StatusEffectType.HEALING:
                 this.name = "Healing";
-                this.cooldown = MONTH_LENGTH;
+                this.cooldown = Constants.MONTH_LENGTH;
                 this.graphic = 241;
                 this.color = Color(0, 255, 0);
                 this.damage.second = -10;
@@ -238,7 +236,7 @@ export class StatusEffect extends Serializable {
 
             case StatusEffectType.HELPLESS:
                 this.name = "Helpless";
-                this.cooldown = UPDATES_PER_SECOND * 10;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 10;
                 this.graphic = 168;
                 this.color = Color(130, 240, 255);
                 this.statChanges[NPCStat.MOVESPEED] = 0;
@@ -246,7 +244,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.HIGHGROUND:
                 this.name = "Higher ground";
-                this.cooldown = UPDATES_PER_SECOND / 2;
+                this.cooldown =Constants.UPDATES_PER_SECOND / 2;
                 this.graphic = 23;
                 this.color = Color(100, 255, 255);
                 this.visible = false;
@@ -254,7 +252,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.TRIPPED:
                 this.name = "Tripped";
-                this.cooldown = UPDATES_PER_SECOND * 2;
+                this.cooldown =Constants.UPDATES_PER_SECOND * 2;
                 this.graphic = 31;
                 this.color = Color.white;
                 this.statChanges[NPCStat.MOVESPEED] = 0.2;
@@ -262,7 +260,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.BRAVE:
                 this.name = "Brave";
-                this.cooldown = UPDATES_PER_SECOND;
+                this.cooldown =Constants.UPDATES_PER_SECOND;
                 this.graphic = 30;
                 this.color = Color(0, 255, 255);
                 this.negative = false;
@@ -270,7 +268,7 @@ export class StatusEffect extends Serializable {
                 break;
             case StatusEffectType.COLLYWOBBLES:
                 this.name = "Collywobbles";
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.graphic = 207;
                 this.color = Color(127, 106, 0);
                 this.statChanges[NPCStat.STRENGTH] = 0.5;
@@ -281,7 +279,7 @@ export class StatusEffect extends Serializable {
 
             case StatusEffectType.DROOPS:
                 this.name = "Droops";
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.graphic = 207;
                 this.color = Color(127, 106, 0);
                 this.statChanges[NPCStat.STRENGTH] = 0.5;
@@ -292,7 +290,7 @@ export class StatusEffect extends Serializable {
 
             case StatusEffectType.RATTLES:
                 this.name = "Rattles";
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.graphic = 207;
                 this.color = Color(127, 106, 0);
                 this.statChanges[NPCStat.STRENGTH] = 0.5;
@@ -303,7 +301,7 @@ export class StatusEffect extends Serializable {
 
             case StatusEffectType.CHILLS:
                 this.name = "Chills";
-                this.cooldown = MONTH_LENGTH * 3;
+                this.cooldown = Constants.MONTH_LENGTH * 3;
                 this.graphic = 207;
                 this.color = Color(127, 106, 0);
                 this.statChanges[NPCStat.STRENGTH] = 0.5;

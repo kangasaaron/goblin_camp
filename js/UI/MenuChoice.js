@@ -1,13 +1,10 @@
-export class MenuChoice {
-    label = "";
-    callback = null;
-    enabled = false;
-    tooltip = "";
+import {Game} from "../Game.js";
 
-    constructor(ntext = "", cb = Game.DoNothing.bind(), nenabled = true, ntooltip = "") {
+export class MenuChoice {
+    constructor(ntext = "", cb = () => Game.i.DoNothing(), nenabled = true, ntooltip = "") {
         this.label = ntext;
         this.callback = cb;
         this.enabled = nenabled;
         this.tooltip = ntooltip;
     }
-};
+}

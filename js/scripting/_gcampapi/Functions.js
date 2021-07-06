@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -38,11 +38,11 @@ EntityType.enumify();
 // namespace Script {
 class API {
     Announce(str) {
-        Announce.AddMsg(str);
+        Announce.i.AddMsg(str);
     }
 
     IsDebugBuild() {
-        if (DEBUG) {
+        if (Globals.DEBUG) {
             return true;
         } else /*#else */ {
             return false;
@@ -50,7 +50,7 @@ class API {
     }
 
     IsDevMode() {
-        return Game.DevMode();
+        return Game.i.DevMode();
     }
 
     GetVersionString() {
@@ -62,19 +62,19 @@ class API {
     }
 
     Delay(delay, callback) {
-        if (!(typeof callback == "function")) {
+        if (!(typeof callback === "function")) {
             LOG("WARNING: Attempted to add a delay to an uncallable object");
             return;
         }
         // py.object
 
         let func = callback.bind(this);
-        Game.AddDelay(delay, func);
+        Game.i.AddDelay(delay, func);
     }
 
 
     _SpawnItem(coords, type) {
-        return Game.CreateItem(coords, type);
+        return Game.i.CreateItem(coords, type);
     }
 
     // XXX:  it doesn't 'spawn' constructions, it builds them (as in will fail and return -1 when there are no resources)
@@ -87,20 +87,20 @@ class API {
 
         switch (type) {
             case EntityType.EConstr:
-                spawn = Game.PlaceConstruction;
+                spawn = Game.i.PlaceConstruction;
                 getID = Construction.StringToConstructionType;
                 break;
             case EntityType.EItem:
-                //spawn = boost.bind(&Game.CreateItem, Game.Inst(), _1, _2); // this makes the compiler cry for some reason
+                //spawn = boost.bind(&Game.i.CreateItem, Game.i, _1, _2); // this makes the compiler cry for some reason
                 spawn = _SpawnItem;
                 getID = Item.StringToItemType;
                 break;
             case EntityType.ENPC:
-                spawn = Game.CreateNPC.bind(Game.Inst(), _1, _2);
+                spawn = Game.i.CreateNPC.bind(Game.i, _1, _2);
                 getID = NPC.StringToNPCType;
                 break;
             case EntityType.EPlant:
-                Game.CreateNatureObject(coords, name);
+                Game.i.CreateNatureObject(coords, name);
                 return -1;
             default:
                 // PyErr_SetString(PyExc_ValueError, "Invalid type");
@@ -111,7 +111,7 @@ class API {
 
         let id = getID(name);
 
-        if (id == -1) {
+        if (id === -1) {
             throw new SyntaxError("Invalid name");
             // PyErr_SetString(PyExc_ValueError, "Invalid name");
             // py.throw_error_already_set();

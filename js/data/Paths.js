@@ -7,14 +7,14 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import { FilePath } from "../other/FilePath.js";
+import { FilePath } from "../cplusplus/FilePath.js";
 import { Path } from "./Path.js";
 
 /**
@@ -276,7 +276,7 @@ export class Paths {
         throw new Error("Impossible code path, crashing.");
     }
     GetFilePath(filepath, fetch = true) {
-        if (typeof filepath == "string") filepath = new FilePath(filepath);
+        if (typeof filepath === "string") filepath = new FilePath(filepath);
         let cache = this.Get(filepath.GetCache(this));
         let url = filepath.GetURL();
         return cache.keys(function (keys) {

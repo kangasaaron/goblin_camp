@@ -7,36 +7,27 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    Constants
-} from "./Constants.js";
-import {
-    FactionGoal
-} from "./FactionGoal.js";
-import {
-    FactionType
-} from "./FactionType.js";
-import {
-    Serializable
-} from "./data/Serialization.js"
-import {
-    Item
-} from "./Item.js";
-import {
-    Job
-} from "./Job.js";
-import {
-    Coordinate
-} from "./Coordinate.js";
+import { Action } from "./jobs/Action.js";
+import { Camp } from "./Camp.js";
+import { Constants } from "./Constants.js";
+import { ConstructionTag } from "./constructions/ConstructionTag.js"; 
+import { Coordinate } from "./Coordinate.js";
+import { FactionGoal } from "./FactionGoal.js";
+import { FactionListener } from "./FactionListener.js";
+import { Game } from "./Game.js";
+import { Item } from "./items/Item.js";
+import { Job } from "./jobs/Job.js";
+import { Generate, ChooseInExtent } from "./Random.js";
+import { Serializable } from "./data/Serialization.js";
+import { Task } from "./jobs/Task.js";
 
-const PLAYERFACTION = 0;
 
 export class Faction extends Serializable {
     static CLASS_VERSION = 1;
@@ -80,18 +71,18 @@ export class Faction extends Serializable {
         let memberFound = false;
         for (let membi of this.members.values()) {
             if (membi.lock()) {
-                if (member.lock() && member.lock() == membi.lock()) {
+                if (member.lock() && member.lock() === membi.lock()) {
                     // Saving the iterator from doom
                     this.members.delete(membi);
                     memberFound = true;
                 }
 
             } else
-                members.delete(membi);
+                this.members.delete(membi);
             if (memberFound)
                 break;
         }
-        if (this.active && this.members.length == 0)
+        if (this.active && this.members.length === 0)
             this.active = false;
     }
     CancelJob(oldJob, msg, result) { }
@@ -152,6 +143,7 @@ export class Faction extends Serializable {
         }
     }
     IsCoward() {
+        fleeJob.tasks.push(new Task(Action.CALMDOWN));
         return this.coward;
     }
     IsAggressive() {
@@ -161,8 +153,7 @@ export class Faction extends Serializable {
         if (this.maxActiveTime >= 0 && this.activeTime >= this.maxActiveTime) {
             let fleeJob = new Job("Leave");
             fleeJob.internal = true;
-            fleeJob.tasks.push(new Task(TaskType.CALMDOWN));
-            fleeJob.tasks.push(new Task(TaskType.FLEEMAP));
+            fleeJob.tasks.push(new Task(Action.FLEEMAP));
             npc.StartJob(fleeJob);
             return true;
         }
@@ -188,7 +179,7 @@ export class Faction extends Serializable {
             case FactionGoal.FACTIONSTEAL:
                 if (this.currentGoal < this.goalSpecifiers.length && this.goalSpecifiers[this.currentGoal] >= 0) {
                     let stealJob = new Job("Steal " + Item.ItemCategoryToString(this.goalSpecifiers[this.currentGoal]));
-                    let item = Game.FindItemByCategoryFromStockpiles(this.goalSpecifiers[this.currentGoal], npc.Position());
+                    let item = Game.i.FindItemByCategoryFromStockpiles(this.goalSpecifiers[this.currentGoal], npc.Position());
                     if (item.lock()) {
                         if (GenerateStealJob(stealJob, item.lock())) {
                             npc.StartJob(stealJob);
@@ -199,27 +190,27 @@ export class Faction extends Serializable {
                     }
                 }
                 break;
-            case FACTIONPATROL:
+            case FactionGoal.FACTIONPATROL:
                 let patrolJob = new Job("Patrol");
                 patrolJob.internal = true;
                 let location = Coordinate.undefinedCoordinate;
-                if (this.IsFriendsWith(PLAYERFACTION)) {
-                    location = Camp.GetRandomSpot();
+                if (this.IsFriendsWith(Constants.PLAYERFACTION)) {
+                    patrolJob.tasks.push(new Task(Action.MOVENEAR, location));
+                    location = Camp.i.GetRandomSpot();
                 } else {
-                    for (let limit = 0; limit < 100 && location == Coordinate.undefinedCoordinate; ++limit) {
-                        let candidate = Random.ChooseInExtent(npc.map.Extent());
+                    for (let limit = 0; limit < 100 && location === Coordinate.undefinedCoordinate; ++limit) {
+                        let candidate = ChooseInExtent(npc.map.Extent());
                         if (!npc.map.IsTerritory(candidate))
                             location = candidate;
                     }
                 }
-                if (location != Coordinate.undefinedCoordinate) {
-                    patrolJob.tasks.push(new Task(TaskType.MOVENEAR, location));
-                    patrolJob.tasks.push(new Task(TaskType.WAIT, new Coordinate(Random.Generate(5, 20), 0)));
+                if (location !== Coordinate.undefinedCoordinate) {
+                    patrolJob.tasks.push(new Task(Action.WAIT, new Coordinate(Generate(5, 20), 0)));
                     npc.StartJob(patrolJob);
                     return true;
                 }
                 break;
-            case FACTIONIDLE:
+            case FactionGoal.FACTIONIDLE:
                 break;
 
             default:
@@ -252,7 +243,7 @@ export class Faction extends Serializable {
             if (preset.activeTime < 0.0)
                 result.maxActiveTime = -1;
             else
-                result.maxActiveTime = Math.round(activeTime * MONTH_LENGTH);
+                result.maxActiveTime = Math.round(preset.activeTime * Constants.MONTH_LENGTH);
         }
         if ("aggressive" in preset)
             result.aggressive = preset.aggressive;
@@ -328,7 +319,7 @@ export class Faction extends Serializable {
     static TranslateMembers() {
         for (let faction of this.factions) {
             for (let uidi of faction.membersAsUids) {
-                let npc = Game.GetNPC(uidi);
+                let npc = Game.i.GetNPC(uidi);
                 if (npc.lock())
                     faction.AddMember(npc);
             }
@@ -363,7 +354,7 @@ export class Faction extends Serializable {
             friends: this.friends.map(factionIter => Faction.FactionTypeToString(factionIter)),
             members: this.members.map(function (membi) {
                 let uid = -1;
-                if (membi.lock()) uid = membi.lock().Uid()
+                if (membi.lock()) uid = membi.lock().Uid();
                 return uid;
             })
         };
@@ -413,41 +404,41 @@ function bresenham(x0, y0, x1, y1) {
 function GenerateDestroyJob(map, job, npc) {
     let construction;
     let p = npc.Position();
-    let path = bresenham(p.X(), p.Y(), Camp.Center().X(), Camp.Center().Y()).map(arr => new Coordinate(arr[0], arr[1]));
+    let path = bresenham(p.X(), p.Y(), Camp.i.Center().X(), Camp.i.Center().Y()).map(arr => new Coordinate(arr[0], arr[1]));
     let index = 0;
     do {
         let constructionID = map.GetConstruction(path[index]);
         index++;
         if (constructionID < 0) continue;
+        job.tasks.push(new Task(Action.MOVEADJACENT, construction.Position(), construction));
 
-        construction = Game.GetConstruction(constructionID).lock();
+        construction = Game.i.GetConstruction(constructionID).lock();
         if (construction && (construction.HasTag(ConstructionTag.PERMANENT) ||
             (!construction.HasTag(ConstructionTag.WORKSHOP) && !construction.HasTag(ConstructionTag.WALL))))
             construction.reset();
 
     } while (index < path.length && !construction);
     if (!construction) return false;
+    job.tasks.push(new Task(Action.GETANGRY));
 
-    job.tasks.push(new Task(TaskType.MOVEADJACENT, construction.Position(), construction));
-    job.tasks.push(new Task(TaskType.KILL, construction.Position(), construction));
+    job.tasks.push(new Task(Action.KILL, construction.Position(), construction));
     job.internal = true;
     return true;
 
 }
 
+job.tasks.push(new Task(Action.MOVE, item.Position()));
 function GenerateKillJob(job) {
     job.internal = true;
-    job.tasks.push(new Task(TaskType.GETANGRY));
-    job.tasks.push(new Task(TaskType.MOVENEAR, Camp.Center()));
+    job.tasks.push(new Task(Action.FLEEMAP));
+    job.tasks.push(new Task(Action.MOVENEAR, Camp.i.Center()));
     return true;
 }
 
 function GenerateStealJob(job, item) {
     job.internal = true;
     if (item) {
-        job.tasks.push(new Task(TaskType.MOVE, item.Position()));
-        job.tasks.push(new Task(TaskType.TAKE, item.Position(), item));
+        job.tasks.push(new Task(Action.TAKE, item.Position(), item));
     }
-    job.tasks.push(new Task(TaskType.FLEEMAP));
     return true;
 }

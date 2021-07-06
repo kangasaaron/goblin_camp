@@ -7,45 +7,27 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    Coordinate
-} from "./Coordinate.js";
-import {
-    Skill
-} from "./Skill.js";
-import {
-    SkillSet
-} from "./SkillSet.js";
-import {
-    Entity
-} from "./Entity.js";
-import {
-    NPCType
-} from "./NPCType.js";
-import {
-    Job
-} from "./Job.js";
-import {
-    Task
-} from "./Task.js";
-import {
-    TaskResult
-} from "./TaskResult.js";
-import {
-    StatusEffectType
-} from "./StatusEffectType.js";
-import {
-    Trait
-} from "./Trait.js";
 import { Attack } from "./Attack.js";
 import { Constants } from "./Constants.js";
+import { Coordinate } from "./Coordinate.js";
+import { Entity} from "./Entity.js";
+import { Job } from "./jobs/Job.js";
+import { NPCStat } from "./NPCStat.js";
+import { NPCType } from "./NPCType.js";
+import { Resistance } from "./Resistance.js";
+import { Skill } from "./Skill.js";
+import { SkillSet } from "./SkillSet.js";
+import { StatusEffectType } from "./StatusEffectType.js";
+import { Task } from "./jobs/Task.js";
+import { TaskResult } from "./jobs/TaskResult.js";
+import { Trait } from "./Trait.js";
 
 export class NPC extends Entity {
     static CLASS_VERSION = 1;
@@ -200,7 +182,7 @@ export class NPC extends Entity {
 
     static LoadPresets(filename) {
         let listener = new NPCListener(this, filename);
-        return listener.fetch()
+        return listener.fetch();
     }
 
     /**
@@ -220,11 +202,11 @@ export class NPC extends Entity {
         //Priority #1, if the creature can wield a weapon get one if possible
         /*TODO: Right now this only makes friendlies take a weapon from a stockpile
         It should be expanded to allow all npc's to search for nearby weapons lying around. */
-        if (!npc.mainHand.lock() && npc.GetFaction() == PLAYERFACTION && squad.Weapon() >= 0) {
+        if (!npc.mainHand.lock() && npc.GetFaction() === Constants.PLAYERFACTION && squad.Weapon() >= 0) {
             for (let attacki of npc.attacks) {
-                if (!attacki.Type() == DAMAGE_WIELDED) continue;
+                if (attacki.Type() !== DAMAGE_WIELDED) continue;
 
-                if (!Game.FindItemByCategoryFromStockpiles(squad.Weapon(), npc.Position()).lock()) break;
+                if (!Game.i.FindItemByCategoryFromStockpiles(squad.Weapon(), npc.Position()).lock()) break;
 
                 newJob.tasks.push(new Task(TaskType.FIND, npc.Position(), null, squad.Weapon()));
                 newJob.tasks.push(new Task(TaskType.MOVE));
@@ -237,7 +219,7 @@ export class NPC extends Entity {
 
         if (npc.WieldingRangedWeapon()) {
             if (!npc.quiver.lock()) {
-                if (Game.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Quiver"), npc.Position()).lock()) {
+                if (Game.i.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Quiver"), npc.Position()).lock()) {
                     newJob.tasks.push(new Task(TaskType.FIND, npc.Position(), null, Item.StringToItemCategory("Quiver")));
                     newJob.tasks.push(new Task(TaskType.MOVE));
                     newJob.tasks.push(new Task(TaskType.TAKE));
@@ -246,7 +228,7 @@ export class NPC extends Entity {
                     return true;
                 }
             } else if (npc.quiver.lock().empty()) {
-                if (Game.FindItemByCategoryFromStockpiles(
+                if (Game.i.FindItemByCategoryFromStockpiles(
                         npc.mainHand.lock().GetAttack().Projectile(), npc.Position()).lock()) {
                     for (let i = 0; i < 20; ++i) {
                         newJob.tasks.push(new Task(TaskType.FIND, npc.Position(), null, npc.mainHand.lock().GetAttack().Projectile()));
@@ -260,16 +242,16 @@ export class NPC extends Entity {
             }
         }
 
-        if (!npc.armor.lock() && npc.GetFaction() == PLAYERFACTION && squad.Armor() >= 0) {
+        if (!npc.armor.lock() && npc.GetFaction() === Constants.PLAYERFACTION && squad.Armor() >= 0) {
             npc.FindNewArmor();
         }
 
         switch (squad.GetOrder(npc.orderIndex)) { //GetOrder handles incrementing orderIndex
             case GUARD:
-                if (squad.TargetCoordinate(npc.orderIndex) != undefined) {
-                    if (squad.Weapon() == Item.StringToItemCategory("Ranged weapon")) {
+                if (squad.TargetCoordinate(npc.orderIndex) !== undefined) {
+                    if (squad.Weapon() === Item.StringToItemCategory("Ranged weapon")) {
                         let p = npc.map.FindRangedAdvantage(squad.TargetCoordinate(npc.orderIndex));
-                        if (p != undefined) {
+                        if (p !== undefined) {
                             newJob.tasks.push(new Task(TaskType.MOVE, p));
                             //TODO remove WAIT hack
                             newJob.tasks.push(new Task(TaskType.WAIT, Coordinate(5 * 15, 0)));
@@ -325,13 +307,13 @@ export class NPC extends Entity {
         let surroundingsScanned = false;
 
         //If carrying a container and adjacent to fire, dump it on it immediately
-        let carriedItem;
-        if (carriedItem = npc.Carrying().lock()) {
+        let carriedItem = npc.Carrying().lock();
+        if (carriedItem) {
             if (carriedItem.IsCategory(Item.StringToItemCategory("bucket")) ||
                 carriedItem.IsCategory(Item.StringToItemCategory("container"))) {
                 npc.ScanSurroundings(true);
                 surroundingsScanned = true;
-                if (npc.seenFire && Game.Adjacent(npc.threatLocation, npc.Position())) {
+                if (npc.seenFire && Game.i.Adjacent(npc.threatLocation, npc.Position())) {
                     npc.DumpContainer(npc.threatLocation);
                     npc.TaskFinished(TaskResult.TASKFAILNONFATAL);
                 }
@@ -343,7 +325,7 @@ export class NPC extends Entity {
             surroundingsScanned = true;
 
             //NPCs with the CHICKENHEART trait panic more than usual if they see fire
-            if (npc.HasTrait(Trait.CHICKENHEART) && npc.seenFire && (npc.jobs.empty() || npc.jobs[0].name != "Aaaaaaaah!!")) {
+            if (npc.HasTrait(Trait.CHICKENHEART) && npc.seenFire && (npc.jobs.empty() || npc.jobs[0].name !== "Aaaaaaaah!!")) {
                 while (!npc.jobs.empty()) npc.TaskFinished(TaskResult.TASKFAILNONFATAL, "(FAIL)Chickenheart");
                 let runAroundLikeAHeadlessChickenJob = new Job("Aaaaaaaah!!");
                 for (let i = 0; i < 30; ++i)
@@ -358,7 +340,7 @@ export class NPC extends Entity {
             for (let npci of npc.nearNpcs) {
                 let otherNpc = npci.lock();
                 if ((!npc.factionPtr.IsFriendsWith(otherNpc.GetFaction()) && otherNpc.aggressive) ||
-                    otherNpc == npc.aggressor.lock()) {
+                    otherNpc === npc.aggressor.lock()) {
                     JobManager.NPCNotWaiting(npc.uid);
                     while (!npc.jobs.empty()) npc.TaskFinished(TaskResult.TASKFAILNONFATAL, "(FAIL)Enemy sighted");
                     npc.AddEffect(StatusEffectType.PANIC);
@@ -370,7 +352,7 @@ export class NPC extends Entity {
 
             //Aggressive npcs attack unfriendlies
             if (npc.aggressive) {
-                if (npc.jobs.empty() || npc.currentTask().action != KILL) {
+                if (npc.jobs.empty() || npc.currentTask().action !== KILL) {
                     if (!surroundingsScanned) npc.ScanSurroundings(true);
                     surroundingsScanned = true;
                     for (let npci of npc.nearNpcs) {
@@ -408,13 +390,13 @@ export class NPC extends Entity {
 
         //Aggressive animals attack constructions/other creatures depending on faction
         if (animal.aggressive) {
-            if (animal.factionPtr.GetCurrentGoal() == FactionGoal.FACTIONDESTROY && animal.nearConstructions.length > 0) {
+            if (animal.factionPtr.GetCurrentGoal() === FactionGoal.FACTIONDESTROY && animal.nearConstructions.length > 0) {
                 for (let consi of animal.nearConstructions) {
-                    let construct;
-                    if (construct = consi.lock()) {
+                    let construct = consi.lock();
+                    if (construct ) {
                         if (!construct.HasTag(ConstructionTag.PERMANENT) &&
                             (construct.HasTag(ConstructionTag.WORKSHOP) ||
-                                (construct.HasTag(ConstructionTag.WALL) && Random.Generate(10) == 0))) {
+                                (construct.HasTag(ConstructionTag.WALL) && Random.i.Generate(10) === 0))) {
                             let destroyJob = new Job("Destroy " + construct.Name());
                             destroyJob.internal = true;
                             destroyJob.tasks.push(new Task(TaskType.MOVEADJACENT, construct.Position(), construct));
@@ -479,9 +461,9 @@ export class NPC extends Entity {
         this.pos = pos;
         this.inventory.SetInternal();
 
-        this.thirst = this.thirst - (THIRST_THRESHOLD / 2) + Random.Generate(THIRST_THRESHOLD - 1);
-        this.hunger = this.hunger - (HUNGER_THRESHOLD / 2) + Random.Generate(HUNGER_THRESHOLD - 1);
-        this.weariness = this.weariness - (WEARY_THRESHOLD / 2) + Random.Generate(WEARY_THRESHOLD - 1);
+        this.thirst = this.thirst - (Constants.THIRST_THRESHOLD / 2) + Random.i.Generate(Constants.THIRST_THRESHOLD - 1);
+        this.hunger = this.hunger - (Constants.HUNGER_THRESHOLD / 2) + Random.i.Generate(Constants.HUNGER_THRESHOLD - 1);
+        this.weariness = this.weariness - (Constants.WEARY_THRESHOLD / 2) + Random.i.Generate(Constants.WEARY_THRESHOLD - 1);
 
         for (let i = 0; i < NPCStat.STAT_COUNT; ++i) {
             this.baseStats[i] = 0;
@@ -500,9 +482,9 @@ export class NPC extends Entity {
         this.map.NPCList(this.pos).erase(this.uid);
         if (this.squad.lock()) this.squad.lock().Leave(this.uid);
 
-        if (NPC.NPCTypeToString(this.type).toLowerCase() === "orc") Game.OrcCount(-1);
-        else if (NPC.NPCTypeToString(this.type) === "goblin") Game.GoblinCount(-1);
-        else if (NPC.Presets[this.type].tags.has("localwildlife")) Game.PeacefulFaunaCount(-1);
+        if (NPC.NPCTypeToString(this.type).toLowerCase() === "orc") Game.i.OrcCount(-1);
+        else if (NPC.NPCTypeToString(this.type) === "goblin") Game.i.GoblinCount(-1);
+        else if (NPC.Presets[this.type].tags.has("localwildlife")) Game.i.PeacefulFaunaCount(-1);
 
         this.pathMutex.unlock();
         delete this.path;
@@ -518,12 +500,12 @@ export class NPC extends Entity {
         }
         if (found) return;
 
-        let item = Game.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Drink"), this.Position());
+        let item = Game.i.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Drink"), this.Position());
         let waterCoordinate;
         if (!item.lock()) {
-            waterCoordinate = Game.FindWater(this.Position());
+            waterCoordinate = Game.i.FindWater(this.Position());
         }
-        if (item.lock() || waterCoordinate != undefined) { //Found something to drink
+        if (item.lock() || waterCoordinate !== undefined) { //Found something to drink
             let newJob = new Job("Drink", JobPriority.MED, 0, !expert);
             newJob.internal = true;
 
@@ -534,7 +516,7 @@ export class NPC extends Entity {
                 newJob.tasks.push(new Task(TaskType.DRINK));
                 this.jobs.push(newJob);
             } else {
-                let adjacentTile = Game.FindClosestAdjacent(this.Position(), waterCoordinate, faction);
+                let adjacentTile = Game.i.FindClosestAdjacent(this.Position(), waterCoordinate, faction);
                 if (adjacentTile.X() >= 0) {
                     newJob.tasks.push(new Task(TaskType.MOVE, adjacentTile));
                     newJob.tasks.push(new Task(TaskType.DRINK, waterCoordinate));
@@ -549,7 +531,7 @@ export class NPC extends Entity {
     HandleHunger() {
         let found = false;
 
-        if (this.hunger > 48000 && this.jobs.length && this.jobs[0].name.indexOf("Eat") == -1) { //Starving and doing something else
+        if (this.hunger > 48000 && this.jobs.length && this.jobs[0].name.indexOf("Eat") === -1) { //Starving and doing something else
             this.TaskFinished(TaskResult.TASKFAILNONFATAL);
         }
 
@@ -559,9 +541,9 @@ export class NPC extends Entity {
         }
         if (found) return;
 
-        let item = Game.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Prepared food"), this.Position(), MOSTDECAYED);
+        let item = Game.i.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Prepared food"), this.Position(), MOSTDECAYED);
         if (!item.lock()) {
-            item = Game.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Food"), this.Position(), MOSTDECAYED | AVOIDGARBAGE);
+            item = Game.i.FindItemByCategoryFromStockpiles(Item.StringToItemCategory("Food"), this.Position(), MOSTDECAYED | AVOIDGARBAGE);
         }
         if (!item.lock()) { //Nothing to eat!
             if (this.hunger > 48000) { //Nearing death
@@ -604,7 +586,7 @@ export class NPC extends Entity {
         }
         if (found) return;
 
-        let wbed = Game.FindConstructionByTag(ConstructionTag.BED, this.Position());
+        let wbed = Game.i.FindConstructionByTag(ConstructionTag.BED, this.Position());
         let sleepJob = new Job("Sleep");
         sleepJob.internal = true;
         if (!this.squad.lock() && this.mainHand.lock()) { //Only soldiers go to sleep gripping their weapons
@@ -612,8 +594,8 @@ export class NPC extends Entity {
             sleepJob.tasks.push(new Task(TaskType.TAKE));
             sleepJob.tasks.push(new Task(TaskType.STOCKPILEITEM));
         }
-        let bed;
-        if (bed = wbed.lock()) {
+        let bed = wbed.lock();
+        if (bed) {
             if (bed.Built()) {
                 sleepJob.ReserveEntity(bed);
                 sleepJob.tasks.push(new Task(TaskType.MOVE, bed.Position()));
@@ -661,7 +643,7 @@ export class NPC extends Entity {
     }
 
     TaskFinished(result, msg = "") {
-        if (DEBUG) {
+        if (Globals.DEBUG) {
             if (msg.length > 0) {
                 console.log(name, ":", msg);
             }
@@ -670,7 +652,7 @@ export class NPC extends Entity {
         this.RemoveEffect(StatusEffectType.DRINKING);
         this.RemoveEffect(StatusEffectType.WORKING);
         if (this.jobs.length > 0) {
-            if (result == TaskResult.TASKSUCCESS) {
+            if (result === TaskResult.TASKSUCCESS) {
                 if (++this.taskIndex >= this.jobs[0].tasks.length) {
                     this.jobs[0].Complete();
                     this.jobs.unshift();
@@ -699,15 +681,15 @@ export class NPC extends Entity {
         this.taskBegun = false;
         this.run = NPC.Presets[type].tags.has("calm") ? false : true;
 
-        if (result != TaskResult.TASKSUCCESS) {
+        if (result !== TaskResult.TASKSUCCESS) {
             //If we're wielding a container (ie. a tool) spill it's contents
             if (this.mainHand.lock() && this.mainHand.lock()) {
                 let cont = this.mainHand.lock();
                 if (cont.ContainsWater() > 0) {
-                    Game.CreateWater(this.Position(), cont.ContainsWater());
+                    Game.i.CreateWater(this.Position(), cont.ContainsWater());
                     cont.RemoveWater(cont.ContainsWater());
                 } else if (cont.ContainsFilth() > 0) {
-                    Game.CreateFilth(this.Position(), cont.ContainsFilth());
+                    Game.i.CreateFilth(this.Position(), cont.ContainsFilth());
                     cont.RemoveFilth(cont.ContainsFilth());
                 }
             }
@@ -721,14 +703,14 @@ export class NPC extends Entity {
 
         this.UpdateStatusEffects();
         //Apply armor effects if present
-        let arm;
-        if (arm = armor.lock()) {
+        let arm = armor.lock();
+        if (arm) {
             for (let i = 0; i < Resistance.RES_COUNT; ++i) {
                 this.effectiveResistances[i] += arm.Resistance(i);
             }
         }
 
-        if (Random.Generate(UPDATES_PER_SECOND) == 0) { //Recalculate bulk once a second, items may get unexpectedly destroyed
+        if (Random.i.Generate(Constants.UPDATES_PER_SECOND) === 0) { //Recalculate bulk once a second, items may get unexpectedly destroyed
             this.bulk = 0;
             for (let itemi of this.inventory) {
                 if (itemi.lock())
@@ -742,16 +724,16 @@ export class NPC extends Entity {
             ++this.thirst;
             ++this.hunger;
 
-            if (this.thirst >= THIRST_THRESHOLD) this.AddEffect(StatusEffectType.THIRST);
+            if (this.thirst >= Constants.THIRST_THRESHOLD) this.AddEffect(StatusEffectType.THIRST);
             else this.RemoveEffect(StatusEffectType.THIRST);
-            if (this.hunger >= HUNGER_THRESHOLD) this.AddEffect(StatusEffectType.HUNGER);
+            if (this.hunger >= Constants.HUNGER_THRESHOLD) this.AddEffect(StatusEffectType.HUNGER);
             else this.RemoveEffect(StatusEffectType.HUNGER);
 
-            if (this.thirst > THIRST_THRESHOLD && Random.Generate(UPDATES_PER_SECOND * 5 - 1) == 0) {
+            if (this.thirst > Constants.THIRST_THRESHOLD && Random.i.Generate(Constants.UPDATES_PER_SECOND * 5 - 1) === 0) {
                 this.HandleThirst();
-            } else if (this.thirst > THIRST_THRESHOLD * 2)
+            } else if (this.thirst > Constants.THIRST_THRESHOLD * 2)
                 this.Kill(this.GetDeathMsgThirst());
-            if (this.hunger > HUNGER_THRESHOLD && Random.Generate(UPDATES_PER_SECOND * 5 - 1) == 0) {
+            if (this.hunger > Constants.HUNGER_THRESHOLD && Random.i.Generate(Constants.UPDATES_PER_SECOND * 5 - 1) === 0) {
                 this.HandleHunger();
             } else if (this.hunger > 72000)
                 this.Kill(this.GetDeathMsgHunger());
@@ -760,18 +742,18 @@ export class NPC extends Entity {
         if (this.needsSleep) {
             ++this.weariness;
 
-            if (this.weariness >= WEARY_THRESHOLD) {
+            if (this.weariness >= Constants.WEARY_THRESHOLD) {
                 this.AddEffect(StatusEffectType.DROWSY);
-                if (this.weariness > WEARY_THRESHOLD)
+                if (this.weariness > Constants.WEARY_THRESHOLD)
                     this.HandleWeariness(); //Give the npc a chance to find a sleepiness curing item
             } else RemoveEffect(StatusEffectType.DROWSY);
         }
 
         if (!this.HasEffect(StatusEffectType.FLYING)) {
-            let water;
-            if (water = map.GetWater(this.pos).lock()) {
-                let construct = Game.GetConstruction(map.GetConstruction(this.pos)).lock();
-                if (water.Depth() > WALKABLE_WATER_DEPTH && (!construct || !construct.HasTag(ConstructionTag.BRIDGE) || !construct.Built())) {
+            let water = map.GetWater(this.pos).lock();
+            if (water) {
+                let construct = Game.i.GetConstruction(map.GetConstruction(this.pos)).lock();
+                if (water.Depth() > Constants.WALKABLE_WATER_DEPTH && (!construct || !construct.HasTag(ConstructionTag.BRIDGE) || !construct.Built())) {
                     this.AddEffect(StatusEffectType.SWIM);
                     this.RemoveEffect(StatusEffectType.BURNING);
                 } else {
@@ -782,41 +764,41 @@ export class NPC extends Entity {
             }
 
             if (this.map.GetNatureObject(this.pos) >= 0 &&
-                Game.natureList[map.GetNatureObject(this.pos)].IsIce() &&
-                Random.Generate(UPDATES_PER_SECOND * 5) == 0) this.AddEffect(StatusEffectType.TRIPPED);
+                Game.i.natureList[map.GetNatureObject(this.pos)].IsIce() &&
+                Random.i.Generate(Constants.UPDATES_PER_SECOND * 5) === 0) this.AddEffect(StatusEffectType.TRIPPED);
         }
 
         for (let attacki of this.attacks) {
             attacki.Update();
         }
 
-        if (this.faction == PLAYERFACTION && Random.Generate(MONTH_LENGTH - 1) == 0)
-            Game.CreateFilth(this.Position());
+        if (this.faction === Constants.PLAYERFACTION && Random.i.Generate(Constants.MONTH_LENGTH - 1) === 0)
+            Game.i.CreateFilth(this.Position());
 
         if (this.carried.lock()) {
             this.AddEffect(new StatusEffect(StatusEffectType.CARRYING, this.carried.lock().GetGraphic(), this.carried.lock().Color()));
         } else
             this.RemoveEffect(StatusEffectType.CARRYING);
 
-        if (this.HasTrait(Trait.CRACKEDSKULL) && Random.Generate(MONTH_LENGTH * 6) == 0)
+        if (this.HasTrait(Trait.CRACKEDSKULL) && Random.i.Generate(Constants.MONTH_LENGTH * 6) === 0)
             this.GoBerserk();
         if (this.HasEffect(StatusEffectType.BURNING)) {
-            if (Random.Generate(UPDATES_PER_SECOND * 3) == 0) {
-                let spark = Game.CreateSpell(this.Position(), Spell.StringToSpellType("spark"));
+            if (Random.i.Generate(Constants.UPDATES_PER_SECOND * 3) === 0) {
+                let spark = Game.i.CreateSpell(this.Position(), Spell.StringToSpellType("spark"));
                 spark.CalculateFlightPath(Random.ChooseInRadius(this.Position(), 1), 50, this.GetHeight());
             }
-            if (this.effectiveResistances[Resistance.FIRE_RES] < 90 && !this.HasEffect(StatusEffectType.RAGE) && (!this.jobs.length || this.jobs[0].name != "Jump into water")) {
-                if (Random.Generate(UPDATES_PER_SECOND) == 0) {
+            if (this.effectiveResistances[Resistance.FIRE_RES] < 90 && !this.HasEffect(StatusEffectType.RAGE) && (!this.jobs.length || this.jobs[0].name !== "Jump into water")) {
+                if (Random.i.Generate(Constants.UPDATES_PER_SECOND) === 0) {
                     this.RemoveEffect(StatusEffectType.PANIC);
                     while (!this.jobs.empty()) this.TaskFinished(TaskResult.TASKFAILFATAL);
                     this.jumpJob = new Job("Jump into water");
                     jumpJob.internal = true;
-                    let waterPos = Game.FindWater(this.Position());
+                    let waterPos = Game.i.FindWater(this.Position());
                     if (waterPos !== Coordinate.undefinedCoordinate) {
                         jumpJob.tasks.push(new Task(TaskType.MOVE, waterPos));
                         this.jobs.push(jumpJob);
                     }
-                } else if (!this.coward && NPC.NPCTypeToString(type).toLowerCase() == "orc" && Random.Generate(2) == 0) {
+                } else if (!this.coward && NPC.NPCTypeToString(type).toLowerCase() === "orc" && Random.i.Generate(2) === 0) {
                     this.RemoveEffect(StatusEffectType.PANIC);
                     this.GoBerserk();
                 } else {
@@ -843,8 +825,8 @@ export class NPC extends Entity {
             this.effectiveResistances[i] = this.baseResistances[i];
         }
 
-        if (this.factionPtr.IsFriendsWith(PLAYERFACTION))
-            this.effectiveResistances[Resistance.DISEASE_RES] = Math.max(0, this.effectiveResistances[DISEASE_RES.DISEASE_RES] - Camp.GetDiseaseModifier());
+        if (this.factionPtr.IsFriendsWith(Constants.PLAYERFACTION))
+            this.effectiveResistances[Resistance.DISEASE_RES] = Math.max(0, this.effectiveResistances[DISEASE_RES.DISEASE_RES] - Camp.i.GetDiseaseModifier());
 
         ++this.statusGraphicCounter;
         for (let statusEffectI of this.statusEffects) {
@@ -856,8 +838,8 @@ export class NPC extends Entity {
                 this.effectiveResistances[i] = (this.effectiveResistances[i] * statusEffectI.resistanceChanges[i]);
             }
 
-            if (statusEffectI.damage[1] != 0 && --statusEffectI.damage[0] <= 0) {
-                statusEffectI.damage[0] = UPDATES_PER_SECOND;
+            if (statusEffectI.damage[1] !== 0 && --statusEffectI.damage[0] <= 0) {
+                statusEffectI.damage[0] = Constants.UPDATES_PER_SECOND;
                 let dice = new Dice();
                 dice.addsub = statusEffectI.damage[1];
                 dice.multiplier = 1;
@@ -869,7 +851,7 @@ export class NPC extends Entity {
                 this.Damage(attack);
             }
 
-            if (this.factionPtr.IsFriendsWith(PLAYERFACTION) && statusEffectI.negative && !this.HasEffect(StatusEffectType.SLEEPING) && (this.statusEffectsChanged || Random.Generate(MONTH_LENGTH) == 0)) {
+            if (this.factionPtr.IsFriendsWith(Constants.PLAYERFACTION) && statusEffectI.negative && !this.HasEffect(StatusEffectType.SLEEPING) && (this.statusEffectsChanged || Random.i.Generate(Constants.MONTH_LENGTH) === 0)) {
                 this.statusEffectsChanged = false;
                 let removalJobFound = false;
                 for (let jobi of this.jobs) {
@@ -880,8 +862,8 @@ export class NPC extends Entity {
                 }
                 if (!removalJobFound && Item.EffectRemovers.has(statusEffectI.type)) {
                     let fixItem;
-                    for (let fixi = Item.EffectRemovers.equal_range(statusEffectI.type)[0]; fixi != Item.EffectRemovers.equal_range(statusEffectI.type)[1] && !fixItem; ++fixi) {
-                        fixItem = Game.FindItemByTypeFromStockpiles(fixi[1], this.Position()).lock();
+                    for (let fixi = Item.EffectRemovers.equal_range(statusEffectI.type)[0]; fixi !== Item.EffectRemovers.equal_range(statusEffectI.type)[1] && !fixItem; ++fixi) {
+                        fixItem = Game.i.FindItemByTypeFromStockpiles(fixi[1], this.Position()).lock();
                     }
                     if (fixItem) {
                         let rEffJob = new Job("Get rid of " + statusEffectI.name);
@@ -898,44 +880,44 @@ export class NPC extends Entity {
                 }
             }
 
-            if (statusEffectI.contagionChance > 0 && Random.Generate(1000) == 0) { //See if we transmit this effect
+            if (statusEffectI.contagionChance > 0 && Random.i.Generate(1000) === 0) { //See if we transmit this effect
                 this.ScanSurroundings();
                 if (this.adjacentNpcs.length > 0 &&
-                    Random.Generate(100) < statusEffectI.contagionChance) {
+                    Random.i.Generate(100) < statusEffectI.contagionChance) {
                     for (let npci of this.adjacentNpcs) {
-                        let npc;
-                        if (npc = npci.lock())
+                        let npc = npci.lock();
+                        if (npc)
                             npc.TransmitEffect(statusEffectI);
                     }
                 }
             }
 
             //Remove the statuseffect if its cooldown has run out
-            if (statusEffectI.cooldown > 0 && --statusEffectI.cooldown == 0) {
-                if (statusEffectI == this.statusEffectIterator) {
+            if (statusEffectI.cooldown > 0 && --statusEffectI.cooldown === 0) {
+                if (statusEffectI === this.statusEffectIterator) {
                     ++this.statusEffectIterator;
                     this.statusGraphicCounter = 0;
                 }
                 statusEffectI = this.statusEffects.erase(statusEffectI);
-                if (this.statusEffectIterator == this.statusEffects.end()) this.statusEffectIterator = this.statusEffects.begin();
+                if (this.statusEffectIterator === this.statusEffects.end()) this.statusEffectIterator = this.statusEffects.begin();
             } else ++statusEffectI;
         }
 
         if (this.statusGraphicCounter > 10) {
             this.statusGraphicCounter = 0;
-            if (this.statusEffectIterator != this.statusEffects.end()) ++this.statusEffectIterator;
+            if (this.statusEffectIterator !== this.statusEffects.end()) ++this.statusEffectIterator;
             else this.statusEffectIterator = this.statusEffects.begin();
 
-            if (this.statusEffectIterator != this.statusEffects.end() && !this.statusEffectIterator.visible) {
+            if (this.statusEffectIterator !== this.statusEffects.end() && !this.statusEffectIterator.visible) {
                 let oldIterator = this.statusEffectIterator;
                 ++this.statusEffectIterator;
-                while (this.statusEffectIterator != oldIterator) {
-                    if (this.statusEffectIterator != this.statusEffects.end()) {
+                while (this.statusEffectIterator !== oldIterator) {
+                    if (this.statusEffectIterator !== this.statusEffects.end()) {
                         if (this.statusEffectIterator.visible) break;
                         ++this.statusEffectIterator;
                     } else this.statusEffectIterator = this.statusEffects.begin();
                 }
-                if (this.statusEffectIterator != this.statusEffects.end() && !this.statusEffectIterator.visible) this.statusEffectIterator = this.statusEffects.end();
+                if (this.statusEffectIterator !== this.statusEffects.end() && !this.statusEffectIterator.visible) this.statusEffectIterator = this.statusEffects.end();
             }
         }
     }
@@ -989,7 +971,7 @@ export class NPC extends Entity {
 
     //TODO all those messages should be data-driven
     GetDeathMsg() {
-        let choice = Random.Generate(5);
+        let choice = Random.i.Generate(5);
         switch (choice) {
             default:
                 case 0:
@@ -1012,7 +994,7 @@ export class NPC extends Entity {
                 break;
             }
         }
-        let choice = Random.Generate(5);
+        let choice = Random.i.Generate(5);
         switch (choice) {
             default:
                 case 0:
@@ -1028,7 +1010,7 @@ export class NPC extends Entity {
         }
     }
     GetDeathMsgThirst() {
-        choice = Random.Generate(2);
+        choice = Random.i.Generate(2);
         switch (choice) {
             default:
                 case 0:
@@ -1039,7 +1021,7 @@ export class NPC extends Entity {
     }
 
     GetDeathMsgHunger() {
-        choice = Random.Generate(2);
+        choice = Random.i.Generate(2);
         switch (choice) {
             default:
                 case 0:
@@ -1050,9 +1032,9 @@ export class NPC extends Entity {
     }
 
     GetDeathMsgCombat(other, damage) {
-        let choice = Random.Generate(4);
-        let attacker;
-        if (attacker = other.lock()) {
+        let choice = Random.i.Generate(4);
+        let attacker = other.lock();
+        if (attacker) {
             let otherName = attacker.Name();
 
             switch (damage) {
@@ -1068,6 +1050,7 @@ export class NPC extends Entity {
                         case 3:
                                 return otherName + " chopped " + this.name + " up";
                     }
+                    break;
                 case DamageType.DAMAGE_BLUNT:
                     switch (choice) {
                         default:
@@ -1080,6 +1063,7 @@ export class NPC extends Entity {
                         case 3:
                                 return otherName + " hammered " + this.name + " to death";
                     }
+                    break;
                 case DAMAGE_PIERCE:
                     switch (choice) {
                         default:
@@ -1090,6 +1074,7 @@ export class NPC extends Entity {
                         case 2:
                                 return this.name + " was made into a pincushion by " + otherName;
                     }
+                    break;
                 case DAMAGE_FIRE:
                     switch (choice) {
                         default:
@@ -1100,6 +1085,7 @@ export class NPC extends Entity {
                         case 2:
                                 return this.name + " was barbecued by" + otherName;
                     }
+                    break;
                 default:
                     switch (choice) {
                         default:
@@ -1126,6 +1112,7 @@ export class NPC extends Entity {
                     case 3:
                             return this.name + " was chopped up";
                 }
+                break;
             case DamageType.DAMAGE_BLUNT:
                 switch (choice) {
                     default:
@@ -1138,6 +1125,7 @@ export class NPC extends Entity {
                     case 3:
                             return this.name + " was hammered to death";
                 }
+                break;
             case DamageType.DAMAGE_PIERCE:
                 switch (choice) {
                     default:
@@ -1148,7 +1136,7 @@ export class NPC extends Entity {
                     case 2:
                             return this.name + " was made into a pincushion";
                 }
-
+                break;
             case DamageType.DAMAGE_FIRE:
                 switch (choice) {
                     default:
@@ -1159,6 +1147,7 @@ export class NPC extends Entity {
                     case 2:
                             return this.name + " was barbecued";
                 }
+                break;
             default:
                 return this.GetDeathMsg();
         }
@@ -1199,8 +1188,8 @@ export class NPC extends Entity {
                     }
                     break;
                 case DIG:
-                    let season = Game.CurrentSeason();
-                    if (season == Season.EarlyWinter || season == Season.Winter || season == Season.LateWinter) {
+                    let season = Game.i.CurrentSeason();
+                    if (season === Season.EarlyWinter || season === Season.Winter || season === Season.LateWinter) {
                         this.TaskFinished(this.TASKFAILFATAL, "(DIG)Cannot dig in winter");
                         return;
                     }
@@ -1220,7 +1209,7 @@ export class NPC extends Entity {
         let screenx = (this.pos.minusCoordinate(upleft)).X();
         let screeny = (this.pos.minusCoordinate(upleft)).Y();
         if (screenx >= 0 && screenx < the_console.getWidth() && screeny >= 0 && screeny < the_console.getHeight()) {
-            if (this.statusGraphicCounter < 5 || this.statusEffectIterator == this.statusEffects.end()) {
+            if (this.statusGraphicCounter < 5 || this.statusEffectIterator === this.statusEffects.end()) {
                 the_console.putCharEx(screenx, screeny, this._graphic, this._color, this._bgcolor);
             } else {
                 the_console.putCharEx(screenx, screeny, this.statusEffectIterator.graphic, this.statusEffectIterator.color, this._bgcolor);
@@ -1235,9 +1224,9 @@ export class NPC extends Entity {
      */
     GetTooltip(x, y, tooltip) {
         super.GetTooltip(x, y, tooltip);
-        if (this.faction == PLAYERFACTION && !this.jobs.length) {
+        if (this.faction === Constants.PLAYERFACTION && !this.jobs.length) {
             let job = this.jobs[0];
-            if (job.name != "Idle") {
+            if (job.name !== "Idle") {
                 tooltip.AddEntry(new TooltipEntry(`  ${job.name}`, new Color('grey')));
             }
         }
@@ -1317,13 +1306,13 @@ export class NPC extends Entity {
         if (item) {
             let cont = Container(item);
             if (cont.ContainsFilth() > 0) {
-                Game.CreateFilth(this.Position(), cont.ContainsFilth());
+                Game.i.CreateFilth(this.Position(), cont.ContainsFilth());
                 cont.RemoveFilth(cont.ContainsFilth());
             }
         }
     }
     CurrentTarget() {
-        if (this.currentTask().target == Coordinate.undefinedCoordinate && this.foundItem.lock()) {
+        if (this.currentTask().target === Coordinate.undefinedCoordinate && this.foundItem.lock()) {
             return this.foundItem.lock().Position();
         }
         return this.currentTask().target;
@@ -1340,14 +1329,14 @@ export class NPC extends Entity {
             this.AddStatusEffect(effect);
     }
     AddStatusEffect(effect) {
-        if (effect.type == StatusEffectType.PANIC && HasEffect(StatusEffectType.BRAVE)) return; //BRAVE prevents PANIC
-        if (effect.type == StatusEffectType.BRAVE && HasTrait(Traits.CHICKENHEART)) return; //CHICKENHEARTs can't be BRAVE
-        if (effect.type == StatusEffectType.BRAVE && HasEffect(StatusEffectType.PANIC)) this.RemoveEffect(StatusEffectType.PANIC); //Becoming BRAVE stops PANIC
+        if (effect.type === StatusEffectType.PANIC && HasEffect(StatusEffectType.BRAVE)) return; //BRAVE prevents PANIC
+        if (effect.type === StatusEffectType.BRAVE && HasTrait(Traits.CHICKENHEART)) return; //CHICKENHEARTs can't be BRAVE
+        if (effect.type === StatusEffectType.BRAVE && HasEffect(StatusEffectType.PANIC)) this.RemoveEffect(StatusEffectType.PANIC); //Becoming BRAVE stops PANIC
 
-        if (effect.type == StatusEffectType.FLYING) this.isFlying = true;
+        if (effect.type === StatusEffectType.FLYING) this.isFlying = true;
 
         for (let statusEffectI of this.statusEffects) {
-            if (statusEffectI.type == effect.type) {
+            if (statusEffectI.type === effect.type) {
                 statusEffectI.cooldown = statusEffectI.cooldownDefault;
                 return;
             }
@@ -1357,24 +1346,24 @@ export class NPC extends Entity {
         this.statusEffectsChanged = true;
     }
     RemoveEffect(effect) {
-        if (effect == StatusEffectType.FLYING) this.isFlying = false;
+        if (effect === StatusEffectType.FLYING) this.isFlying = false;
 
         for (let statusEffectI of this.statusEffects) {
-            if (statusEffectI.type != effect) continue;
-            if (statusEffectIterator == statusEffectI) ++statusEffectIterator;
+            if (statusEffectI.type !== effect) continue;
+            if (statusEffectIterator === statusEffectI) ++statusEffectIterator;
             statusEffects.erase(statusEffectI);
-            if (statusEffectIterator == statusEffects.end()) statusEffectIterator = statusEffects.begin();
+            if (statusEffectIterator === statusEffects.end()) statusEffectIterator = statusEffects.begin();
 
-            if (statusEffectIterator != statusEffects.end() && !statusEffectIterator.visible) {
+            if (statusEffectIterator !== statusEffects.end() && !statusEffectIterator.visible) {
                 let oldIterator = statusEffectIterator;
                 ++statusEffectIterator;
-                while (statusEffectIterator != oldIterator) {
-                    if (statusEffectIterator != statusEffects.end()) {
+                while (statusEffectIterator !== oldIterator) {
+                    if (statusEffectIterator !== statusEffects.end()) {
                         if (statusEffectIterator.visible) break;
                         ++statusEffectIterator;
                     } else statusEffectIterator = statusEffects.begin();
                 }
-                if (statusEffectIterator != statusEffects.end() && !statusEffectIterator.visible) statusEffectIterator = statusEffects.end();
+                if (statusEffectIterator !== statusEffects.end() && !statusEffectIterator.visible) statusEffectIterator = statusEffects.end();
             }
 
             return;
@@ -1386,8 +1375,8 @@ export class NPC extends Entity {
      * @param {StatusEffectType} effect
      */
     HasEffect(effect) {
-        for (let statusEffectI = statusEffects.begin(); statusEffectI != statusEffects.end(); ++statusEffectI) {
-            if (statusEffectI.type == effect) {
+        for (let statusEffectI = statusEffects.begin(); statusEffectI !== statusEffects.end(); ++statusEffectI) {
+            if (statusEffectI.type === effect) {
                 return true;
             }
         }
@@ -1415,29 +1404,29 @@ export class NPC extends Entity {
         if (target.lock()) {
             let npc = target.lock();
             let construction = target.lock();
-            for (let attacki = attacks.begin(); attacki != attacks.end(); ++attacki) {
+            for (let attacki = attacks.begin(); attacki !== attacks.end(); ++attacki) {
                 if (attacki.Cooldown() <= 0) {
                     attacki.ResetCooldown();
 
                     if (npc) {
                         //First check if the target dodges the attack
-                        if (Random.Generate(99) < npc.effectiveStats[DODGE]) {
+                        if (Random.i.Generate(99) < npc.effectiveStats[DODGE]) {
                             continue;
                         }
                     }
 
                     let attack = attacki;
 
-                    if (attack.Type() == DAMAGE_WIELDED) {
+                    if (attack.Type() === DAMAGE_WIELDED) {
                         GetMainHandAttack(attack);
-                        if (mainHand.lock() && Random.Generate(9) == 0) DecreaseItemCondition(mainHand);
+                        if (mainHand.lock() && Random.i.Generate(9) === 0) DecreaseItemCondition(mainHand);
                     }
                     if (npc && !careful && effectiveStats[STRENGTH] >= npc.effectiveStats[NPCSIZE]) {
-                        if (attack.Type() == DAMAGE_BLUNT || Random.Generate(4) == 0) {
+                        if (attack.Type() === DAMAGE_BLUNT || Random.i.Generate(4) === 0) {
                             let tar = new Coordinate();
                             tar.X((npc.Position().X() - this.Position().X()) * Math.max((effectiveStats[STRENGTH] - npc.effectiveStats[NPCSIZE]) / 2, 1));
                             tar.Y((npc.Position().Y() - this.Position().Y()) * Math.max((effectiveStats[STRENGTH] - npc.effectiveStats[NPCSIZE]) / 2, 1));
-                            npc.CalculateFlightPath(npc.Position() + tar, Random.Generate(25, 19 + 25));
+                            npc.CalculateFlightPath(npc.Position() + tar, Random.i.Generate(25, 19 + 25));
                             npc.pathIndex = -1;
                         }
                     }
@@ -1457,10 +1446,10 @@ export class NPC extends Entity {
      * @param {Entity} target
      */
     FireProjectile(target) {
-        let targetEntity
-        if (targetEntity = target.lock()) {
-            for (let attacki = attacks.begin(); attacki != attacks.end(); ++attacki) {
-                if (attacki.Type() == DAMAGE_WIELDED) {
+        let targetEntity = target.lock();
+        if (targetEntity) {
+            for (let attacki = attacks.begin(); attacki !== attacks.end(); ++attacki) {
+                if (attacki.Type() === DAMAGE_WIELDED) {
                     if (attacki.Cooldown() <= 0) {
                         attacki.ResetCooldown();
 
@@ -1470,7 +1459,7 @@ export class NPC extends Entity {
                             projectile.PutInContainer();
                             projectile.Position(Position());
                             projectile.CalculateFlightPath(targetEntity.Position(), 100, GetHeight());
-                            projectile.SetFaction(PLAYERFACTION);
+                            projectile.SetFaction(Constants.PLAYERFACTION);
                         }
                     }
                     break;
@@ -1483,13 +1472,13 @@ export class NPC extends Entity {
      * @param {Entity} target
      */
     CastOffensiveSpell(target) {
-        let targetEntity;
-        if (targetEntity = target.lock()) {
-            for (let attacki = attacks.begin(); attacki != attacks.end(); ++attacki) {
+        let targetEntity = target.lock();
+        if (targetEntity) {
+            for (let attacki = attacks.begin(); attacki !== attacks.end(); ++attacki) {
                 if (attacki.IsProjectileMagic()) {
                     if (attacki.Cooldown() <= 0) {
                         attacki.ResetCooldown();
-                        let spell = Game.CreateSpell(Position(), attacki.Projectile());
+                        let spell = Game.i.CreateSpell(Position(), attacki.Projectile());
                         if (spell) {
                             spell.CalculateFlightPath(target.lock().Position(), Spell.Presets[attacki.Projectile()].speed, GetHeight());
                         }
@@ -1501,78 +1490,78 @@ export class NPC extends Entity {
     }
 
 
-
-
-
     //TODO split that monster into smaller chunks
     Think() {
         let tmpCoord = new Coordinate();
         let tmp = 0;
 
-        UpdateVelocity();
+        this.UpdateVelocity();
 
-        lastMoveResult = Move(lastMoveResult);
+        this.lastMoveResult = this.Move(this.lastMoveResult);
 
-        if (velocity == 0) {
-            timeCount += thinkSpeed; //Can't think while hurtling through the air, sorry
-        } else if (!jobs.empty()) {
-            TaskFinished(TASKFAILFATAL, "Flying through the air");
-            JobManager.NPCNotWaiting(uid);
+        if (this.velocity === 0) {
+            this.timeCount += this.thinkSpeed; //Can't think while hurtling through the air, sorry
+        } else if (!this.jobs.empty()) {
+            this.TaskFinished(TaskResult.TASKFAILFATAL, "Flying through the air");
+            this.JobManager.NPCNotWaiting(this.uid);
         }
 
-        while (timeCount > UPDATES_PER_SECOND) {
-            if (Random.GenerateBool()) React(boost.static_pointer_cast < NPC > (shared_from_this()));
+        while (this.timeCount > Constants.UPDATES_PER_SECOND) {
+            if (this.Random.i.GenerateBool()) 
+                this.React(this);
 
             {
-                let enemy = aggressor.lock();
-                for (letnpci = adjacentNpcs.begin(); npci != adjacentNpcs.end(); ++npci) {
-                    let adjacentNpc;
-                    if (adjacentNpc = npci.lock()) {
-                        if ((!coward && !factionPtr.IsFriendsWith(adjacentNpc.GetFaction())) || adjacentNpc == enemy) {
-                            if (currentTask() && currentTask().action == KILL) Hit(adjacentNpc, currentTask().flags != 0);
-                            else Hit(adjacentNpc);
+                let enemy = this.aggressor.lock();
+                for (let npci = this.adjacentNpcs.begin(); npci !== this.adjacentNpcs.end(); ++npci) {
+                    let adjacentNpc = npci.lock();
+                    if (adjacentNpc) {
+                        if ((!this.coward && !this.factionPtr.IsFriendsWith(this.adjacentNpc.GetFaction())) || adjacentNpc === enemy) {
+                            if (this.currentTask() && this.currentTask().action === Action.KILL) 
+                                this.Hit(adjacentNpc, currentTask().flags !== 0);
+                            else 
+                                this.Hit(adjacentNpc);
                         }
                     }
                 }
 
-                if (currentTask() && currentTask().action == KILL) {
-                    let target;
-                    if (target = currentTask().entity.lock()) {
-                        if (Random.Generate(4) == 0 && !map.LineOfSight(pos, target.Position())) {
-                            TaskFinished(TASKFAILFATAL, "Target lost");
+                if (this.currentTask() && this.currentTask().action === Action.KILL) {
+                    let target = this.currentTask().entity.lock();
+                    if (this.target) {
+                        if (this.Random.i.Generate(4) === 0 && !this.map.LineOfSight(this.pos, this.target.Position())) {
+                            this.TaskFinished(TaskResult.TASKFAILFATAL, "Target lost");
                         }
                     }
                 }
             }
 
-            timeCount -= UPDATES_PER_SECOND;
-            if (!jobs.empty() && !jobBegun) {
-                jobBegun = true;
-                ValidateCurrentJob();
+            this.timeCount -= Constants.UPDATES_PER_SECOND;
+            if (!this.jobs.empty() && !this.jobBegun) {
+                this.jobBegun = true;
+                this.ValidateCurrentJob();
             }
 
-            if (!jobs.empty()) {
-                switch (currentTask().action) {
-                    case MOVE:
-                        if (!map.IsWalkable(currentTarget(), this)) {
-                            TaskFinished(TASKFAILFATAL, "(MOVE)Target unwalkable");
+            if (!this.jobs.empty()) {
+                switch (this.currentTask().action) {
+                    case Action.MOVE:
+                        if (!this.map.IsWalkable(this.currentTarget(), this)) {
+                            this.TaskFinished(TaskResult.TASKFAILFATAL, "(MOVE)Target unwalkable");
                             break;
                         }
-                        if (pos == currentTarget()) {
-                            TaskFinished(TASKSUCCESS);
+                        if (this.pos === this.currentTarget()) {
+                            this.TaskFinished(TaskResult.TASKSUCCESS);
                             break;
                         }
-                        if (!taskBegun) {
-                            findPath(currentTarget());
-                            taskBegun = true;
-                            lastMoveResult = TASKCONTINUE;
+                        if (!this.taskBegun) {
+                            this.findPath(this.currentTarget());
+                            this.taskBegun = true;
+                            this.lastMoveResult = TaskResult.TASKCONTINUE;
                         }
 
-                        if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
+                        if (lastMoveResult === TASKFAILFATAL || lastMoveResult === TASKFAILNONFATAL) {
                             TaskFinished(lastMoveResult, std.string("(MOVE)Could not find path to target"));
                             break;
-                        } else if (lastMoveResult == PATHEMPTY) {
-                            if (pos != currentTarget()) {
+                        } else if (lastMoveResult === PATHEMPTY) {
+                            if (pos !== currentTarget()) {
                                 TaskFinished(TASKFAILFATAL, std.string("(MOVE)No path to target"));
                                 break;
                             }
@@ -1607,25 +1596,26 @@ export class NPC extends Entity {
                             TaskFinished(TASKFAILFATAL, "(MOVENEAR)Couldn't find NEAR coordinate");
                         }
                         MOVENEARend:
+                        {}
                             break;
 
 
                     case MOVEADJACENT:
                         if (currentEntity().lock()) {
-                            if (Game.Adjacent(Position(), currentEntity())) {
+                            if (Game.i.Adjacent(Position(), currentEntity())) {
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             }
                         } else {
-                            if (Game.Adjacent(Position(), currentTarget())) {
+                            if (Game.i.Adjacent(Position(), currentTarget())) {
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             }
                         }
                         if (!taskBegun) {
-                            if (currentEntity().lock()) tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
-                            else tmpCoord = Game.FindClosestAdjacent(Position(), currentTarget(), GetFaction());
-                            if (tmpCoord != undefined) {
+                            if (currentEntity().lock()) tmpCoord = Game.i.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                            else tmpCoord = Game.i.FindClosestAdjacent(Position(), currentTarget(), GetFaction());
+                            if (tmpCoord !== undefined) {
                                 findPath(tmpCoord);
                             } else {
                                 TaskFinished(TASKFAILFATAL, std.string("(MOVEADJACENT)No walkable adjacent tiles"));
@@ -1634,10 +1624,10 @@ export class NPC extends Entity {
                             taskBegun = true;
                             lastMoveResult = TASKCONTINUE;
                         }
-                        if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
+                        if (lastMoveResult === TASKFAILFATAL || lastMoveResult === TASKFAILNONFATAL) {
                             TaskFinished(lastMoveResult, std.string("Could not find path to target"));
                             break;
-                        } else if (lastMoveResult == PATHEMPTY) {
+                        } else if (lastMoveResult === PATHEMPTY) {
                             TaskFinished(TASKFAILFATAL, "(MOVEADJACENT)PATHEMPTY");
                         }
                         break;
@@ -1651,14 +1641,14 @@ export class NPC extends Entity {
                         break;
 
                     case BUILD:
-                        if (Game.Adjacent(Position(), currentEntity())) {
+                        if (Game.i.Adjacent(Position(), currentEntity())) {
                             AddEffect(WORKING);
                             tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Build();
                             if (tmp > 0) {
-                                Announce.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), Color.white, currentEntity().lock().Position());
+                                Announce.i.AddMsg((boost.format("%s completed") % currentEntity().lock().Name()).str(), Color.white, currentEntity().lock().Position());
                                 TaskFinished(TASKSUCCESS);
                                 break;
-                            } else if (tmp == BUILD_NOMATERIAL) {
+                            } else if (tmp === BUILD_NOMATERIAL) {
                                 TaskFinished(TASKFAILFATAL, "(BUILD)Missing materials");
                                 break;
                             }
@@ -1673,7 +1663,7 @@ export class NPC extends Entity {
                             TaskFinished(TASKFAILFATAL, "(TAKE)No target entity");
                             break;
                         }
-                        if (Position() == currentEntity().lock().Position()) {
+                        if (Position() === currentEntity().lock().Position()) {
                             if (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()) {
                                 boost.weak_ptr < Container > cont(boost.static_pointer_cast < Container > (boost.static_pointer_cast < Item > (currentEntity().lock()).ContainedIn().lock()));
                                 cont.lock().RemoveItem(
@@ -1702,7 +1692,7 @@ export class NPC extends Entity {
                                 TaskFinished(TASKFAILFATAL, "(PUTIN)Target does not exist");
                                 break;
                             }
-                            if (!Game.Adjacent(Position(), currentEntity().lock().Position())) {
+                            if (!Game.i.Adjacent(Position(), currentEntity().lock().Position())) {
                                 TaskFinished(TASKFAILFATAL, "(PUTIN)Not adjacent to container");
                                 break;
                             }
@@ -1728,20 +1718,20 @@ export class NPC extends Entity {
                             inventory.RemoveItem(carried);
                             bulk -= carried.lock().GetBulk();
                             ApplyEffects(carried.lock());
-                            Game.RemoveItem(carried);
+                            Game.i.RemoveItem(carried);
                             carried = null;
-                        } else if (timer == 0) { //Drink from a water tile
-                            if (Game.Adjacent(pos, currentTarget())) {
-                                let WaterNode;
-                                if (water = map.GetWater(currentTarget()).lock()) {
+                        } else if (timer === 0) { //Drink from a water tile
+                            if (Game.i.Adjacent(pos, currentTarget())) {
+                                let water = map.GetWater(currentTarget()).lock();
+                                if (water) {
                                     if (water.Depth() > DRINKABLE_WATER_DEPTH) {
-                                        thirst -= (int)(THIRST_THRESHOLD / 10);
+                                        thirst -= (int)(Constants.THIRST_THRESHOLD / 10);
                                         AddEffect(DRINKING);
 
                                         //Create a temporary water item to give us the right effects
-                                        let waterItem = Game.GetItem(Game.CreateItem(Position(), Item.StringToItemType("water"), false, -1)).lock();
+                                        let waterItem = Game.i.GetItem(Game.i.CreateItem(Position(), Item.StringToItemType("water"), false, -1)).lock();
                                         ApplyEffects(waterItem);
-                                        Game.RemoveItem(waterItem);
+                                        Game.i.RemoveItem(waterItem);
 
                                         if (thirst < 0) {
                                             TaskFinished(TASKSUCCESS);
@@ -1755,8 +1745,8 @@ export class NPC extends Entity {
 
                         if (timer > 0) {
                             AddEffect(DRINKING);
-                            thirst -= Math.min((int)(THIRST_THRESHOLD / 5), timer);
-                            timer -= (int)(THIRST_THRESHOLD / 5);
+                            thirst -= Math.min((int)(Constants.THIRST_THRESHOLD / 5), timer);
+                            timer -= (int)(Constants.THIRST_THRESHOLD / 5);
                             if (timer <= 0) {
                                 timer = 0;
                                 TaskFinished(TASKSUCCESS);
@@ -1774,18 +1764,18 @@ export class NPC extends Entity {
                                 inventory.RemoveItem(carried);
                                 bulk -= carried.lock().GetBulk();
                                 ApplyEffects(carried.lock());
-                                for (let fruiti = Item.Presets[carried.lock().Type()].fruits.begin(); fruiti != Item.Presets[carried.lock().Type()].fruits.end(); ++fruiti) {
-                                    Game.CreateItem(Position(), fruiti, true);
+                                for (let fruiti = Item.Presets[carried.lock().Type()].fruits.begin(); fruiti !== Item.Presets[carried.lock().Type()].fruits.end(); ++fruiti) {
+                                    Game.i.CreateItem(Position(), fruiti, true);
                                 }
 
-                                Game.RemoveItem(carried);
-                            } else if (timer == 0) { //Look in all adjacent tiles for anything edible
+                                Game.i.RemoveItem(carried);
+                            } else if (timer === 0) { //Look in all adjacent tiles for anything edible
                                 for (let ix = pos.X() - 1; ix <= pos.X() + 1; ++ix) {
                                     for (let iy = pos.Y() - 1; iy <= pos.Y() + 1; ++iy) {
                                         let p = new Coordinate(ix, iy);
                                         if (map.IsInside(p)) {
-                                            for (let itemi = map.ItemList(p).begin(); itemi != map.ItemList(p).end(); ++itemi) {
-                                                let item = Game.GetItem(itemi).lock();
+                                            for (let itemi = map.ItemList(p).begin(); itemi !== map.ItemList(p).end(); ++itemi) {
+                                                let item = Game.i.GetItem(itemi).lock();
                                                 if (item && (item.IsCategory(Item.StringToItemCategory("food")) ||
                                                         item.IsCategory(Item.StringToItemCategory("corpse")))) {
                                                     jobs[0].ReserveEntity(item);
@@ -1819,16 +1809,16 @@ export class NPC extends Entity {
                         break;
 
                     case FIND:
-                        foundItem = Game.FindItemByCategoryFromStockpiles(currentTask().item, currentTask().target, currentTask().flags);
+                        foundItem = Game.i.FindItemByCategoryFromStockpiles(currentTask().item, currentTask().target, currentTask().flags);
                         if (!foundItem.lock()) {
                             TaskFinished(TASKFAILFATAL, "(FIND)Failed");
                             break;
                         } else {
-                            if (factionPtr.IsFriendsWith(PLAYERFACTION)) currentJob().lock().ReserveEntity(foundItem);
+                            if (factionPtr.IsFriendsWith(Constants.PLAYERFACTION)) currentJob().lock().ReserveEntity(foundItem);
                             TaskFinished(TASKSUCCESS);
                             break;
                         }
-
+                        break;
                     case USE:
                         if (currentEntity().lock() && boost.dynamic_pointer_cast < Construction > (currentEntity().lock())) {
                             tmp = boost.static_pointer_cast < Construction > (currentEntity().lock()).Use();
@@ -1848,25 +1838,25 @@ export class NPC extends Entity {
                     case HARVEST:
                         if (carried.lock()) {
                             let stockpile = false;
-                            if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+                            if (nextTask() && nextTask().action === STOCKPILEITEM) stockpile = true;
 
                             let plant = carried.lock();
                             inventory.RemoveItem(carried);
                             bulk -= plant.GetBulk();
                             carried = null;
 
-                            for (let fruiti = Item.Presets[plant.Type()].fruits.begin(); fruiti != Item.Presets[plant.Type()].fruits.end(); ++fruiti) {
+                            for (let fruiti = Item.Presets[plant.Type()].fruits.begin(); fruiti !== Item.Presets[plant.Type()].fruits.end(); ++fruiti) {
                                 if (stockpile) {
-                                    let item = Game.CreateItem(Position(), fruiti, false);
+                                    let item = Game.i.CreateItem(Position(), fruiti, false);
                                     Stats.ItemBuilt(Item.Presets[fruiti].name); //Harvesting counts as production
-                                    PickupItem(Game.GetItem(item));
+                                    PickupItem(Game.i.GetItem(item));
                                     stockpile = false;
                                 } else {
-                                    Game.CreateItem(Position(), fruiti, true);
+                                    Game.i.CreateItem(Position(), fruiti, true);
                                 }
                             }
 
-                            Game.RemoveItem(plant);
+                            Game.i.RemoveItem(plant);
 
                             TaskFinished(TASKSUCCESS);
                             break;
@@ -1876,28 +1866,28 @@ export class NPC extends Entity {
                             TaskFinished(TASKFAILFATAL, "(HARVEST)Carrying nonexistant item");
                             break;
                         }
-
+                        break;
                     case FELL:
-                        let tree;
-                        if (tree = currentEntity().lock()) {
+                        let tree = currentEntity().lock();
+                        if (tree) {
                             tmp = tree.Fell(); //This'll be called about 100-150 times per tree
-                            if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
+                            if (mainHand.lock() && Random.i.Generate(300) === 0) DecreaseItemCondition(mainHand);
                             AddEffect(WORKING);
                             if (tmp <= 0) {
                                 let stockpile = false;
-                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
-                                for (let iti = NatureObject.Presets[tree.Type()].components.begin(); iti != NatureObject.Presets[tree.Type()].components.end(); ++iti) {
+                                if (nextTask() && nextTask().action === STOCKPILEITEM) stockpile = true;
+                                for (let iti = NatureObject.Presets[tree.Type()].components.begin(); iti !== NatureObject.Presets[tree.Type()].components.end(); ++iti) {
                                     if (stockpile) {
-                                        let item = Game.CreateItem(tree.Position(), iti, false);
+                                        let item = Game.i.CreateItem(tree.Position(), iti, false);
                                         Stats.ItemBuilt(Item.Presets[iti].name); //Felling trees counts as item production
                                         DropItem(carried);
-                                        PickupItem(Game.GetItem(item));
+                                        PickupItem(Game.i.GetItem(item));
                                         stockpile = false;
                                     } else {
-                                        Game.CreateItem(tree.Position(), iti, true);
+                                        Game.i.CreateItem(tree.Position(), iti, true);
                                     }
                                 }
-                                Game.RemoveNatureObject(tree);
+                                Game.i.RemoveNatureObject(tree);
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             }
@@ -1908,24 +1898,24 @@ export class NPC extends Entity {
                         break;
 
                     case HARVESTWILDPLANT:
-                        let plant;
-                        if (plant = currentEntity().lock()) {
+                        let plant = currentEntity().lock();
+                        if (plant) {
                             tmp = plant.Harvest();
                             AddEffect(WORKING);
                             if (tmp <= 0) {
                                 let stockpile = false;
-                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
-                                for (let iti = NatureObject.Presets[plant.Type()].components.begin(); iti != NatureObject.Presets[plant.Type()].components.end(); ++iti) {
+                                if (nextTask() && nextTask().action === STOCKPILEITEM) stockpile = true;
+                                for (let iti = NatureObject.Presets[plant.Type()].components.begin(); iti !== NatureObject.Presets[plant.Type()].components.end(); ++iti) {
                                     if (stockpile) {
-                                        let item = Game.CreateItem(plant.Position(), iti, false);
+                                        let item = Game.i.CreateItem(plant.Position(), iti, false);
                                         DropItem(carried);
-                                        PickupItem(Game.GetItem(item));
+                                        PickupItem(Game.i.GetItem(item));
                                         stockpile = false;
                                     } else {
-                                        Game.CreateItem(plant.Position(), iti, true);
+                                        Game.i.CreateItem(plant.Position(), iti, true);
                                     }
                                 }
-                                Game.RemoveNatureObject(plant);
+                                Game.i.RemoveNatureObject(plant);
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             }
@@ -1943,10 +1933,10 @@ export class NPC extends Entity {
                             break;
                         }
 
-                        if (Game.Adjacent(Position(), currentEntity())) {
-                            Hit(currentEntity(), currentTask().flags != 0);
+                        if (Game.i.Adjacent(Position(), currentEntity())) {
+                            Hit(currentEntity(), currentTask().flags !== 0);
                             break;
-                        } else if (currentTask().flags == 0 && WieldingRangedWeapon() && quiver.lock() &&
+                        } else if (currentTask().flags === 0 && WieldingRangedWeapon() && quiver.lock() &&
                             !quiver.lock().empty()) {
                             FireProjectile(currentEntity());
                             break;
@@ -1955,8 +1945,8 @@ export class NPC extends Entity {
                             break;
                         }
 
-                        if (!taskBegun || Random.Generate(UPDATES_PER_SECOND * 2 - 1) == 0) { //Repath every ~2 seconds
-                            tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                        if (!taskBegun || Random.i.Generate(Constants.UPDATES_PER_SECOND * 2 - 1) === 0) { //Repath every ~2 seconds
+                            tmpCoord = Game.i.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
                             if (tmpCoord.X() >= 0) {
                                 findPath(tmpCoord);
                             }
@@ -1964,11 +1954,11 @@ export class NPC extends Entity {
                             lastMoveResult = TASKCONTINUE;
                         }
 
-                        if (lastMoveResult == TASKFAILFATAL || lastMoveResult == TASKFAILNONFATAL) {
+                        if (lastMoveResult === TASKFAILFATAL || lastMoveResult === TASKFAILNONFATAL) {
                             TaskFinished(lastMoveResult, std.string("(KILL)Could not find path to target"));
                             break;
-                        } else if (lastMoveResult == PATHEMPTY) {
-                            tmpCoord = Game.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
+                        } else if (lastMoveResult === PATHEMPTY) {
+                            tmpCoord = Game.i.FindClosestAdjacent(Position(), currentEntity(), GetFaction());
                             if (tmpCoord.X() >= 0) {
                                 findPath(tmpCoord);
                             }
@@ -2008,8 +1998,8 @@ export class NPC extends Entity {
                         AddEffect(BADSLEEP);
                         weariness -= 25;
                         if (weariness <= 0) {
-                            let entity;
-                            if (entity = currentEntity().lock()) {
+                            let entity = currentEntity().lock();
+                            if (entity ) {
                                 if (entity.HasTag(BED)) {
                                     RemoveEffect(BADSLEEP);
                                 }
@@ -2020,12 +2010,12 @@ export class NPC extends Entity {
                         break;
 
                     case DISMANTLE:
-                        let construct;
-                        if (construct = currentEntity().lock()) {
+                        let construct = currentEntity().lock();
+                        if (construct ) {
                             construct.Condition(construct.Condition() - 10);
                             AddEffect(WORKING);
                             if (construct.Condition() <= 0) {
-                                Game.RemoveConstruction(construct);
+                                Game.i.RemoveConstruction(construct);
                                 TaskFinished(TASKSUCCESS);
                                 break;
                             }
@@ -2043,8 +2033,8 @@ export class NPC extends Entity {
                             mainHand = carried;
                             carried.reset();
                             TaskFinished(TASKSUCCESS);
-                            if (DEBUG) {
-                                std.cout << name << " wielded " << mainHand.lock().Name() << "\n";
+                            if (Globals.DEBUG) {
+                                console.log(name, " wielded ", mainHand.lock().Name());
                             }
                             break;
                         }
@@ -2059,8 +2049,8 @@ export class NPC extends Entity {
                                     armor.reset();
                                 }
                                 armor = carried;
-                                if (DEBUG) {
-                                    std.cout << name << " wearing " << armor.lock().Name() << "\n";
+                                if (Globals.DEBUG) {
+                                    console.log(name, " wearing ", armor.lock().Name());
                                 }
                             } else if (carried.lock().IsCategory(Item.StringToItemCategory("Quiver"))) {
                                 if (quiver.lock()) { //Remove quiver and drop if already wearing
@@ -2068,8 +2058,8 @@ export class NPC extends Entity {
                                     quiver.reset();
                                 }
                                 quiver = boost.static_pointer_cast < Container > (carried.lock());
-                                if (DEBUG) {
-                                    std.cout << name << " wearing " << quiver.lock().Name() << "\n";
+                                if (Globals.DEBUG) {
+                                    console.log(name, " wearing ", quiver.lock().Name() );
                                 }
                             }
                             carried.reset();
@@ -2080,19 +2070,19 @@ export class NPC extends Entity {
                         break;
 
                     case BOGIRON:
-                        if (map.GetType(pos) == TILEBOG) {
+                        if (map.GetType(pos) === TILEBOG) {
                             AddEffect(WORKING);
-                            if (Random.Generate(UPDATES_PER_SECOND * 15 - 1) == 0) {
+                            if (Random.i.Generate(Constants.UPDATES_PER_SECOND * 15 - 1) === 0) {
                                 let stockpile = false;
-                                if (nextTask() && nextTask().action == STOCKPILEITEM) stockpile = true;
+                                if (nextTask() && nextTask().action === STOCKPILEITEM) stockpile = true;
 
                                 if (stockpile) {
-                                    let item = Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), false);
+                                    let item = Game.i.CreateItem(Position(), Item.StringToItemType("Bog iron"), false);
                                     DropItem(carried);
-                                    PickupItem(Game.GetItem(item));
+                                    PickupItem(Game.i.GetItem(item));
                                     stockpile = false;
                                 } else {
-                                    Game.CreateItem(Position(), Item.StringToItemType("Bog iron"), true);
+                                    Game.i.CreateItem(Position(), Item.StringToItemType("Bog iron"), true);
                                 }
                                 TaskFinished(TASKSUCCESS);
                                 break;
@@ -2106,7 +2096,7 @@ export class NPC extends Entity {
                     case STOCKPILEITEM:
                         let item;
                         if (item = carried.lock()) {
-                            let stockJob = Game.StockpileItem(item, true, true, !item.Reserved());
+                            let stockJob = Game.i.StockpileItem(item, true, true, !item.Reserved());
                             if (stockJob) {
                                 stockJob.internal = true;
                                 //Add remaining tasks into stockjob
@@ -2150,7 +2140,8 @@ export class NPC extends Entity {
 
                     case FILL:
                         {
-                            boost.shared_ptr < Container > cont;
+                            // boost.shared_ptr < Container > 
+                            let cont;
                             if (carried.lock() &&
                                 (carried.lock().IsCategory(Item.StringToItemCategory("Container")) ||
                                     carried.lock().IsCategory(Item.StringToItemCategory("Bucket")))) {
@@ -2162,14 +2153,14 @@ export class NPC extends Entity {
                             }
 
                             if (cont) {
-                                if (!cont.empty() && cont.ContainsWater() == 0 && cont.ContainsFilth() == 0) {
+                                if (!cont.empty() && cont.ContainsWater() === 0 && cont.ContainsFilth() === 0) {
                                     //Not empty, but doesn't have water/filth, so it has items in it
                                     TaskFinished(TASKFAILFATAL, "(FILL)Attempting to fill non-empty container");
                                     break;
                                 }
 
                                 let wnode = map.GetWater(currentTarget());
-                                if (wnode.lock() && wnode.lock().Depth() > 0 && cont.ContainsFilth() == 0) {
+                                if (wnode.lock() && wnode.lock().Depth() > 0 && cont.ContainsFilth() === 0) {
                                     let waterAmount = Math.min(50, wnode.lock().Depth());
                                     wnode.lock().Depth(wnode.lock().Depth() - waterAmount);
                                     cont.AddWater(waterAmount);
@@ -2178,7 +2169,7 @@ export class NPC extends Entity {
                                 }
 
                                 let fnode = map.GetFilth(currentTarget());
-                                if (fnode.lock() && fnode.lock().Depth() > 0 && cont.ContainsWater() == 0) {
+                                if (fnode.lock() && fnode.lock().Depth() > 0 && cont.ContainsWater() === 0) {
                                     let filthAmount = Math.min(3, fnode.lock().Depth());
                                     fnode.lock().Depth(fnode.lock().Depth() - filthAmount);
                                     cont.AddFilth(filthAmount);
@@ -2219,10 +2210,10 @@ export class NPC extends Entity {
                                     break;
                                 } else if (map.IsInside(currentTarget())) {
                                     if (sourceContainer.ContainsWater() > 0) {
-                                        Game.CreateWater(currentTarget(), sourceContainer.ContainsWater());
+                                        Game.i.CreateWater(currentTarget(), sourceContainer.ContainsWater());
                                         sourceContainer.RemoveWater(sourceContainer.ContainsWater());
                                     } else {
-                                        Game.CreateFilth(currentTarget(), sourceContainer.ContainsFilth());
+                                        Game.i.CreateFilth(currentTarget(), sourceContainer.ContainsFilth());
                                         sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
                                     }
                                     TaskFinished(TASKSUCCESS);
@@ -2242,17 +2233,17 @@ export class NPC extends Entity {
                             taskBegun = true;
                         } else {
                             AddEffect(WORKING);
-                            if (mainHand.lock() && Random.Generate(300) == 0) DecreaseItemCondition(mainHand);
+                            if (mainHand.lock() && Random.i.Generate(300) === 0) DecreaseItemCondition(mainHand);
                             if (++timer >= 50) {
                                 map.SetLow(currentTarget(), true);
                                 map.ChangeType(currentTarget(), TILEDITCH);
                                 let amount = 0;
-                                let chance = Random.Generate(9);
+                                let chance = Random.i.Generate(9);
                                 if (chance < 4) amount = 1;
                                 else if (chance < 8) amount = 2;
                                 else amount = 3;
                                 for (let i = 0; i < amount; ++i)
-                                    Game.CreateItem(Position(), Item.StringToItemType("earth"));
+                                    Game.i.CreateItem(Position(), Item.StringToItemType("earth"));
                                 TaskFinished(TASKSUCCESS);
                             }
                         }
@@ -2289,7 +2280,7 @@ export class NPC extends Entity {
                         } else {
                             AddEffect(WORKING);
                             if (++timer >= 50) {
-                                Game.CreateFire(currentTarget(), 10);
+                                Game.i.CreateFire(currentTarget(), 10);
                                 TaskFinished(TASKSUCCESS);
                             }
                         }
@@ -2303,7 +2294,7 @@ export class NPC extends Entity {
                                 if (carried.lock()) { //Repairjobs usually require some material
                                     inventory.RemoveItem(carried);
                                     bulk -= carried.lock().GetBulk();
-                                    Game.RemoveItem(carried);
+                                    Game.i.RemoveItem(carried);
                                     carried.reset();
                                 }
                                 TaskFinished(TASKSUCCESS);
@@ -2319,7 +2310,7 @@ export class NPC extends Entity {
 
                     case FILLDITCH:
                         if (carried.lock() && carried.lock().IsCategory(Item.StringToItemCategory("earth"))) {
-                            if (map.GetType(currentTarget()) != TILEDITCH) {
+                            if (map.GetType(currentTarget()) !== TILEDITCH) {
                                 TaskFinished(TASKFAILFATAL, "(FILLDITCH)Target not a ditch");
                                 break;
                             }
@@ -2332,7 +2323,7 @@ export class NPC extends Entity {
                                 if (++timer >= 50) {
                                     inventory.RemoveItem(carried);
                                     bulk -= carried.lock().GetBulk();
-                                    Game.RemoveItem(carried);
+                                    Game.i.RemoveItem(carried);
                                     carried.reset();
 
                                     map.ChangeType(currentTarget(), TILEMUD);
@@ -2359,10 +2350,10 @@ export class NPC extends Entity {
                     run = false;
                     drunkJob.tasks.push(new Task(TaskType.MOVENEAR, this.Position()));
                     jobs.push(drunkJob);
-                    if (Random.Generate(75) == 0) GoBerserk();
+                    if (Random.i.Generate(75) === 0) GoBerserk();
                 } else if (HasEffect(PANIC)) {
                     JobManager.NPCNotWaiting(uid);
-                    if (jobs.empty() && threatLocation != undefined) {
+                    if (jobs.empty() && threatLocation !== undefined) {
                         let fleeJob = (new Job("Flee"));
                         fleeJob.internal = true;
                         let x = pos.X(),
@@ -2387,20 +2378,20 @@ export class NPC extends Entity {
                     !FindJob(boost.static_pointer_cast < NPC > (shared_from_this()))) {
                     boost.shared_ptr < Job > idleJob(new Job("Idle"));
                     idleJob.internal = true;
-                    if (faction == PLAYERFACTION) {
-                        if (Random.Generate(8) < 7) {
-                            idleJob.tasks.push(new Task(TaskType.MOVENEAR, Camp.Center()));
+                    if (faction === Constants.PLAYERFACTION) {
+                        if (Random.i.Generate(8) < 7) {
+                            idleJob.tasks.push(new Task(TaskType.MOVENEAR, Camp.i.Center()));
                         } else {
-                            let randomLocation = Camp.GetRandomSpot();
+                            let randomLocation = Camp.i.GetRandomSpot();
                             idleJob.tasks.push(new Task(TaskType.MOVENEAR,
-                                randomLocation != undefined ? randomLocation : Camp.Center()));
+                                randomLocation !== undefined ? randomLocation : Camp.i.Center()));
                         }
                         if (map.IsTerritory(pos)) run = false;
                     } else {
                         idleJob.tasks.push(new Task(TaskType.MOVENEAR, this.Position()));
                         run = false;
                     }
-                    idleJob.tasks.push(new Task(TaskType.WAIT, new Coordinate(Random.Generate(9), 0)));
+                    idleJob.tasks.push(new Task(TaskType.WAIT, new Coordinate(Random.i.Generate(9), 0)));
                     jobs.push(idleJob);
                 }
             }
@@ -2412,7 +2403,7 @@ export class NPC extends Entity {
         if (run)
             nextMove += effectiveStats[MOVESPEED];
         else {
-            if (effectiveStats[MOVESPEED] / 3 == 0 && effectiveStats[MOVESPEED] != 0) ++nextMove;
+            if (effectiveStats[MOVESPEED] / 3 === 0 && effectiveStats[MOVESPEED] !== 0) ++nextMove;
             else nextMove += effectiveStats[MOVESPEED] / 3;
         }
         while (nextMove > 100) {
@@ -2428,7 +2419,7 @@ export class NPC extends Entity {
                     let move = new Coordinate();
                     path.get(pathIndex, move.Xptr(), move.Yptr());
 
-                    if (pathIndex != path.size() - 1 && map.NPCList(move).size() > 0) {
+                    if (pathIndex !== path.size() - 1 && map.NPCList(move).size() > 0) {
                         //Our next move target has an npc on it, and it isn't our target
                         let next = new Coordinate();
                         path.get(pathIndex + 1, next.Xptr(), next.Yptr());
@@ -2447,7 +2438,7 @@ export class NPC extends Entity {
                         ++pathIndex;
                     } else { //Encountered an obstacle. Fail if the npc can't tunnel
                         if (IsTunneler() && map.GetConstruction(move) >= 0) {
-                            Hit(Game.GetConstruction(map.GetConstruction(move)));
+                            Hit(Game.i.GetConstruction(map.GetConstruction(move)));
                             return TASKCONTINUE;
                         }
                         return TASKFAILNONFATAL;
@@ -2482,15 +2473,15 @@ export class NPC extends Entity {
             dead = true;
             health = 0;
             if (NPC.Presets[type].deathItem >= 0) {
-                let corpsenum = Game.CreateItem(Position(), NPC.Presets[type].deathItem, false);
-                let corpse = Game.GetItem(corpsenum).lock();
+                let corpsenum = Game.i.CreateItem(Position(), NPC.Presets[type].deathItem, false);
+                let corpse = Game.i.GetItem(corpsenum).lock();
                 corpse.Color(_color);
                 corpse.Name(corpse.Name() + "(" + name + ")");
                 if (velocity > 0) {
                     corpse.CalculateFlightPath(GetVelocityTarget(), velocity, GetHeight());
                 }
-            } else if (NPC.Presets[type].deathItem == -1) {
-                Game.CreateFilth(Position());
+            } else if (NPC.Presets[type].deathItem === -1) {
+                Game.i.CreateFilth(Position());
             }
 
             while (!jobs.empty()) TaskFinished(TASKFAILFATAL, std.string("dead"));
@@ -2501,12 +2492,12 @@ export class NPC extends Entity {
                 if (item = witem.lock()) {
                     item.Position(Position());
                     item.PutInContainer();
-                    item.SetFaction(PLAYERFACTION);
+                    item.SetFaction(Constants.PLAYERFACTION);
                 }
                 inventory.RemoveItem(witem);
             }
 
-            if (deathMessage.length() > 0) Announce.AddMsg(deathMessage, (factionPtr.IsFriendsWith(PLAYERFACTION) ? Color.red : Color.brass), this.Position());
+            if (deathMessage.length() > 0) Announce.i.AddMsg(deathMessage, (factionPtr.IsFriendsWith(Constants.PLAYERFACTION) ? Color.red : Color.brass), this.Position());
 
             Stats.deaths[NPC.NPCTypeToString(type)] += 1;
             Stats.AddPoints(NPC.Presets[type].health);
@@ -2574,11 +2565,11 @@ export class NPC extends Entity {
         }
 
         let resistance = (100.0 - effectiveResistances[res]) / 100.0;
-        let damage = Math.round((Game.DiceToInt(attack.Amount()) * resistance));
+        let damage = Math.round((Game.i.DiceToInt(attack.Amount()) * resistance));
         health -= damage;
 
         for (let effecti = 0; effecti < attack.StatusEffects().size(); ++effecti) {
-            if (Random.Generate(99) < attack.StatusEffects().at(effecti).second) {
+            if (Random.i.Generate(99) < attack.StatusEffects().at(effecti).second) {
                 TransmitEffect(attack.StatusEffects().at(effecti).first);
             }
         }
@@ -2587,24 +2578,24 @@ export class NPC extends Entity {
 
         if (damage > 0) {
             damageReceived += damage;
-            if (res == PHYSICAL_RES && Random.Generate(99) > effectiveResistances[BLEEDING_RES]) {
-                Game.CreateBlood(Coordinate(
-                        this.Position().X() + Random.Generate(-1, 1),
-                        this.Position().Y() + Random.Generate(-1, 1)),
-                    Random.Generate(75, 75 + damage * 20));
-                if (Random.Generate(10) == 0 && attack.Type() == DAMAGE_SLASH || attack.Type() == DAMAGE_PIERCE) {
-                    let gibId = Game.CreateItem(Position(), Item.StringToItemType("Gib"), false, -1);
-                    let gib = Game.GetItem(gibId).lock();
+            if (res === PHYSICAL_RES && Random.i.Generate(99) > effectiveResistances[BLEEDING_RES]) {
+                Game.i.CreateBlood(Coordinate(
+                        this.Position().X() + Random.i.Generate(-1, 1),
+                        this.Position().Y() + Random.i.Generate(-1, 1)),
+                    Random.i.Generate(75, 75 + damage * 20));
+                if (Random.i.Generate(10) === 0 && attack.Type() === DAMAGE_SLASH || attack.Type() === DAMAGE_PIERCE) {
+                    let gibId = Game.i.CreateItem(Position(), Item.StringToItemType("Gib"), false, -1);
+                    let gib = Game.i.GetItem(gibId).lock();
                     if (gib) {
                         let target = Random.ChooseInRadius(Position(), 3);
-                        gib.CalculateFlightPath(target, Random.Generate(10, 35));
+                        gib.CalculateFlightPath(target, Random.i.Generate(10, 35));
                     }
                 }
 
-                if (damage >= maxHealth / 3 && attack.Type() == DAMAGE_BLUNT && Random.Generate(10) == 0) {
+                if (damage >= maxHealth / 3 && attack.Type() === DAMAGE_BLUNT && Random.i.Generate(10) === 0) {
                     AddTrait(CRACKEDSKULL);
                 }
-            } else if (res == FIRE_RES && Random.Generate(Math.max(2, 10 - damage)) == 0) {
+            } else if (res === FIRE_RES && Random.i.Generate(Math.max(2, 10 - damage)) === 0) {
                 AddEffect(BURNING);
             }
             if (aggr.lock()) aggressor = aggr;
@@ -2632,7 +2623,7 @@ export class NPC extends Entity {
                 quiver.reset();
             }
 
-            for (let eqit = equipment.begin(); eqit != equipment.end(); ++eqit) {
+            for (let eqit = equipment.begin(); eqit !== equipment.end(); ++eqit) {
                 inventory.RemoveItem(eqit);
                 (eqit).Position(Position());
                 (eqit).PutInContainer();
@@ -2647,7 +2638,7 @@ export class NPC extends Entity {
 
     Escape() {
         if (carried.lock()) {
-            Announce.AddMsg((boost.format("%s has escaped with [%s]!") % name % carried.lock().Name()).str(),
+            Announce.i.AddMsg((boost.format("%s has escaped with [%s]!") % name % carried.lock().Name()).str(),
                 Color.yellow, this.Position());
         }
         DestroyAllItems();
@@ -2663,10 +2654,10 @@ export class NPC extends Entity {
                 while (!container.empty()) {
                     let item = container.GetFirstItem();
                     container.RemoveItem(item);
-                    Game.RemoveItem(item);
+                    Game.i.RemoveItem(item);
                 }
             }
-            Game.RemoveItem(item);
+            Game.i.RemoveItem(item);
         }
     }
 
@@ -2675,7 +2666,7 @@ export class NPC extends Entity {
         FindJob = boost.bind(Faction.FindJob, Faction.factions[faction], _1);
         React = boost.bind(NPC.AnimalReact, _1);
 
-        if (NPC.Presets[type].ai == "PlayerNPC") {
+        if (NPC.Presets[type].ai === "PlayerNPC") {
             FindJob = boost.bind(NPC.JobManagerFinder, _1);
             React = boost.bind(NPC.PlayerNPCReact, _1);
         }
@@ -2689,7 +2680,7 @@ export class NPC extends Entity {
             attack.Type(wAttack.Type());
             attack.AddDamage(wAttack.Amount());
             attack.Projectile(wAttack.Projectile());
-            for (let effecti = wAttack.StatusEffects().begin(); effecti != wAttack.StatusEffects().end(); ++effecti) {
+            for (let effecti = wAttack.StatusEffects().begin(); effecti !== wAttack.StatusEffects().end(); ++effecti) {
                 attack.StatusEffects().push(effecti);
             }
         }
@@ -2699,7 +2690,7 @@ export class NPC extends Entity {
         let weapon;
         if (weapon = mainHand.lock()) {
             let wAttack = weapon.GetAttack();
-            return wAttack.Type() == DAMAGE_RANGED;
+            return wAttack.Type() === DAMAGE_RANGED;
         }
         return false;
     }
@@ -2710,7 +2701,7 @@ export class NPC extends Entity {
             weaponValue = mainHand.lock().RelativeValue();
         }
         let weaponCategory = squad.lock() ? squad.lock().Weapon() : Item.StringToItemCategory("Weapon");
-        let newWeapon = Game.FindItemByCategoryFromStockpiles(weaponCategory, this.Position(), BETTERTHAN, weaponValue);
+        let newWeapon = Game.i.FindItemByCategoryFromStockpiles(weaponCategory, this.Position(), BETTERTHAN, weaponValue);
         let weapon;
         if (weapon = newWeapon.lock()) {
             let weaponJob = (new Job("Grab weapon"));
@@ -2729,7 +2720,7 @@ export class NPC extends Entity {
             armorValue = armor.lock().RelativeValue();
         }
         let armorCategory = squad.lock() ? squad.lock().Armor() : Item.StringToItemCategory("Armor");
-        let newArmor = Game.FindItemByCategoryFromStockpiles(armorCategory, this.Position(), BETTERTHAN, armorValue);
+        let newArmor = Game.i.FindItemByCategoryFromStockpiles(armorCategory, this.Position(), BETTERTHAN, armorValue);
         let arm
         if (arm = newArmor.lock()) {
             let armorJob = (new Job("Grab armor"));
@@ -2747,7 +2738,7 @@ export class NPC extends Entity {
             while (nextVelocityMove > 100) {
                 nextVelocityMove -= 100;
                 if (flightPath.size() > 0) {
-                    if (flightPath.back().height < ENTITYHEIGHT) { //We're flying low enough to hit things
+                    if (flightPath.back().height < Constants.ENTITYHEIGHT) { //We're flying low enough to hit things
                         let t = flightPath.back().coord;
                         if (map.BlocksWater(t)) { //We've hit an obstacle
                             health -= velocity / 5;
@@ -2755,7 +2746,7 @@ export class NPC extends Entity {
 
                             if (map.GetConstruction(t) > -1) {
                                 let construct;
-                                if (construct = Game.GetConstruction(map.GetConstruction(t)).lock()) {
+                                if (construct = Game.i.GetConstruction(map.GetConstruction(t)).lock()) {
                                     let attack;
                                     attack.Type(DAMAGE_BLUNT);
                                     let damage = new Dice();
@@ -2771,7 +2762,7 @@ export class NPC extends Entity {
                             flightPath.clear();
                             return;
                         }
-                        if (map.NPCList(t).size() > 0 && Random.Generate(9) < Math.round((2 + map.NPCList(t).size()))) {
+                        if (map.NPCList(t).size() > 0 && Random.i.Generate(9) < Math.round((2 + map.NPCList(t).size()))) {
                             health -= velocity / 5;
                             AddEffect(CONCUSSION);
                             SetVelocity(0);
@@ -2779,7 +2770,7 @@ export class NPC extends Entity {
                             return;
                         }
                     }
-                    if (flightPath.back().height == 0) {
+                    if (flightPath.back().height === 0) {
                         health -= velocity / 5;
                         AddEffect(CONCUSSION);
                         SetVelocity(0);
@@ -2810,7 +2801,7 @@ export class NPC extends Entity {
         if (item.lock()) {
             carried = (item.lock());
             bulk += item.lock().GetBulk();
-            if (!inventory.AddItem(carried)) Announce.AddMsg("No space in inventory");
+            if (!inventory.AddItem(carried)) Announce.i.AddMsg("No space in inventory");
         }
     }
 
@@ -2818,9 +2809,9 @@ export class NPC extends Entity {
     AbortJob(wjob) {
         let job;
         if (job = wjob.lock()) {
-            for (let jobi = jobs.begin(); jobi != jobs.end(); ++jobi) {
-                if (jobi == job) {
-                    if (job == jobs[0]) {
+            for (let jobi = jobs.begin(); jobi !== jobs.end(); ++jobi) {
+                if (jobi === job) {
+                    if (job === jobs[0]) {
                         TaskFinished(TASKFAILFATAL, "(AbortJob)");
                     }
                     return;
@@ -2834,7 +2825,7 @@ export class NPC extends Entity {
     ScanSurroundings(onlyHostiles = false) {
         /* The algorithm performs in the following, slightly wrong, way:
 
-           - for each point B at the border of the rectangle at LOS_DISTANCE of the current position C
+           - for each point B at the border of the rectangle at Constants.LOS_DISTANCE of the current position C
              - for each point P on a line from C to B (from the inside, outwards)
                - if there is a non-friend NPC on P, update the threat location
 
@@ -2855,8 +2846,8 @@ export class NPC extends Entity {
         threatLocation = Coordinate(-1, -1);
         seenFire = false;
         let skipPosition = false; //We should skip checking this npc's position after the first time
-        let low = map.Shrink(pos - LOS_DISTANCE);
-        let high = map.Shrink(pos + LOS_DISTANCE);
+        let low = map.Shrink(pos - Constants.LOS_DISTANCE);
+        let high = map.Shrink(pos + Constants.LOS_DISTANCE);
         for (let endx = low.X(); endx < high.X(); endx += 2) {
             for (let endy = low.Y(); endy < high.Y(); endy += 2) {
                 let end = new Coordinate(endx, endy);
@@ -2877,16 +2868,16 @@ export class NPC extends Entity {
                           even though we can't see through it*/
                         let constructUid = map.GetConstruction(p);
                         if (constructUid >= 0) {
-                            nearConstructions.push(Game.GetConstruction(constructUid));
+                            nearConstructions.push(Game.i.GetConstruction(constructUid));
                         }
 
                         //Stop moving along this line if our view is blocked
-                        if (map.BlocksLight(p) && GetHeight() < ENTITYHEIGHT) break;
+                        if (map.BlocksLight(p) && GetHeight() < Constants.ENTITYHEIGHT) break;
 
                         //Add all the npcs on this tile, or only hostiles if that boolean is set
-                        for (let npci = map.NPCList(p).begin(); npci != map.NPCList(p).end(); ++npci) {
-                            if (npci != uid) {
-                                let npc = Game.GetNPC(npci);
+                        for (let npci = map.NPCList(p).begin(); npci !== map.NPCList(p).end(); ++npci) {
+                            if (npci !== uid) {
+                                let npc = Game.i.GetNPC(npci);
                                 if (!factionPtr.IsFriendsWith(npc.GetFaction())) threatLocation = new Coordinate(p);
                                 if (!onlyHostiles || !factionPtr.IsFriendsWith(npc.GetFaction())) {
                                     nearNpcs.push(npc);
@@ -2972,14 +2963,14 @@ export class NPC extends Entity {
 
     ApplyEffects(item) {
         if (item) {
-            for (let addEffecti = Item.Presets[item.Type()].addsEffects.begin(); addEffecti != Item.Presets[item.Type()].addsEffects.end(); ++addEffecti) {
-                if (Random.Generate(99) < addEffecti.second)
+            for (let addEffecti = Item.Presets[item.Type()].addsEffects.begin(); addEffecti !== Item.Presets[item.Type()].addsEffects.end(); ++addEffecti) {
+                if (Random.i.Generate(99) < addEffecti.second)
                     TransmitEffect(addEffecti.first);
             }
-            for (let remEffecti = Item.Presets[item.Type()].removesEffects.begin(); remEffecti != Item.Presets[item.Type()].removesEffects.end(); ++remEffecti) {
-                if (Random.Generate(99) < remEffecti.second) {
+            for (let remEffecti = Item.Presets[item.Type()].removesEffects.begin(); remEffecti !== Item.Presets[item.Type()].removesEffects.end(); ++remEffecti) {
+                if (Random.i.Generate(99) < remEffecti.second) {
                     RemoveEffect(remEffecti.first);
-                    if (remEffecti.first == DROWSY) weariness = 0; //Special case, the effect would come straight back otherwise
+                    if (remEffecti.first === DROWSY) weariness = 0; //Special case, the effect would come straight back otherwise
                 }
             }
         }
@@ -2996,21 +2987,21 @@ export class NPC extends Entity {
         }
         if (health > maxHealth) health = maxHealth;
 
-        if (Random.Generate(UPDATES_PER_SECOND * 10) == 0 && health < maxHealth) ++health;
+        if (Random.i.Generate(Constants.UPDATES_PER_SECOND * 10) === 0 && health < maxHealth) ++health;
 
-        if (faction == PLAYERFACTION && health < maxHealth / 2 && !HasEffect(HEALING)) {
+        if (faction === Constants.PLAYERFACTION && health < maxHealth / 2 && !HasEffect(HEALING)) {
             let healJobFound = false;
-            for (let jobi = jobs.begin(); jobi != jobs.end(); ++jobi) {
-                if ((jobi).name.find("Heal") != std.string.npos) {
+            for (let jobi = jobs.begin(); jobi !== jobs.end(); ++jobi) {
+                if ((jobi).name.find("Heal") !== std.string.npos) {
                     healJobFound = true;
                     break;
                 }
             }
 
-            if (!healJobFound && Item.GoodEffectAdders.find(HEALING) != Item.GoodEffectAdders.end()) {
+            if (!healJobFound && Item.GoodEffectAdders.find(HEALING) !== Item.GoodEffectAdders.end()) {
                 let healItem;
-                for (let fixi = Item.GoodEffectAdders.equal_range(HEALING).first; fixi != Item.GoodEffectAdders.equal_range(HEALING).second && !healItem; ++fixi) {
-                    healItem = Game.FindItemByTypeFromStockpiles(fixi.second, this.Position()).lock();
+                for (let fixi = Item.GoodEffectAdders.equal_range(HEALING).first; fixi !== Item.GoodEffectAdders.equal_range(HEALING).second && !healItem; ++fixi) {
+                    healItem = Game.i.FindItemByTypeFromStockpiles(fixi.second, this.Position()).lock();
                 }
                 if (healItem) {
                     let healJob = (new Job("Heal"));
@@ -3035,21 +3026,21 @@ export class NPC extends Entity {
         let item;
         if (item = witem.lock()) {
             let condition = item.DecreaseCondition();
-            if (condition == 0) { //< 0 == does not break, > 0 == not broken
+            if (condition === 0) { //< 0 === does not break, > 0 === not broken
                 inventory.RemoveItem(item);
-                if (carried.lock() == item) carried.reset();
-                if (mainHand.lock() == item) {
+                if (carried.lock() === item) carried.reset();
+                if (mainHand.lock() === item) {
                     mainHand.reset();
                     if (currentJob().lock() && currentJob().lock().RequiresTool()) {
                         TaskFinished(TASKFAILFATAL, "(FAIL)Wielded item broken");
                     }
                 }
-                if (offHand.lock() == item) offHand.reset();
-                if (armor.lock() == item) armor.reset();
-                if (quiver.lock() == item) quiver.reset();
+                if (offHand.lock() === item) offHand.reset();
+                if (armor.lock() === item) armor.reset();
+                if (quiver.lock() === item) quiver.reset();
                 let component = [1, item];
-                Game.CreateItem(Position(), Item.StringToItemType("debris"), false, -1, component);
-                Game.RemoveItem(item);
+                Game.i.CreateItem(Position(), Item.StringToItemType("debris"), false, -1, component);
+                Game.i.RemoveItem(item);
             }
         }
     }
@@ -3067,10 +3058,10 @@ export class NPC extends Entity {
         if (sourceContainer) {
             if (map.IsInside(p)) {
                 if (sourceContainer.ContainsWater() > 0) {
-                    Game.CreateWater(p, sourceContainer.ContainsWater());
+                    Game.i.CreateWater(p, sourceContainer.ContainsWater());
                     sourceContainer.RemoveWater(sourceContainer.ContainsWater());
                 } else {
-                    Game.CreateFilth(p, sourceContainer.ContainsFilth());
+                    Game.i.CreateFilth(p, sourceContainer.ContainsFilth());
                     sourceContainer.RemoveFilth(sourceContainer.ContainsFilth());
                 }
             }
@@ -3080,7 +3071,7 @@ export class NPC extends Entity {
 
     GetHeight() {
         if (!flightPath.empty()) return flightPath.back().height;
-        if (HasEffect(FLYING) || HasEffect(HIGHGROUND)) return ENTITYHEIGHT + 2;
+        if (HasEffect(FLYING) || HasEffect(HIGHGROUND)) return Constants.ENTITYHEIGHT + 2;
         return 0;
     }
 
@@ -3095,8 +3086,8 @@ export class NPC extends Entity {
     }
 
     TransmitEffect(effect) {
-        if (Random.Generate(effectiveResistances[effect.applicableResistance]) == 0) {
-            if (effect.type != PANIC || coward) //PANIC can only be transmitted to cowards
+        if (Random.i.Generate(effectiveResistances[effect.applicableResistance]) === 0) {
+            if (effect.type !== PANIC || coward) //PANIC can only be transmitted to cowards
                 AddEffect(effect);
         }
     }
@@ -3173,7 +3164,7 @@ export class NPC extends Entity {
         type = -1;
         let failedToFindType = false;
         type = NPC.StringToNPCType(typeName);
-        if (type == -1) { //Apparently a creature type that doesn't exist
+        if (type === -1) { //Apparently a creature type that doesn't exist
             type = 2; //Whatever the first monster happens to be
             failedToFindType = true; //We'll allow loading, this creature will just immediately die
         }

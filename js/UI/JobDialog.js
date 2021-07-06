@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -37,10 +37,10 @@ export class JobDialog extends Scrollable {
         if (this.jobListingDialog) return this.jobListingDialog;
 
         let width = 50;
-        if (DEBUG) {
+        if (Globals.DEBUG) {
             width = 100;
         }
-        let height = Game.ScreenHeight() - 20;
+        let height = Game.i.ScreenHeight() - 20;
         this.jobListingDialog = new Dialog(new ScrollPanel(0, 0, width, height, new JobDialog(), false), "Jobs", width, height);
 
         return this.jobListingDialog;

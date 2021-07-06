@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -37,7 +37,7 @@ export class MessageBox {
 			i += 50;
 		} while (i < text.length);
 
-		if (secondButton == "") {
+		if (secondButton === "") {
 			contents.AddComponent(new Button(firstButton, firstAction, 22, (i / 50) + 3, 15, firstButton.charAt(0), true));
 		} else {
 			contents.AddComponent(new Button(firstButton, firstAction, 8, (i / 50) + 3, 15, firstButton.charAt(0), true));

@@ -7,41 +7,35 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    UIContainer
-} from "./UIContainer.js";
-import {
-    Dialog
-} from "./Dialog.js";
-import {
-    ScrollPanel
-} from "./ScrollPanel.js";
-import {
-    UIList
-} from "./UIList.js";
+import {Game} from "../Game.js";
+import {Dialog} from "./Dialog.js";
+import {Job} from "../Job.js";
+import {ScrollPanel} from "./ScrollPanel.js";
+import {UIContainer} from "./UIContainer.js";
+import {UIList} from "./UIList.js";
 
 export class NPCDialog extends UIContainer {
-    npcListDialog = null;
     NPCListDialog() {
         if (!this.npcListDialog) {
-            this.npcListDialog = new Dialog(new NPCDialog(), "NPCs", Game.ScreenWidth() - 20, Game.ScreenHeight() - 20);
+            this.npcListDialog = new Dialog(new NPCDialog(), "NPCs", Game.i.ScreenWidth() - 20, Game.i.ScreenHeight() - 20);
         }
         return this.npcListDialog;
     }
 
     constructor() {
-        super([], 0, 0, Game.ScreenWidth() - 20, Game.ScreenHeight() - 20)
+        super([], 0, 0, Game.i.ScreenWidth() - 20, Game.i.ScreenHeight() - 20)
+        this.npcListDialog = null;
         this.AddComponent(
-            new ScrollPanel(0, 0, width, height,
+            new ScrollPanel(0, 0, this.width, this.height,
                 new UIList(
-                    (Game.npcList), 0, 0, width - 2, height, this.DrawNPC.bind(this)
+                    (Game.i.npcList), 0, 0, this.width - 2, this.height, () => this.DrawNPC(this)
                 ),
                 false
             )

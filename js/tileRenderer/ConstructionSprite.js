@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -54,7 +54,7 @@ export class ConstructionSprite {
             (this.sprites[0].IsConnectionMap() ||
                 (this.width > 0 &&
                     this.width <= sprites_size &&
-                    (sprites_size / this.width) * this.width == sprites_size));
+                    (sprites_size / this.width) * this.width === sprites_size));
     }
 
 
@@ -72,7 +72,7 @@ export class ConstructionSprite {
         if (!this.IsConnectionMap()) return;
         let connected = internalPos;
         // connection map draw
-        if (connected && typeof connected == "function") {
+        if (connected && typeof connected === "function") {
             this.sprites[0].Draw(screenX, screenY, connected);
         }
     }
@@ -81,7 +81,7 @@ export class ConstructionSprite {
         if (this.underconstructionSprites.length <= 0) return;
         // normal draw
         if (internalPos && internalPos instanceof Coordinate) {
-            if (!this.IsConnectionMap() && this.underconstructionSprites.length == this.sprites.length && this.IsValid()) {
+            if (!this.IsConnectionMap() && this.underconstructionSprites.length === this.sprites.length && this.IsValid()) {
                 let xOffset = internalPos.X() % this.width;
                 let yOffset = internalPos.Y() % (this.sprites.length / this.width);
 
@@ -102,7 +102,7 @@ export class ConstructionSprite {
         if (internalPos && internalPos instanceof Coordinate) {
             // normal draw
             if (this.unreadyTrapSprites.length > 0) {
-                if (!this.IsConnectionMap() && this.unreadyTrapSprites.length == this.sprites.length && this.IsValid()) {
+                if (!this.IsConnectionMap() && this.unreadyTrapSprites.length === this.sprites.length && this.IsValid()) {
                     let xOffset = internalPos.X() % this.width;
                     let yOffset = internalPos.Y() % (this.sprites.length / this.width);
 

@@ -4,9 +4,7 @@ import {
 import {
     Dice
 } from "./Dice.js";
-import {
-    Color
-} from "./libtcod.js";
+import {TCODColor} from "../fakeTCOD/libtcod.js";
 
 export class SpellPreset {
     name = "";
@@ -14,13 +12,13 @@ export class SpellPreset {
     immaterial = false;
     graphic = '?';
     speed = 1;
-    color = Color.pink;
+    color = TCODColor.pink;
     fallbackGraphicsSet = ""
     graphicsHint = -1;
     constructor(obj) {
         if ("spell_type" in obj) this.name = obj.spell_type;
         if ("graphic" in obj) this.graphic = obj.graphic;
-        if ("col" in obj) this.color = new Color(...obj.col);
+        if ("col" in obj) this.color = new TCODColor(...obj.col);
         if ("immaterial" in obj) this.immaterial = obj.immaterial;
         if ("attack" in obj) {
             let att = obj.attack;

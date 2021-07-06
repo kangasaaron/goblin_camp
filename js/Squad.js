@@ -7,46 +7,41 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    Serializable
-} from "./Serialization.js";
-import {
-    Order
-} from "./Order.js";
+import { Coordinate } from "./Coordinate.js";
+import { Game } from "./Game.js";
+import { Globals } from "./Globals.js";
+import { Order } from "./Order.js";
+import { Serializable } from "./data/Serialization.js";
 
 export class Squad extends Serializable {
-    CLASS_VERSION = 0;
-
-    name = "";
-    memberReq = 0;
-    /**
-     * List of NPC uid's
-     */
-    members = [];
-    generalOrder = Order.NOORDER;
-    orders = [];
-    targetCoordinates = [];
-    targetEntities = [];
-    priority = 0;
-    weapon = -1;
-    armor = -1;
-
     constructor(nameValue = "Noname nancyboys", memberValue = 0, pri = 0) {
+        super();
+        
+        this.generalOrder = Order.NOORDER;
+        this.orders = [];
+        this.targetCoordinates = [];
+        this.targetEntities = [];
+        this.weapon = -1;
+        this.armor = -1;
+        /**
+         * List of NPC uid's
+         */
+        this.members = [];
         this.name = nameValue;
         this.memberReq = memberValue;
         this.priority = pri;
+        this.Game = new Game();
     }
 
-
     destructor() {
-        if (DEBUG) {
+        if (Globals.DEBUG) {
             console.log("Squad ", this.name, " destructed.");
         }
     }
@@ -118,7 +113,7 @@ export class Squad extends Serializable {
         ++orderIndex;
         if (orderIndex < 0 || orderIndex >= this.orders.length)
             orderIndex = 0;
-        return (orders.length === 0) ? Order.NOORDER : this.orders[orderIndex];
+        return (this.orders.length === 0) ? Order.NOORDER : this.orders[orderIndex];
     }
     ClearOrders() {
         this.orders = [];
@@ -128,14 +123,14 @@ export class Squad extends Serializable {
     }
     Rearm() {
         for (let memberi of this.members) {
-            let npc = Game.GetNPC(memberi);
+            let npc = this.Game.i.GetNPC(memberi);
             if (npc)
                 npc.FindNewWeapon();
         }
     }
     Reequip() {
         for (let memberi of this.members) {
-            let npc = Game.GetNPC(memberi);
+            let npc = this.Game.i.GetNPC(memberi);
             if (npc)
                 npc.FindNewArmor();
         }
@@ -143,7 +138,7 @@ export class Squad extends Serializable {
 
     Leave(member) {
         for (let i = 0; i < this.members.length; i++) {
-            if (this.members[i] == member) {
+            if (this.members[i] === member) {
                 this.members.splice(i, 1);
                 break;
             }
@@ -151,7 +146,7 @@ export class Squad extends Serializable {
     }
     RemoveAllMembers() {
         for (let membi of this.members) {
-            let npc = Game.GetNPC(membi);
+            let npc = this.Game.i.GetNPC(membi);
             if (npc)
                 npc.MemberOf(null);
         }
@@ -163,16 +158,16 @@ export class Squad extends Serializable {
      */
     UpdateMembers() {
         if (this.members.length < this.memberReq) {
-            let newMember = Game.FindMilitaryRecruit();
+            let newMember = this.Game.i.FindMilitaryRecruit();
             if (newMember >= 0) {
-                let npc = Game.GetNPC(newMember);
+                let npc = this.Game.i.GetNPC(newMember);
                 if (npc) {
                     this.members.push(newMember);
                     npc.MemberOf(this);
                 }
             }
         } else if (this.this.members.push > this.memberReq) {
-            let npc = Game.GetNPC(this.members[this.members.length - 1]);
+            let npc = this.Game.i.GetNPC(this.members[this.members.length - 1]);
             if (npc)
                 npc.MemberOf(null);
             this.members.pop();
@@ -182,7 +177,7 @@ export class Squad extends Serializable {
             return true;
         return false;
     }
-    serialize(ar, version) {
+    serialize(ar, /*version*/) {
         ar.register_type(Order);
         ar.register_type(Coordinate);
         return {
@@ -210,3 +205,4 @@ export class Squad extends Serializable {
         return result;
     }
 }
+Squad.CLASS_VERSION = 0;

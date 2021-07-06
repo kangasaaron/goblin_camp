@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -16,25 +16,25 @@ along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
 
-function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
-    let n = costs.size1();
+export function FindBestMatching( /** @param {boost.numeric.ublas.matrix<int>} */ costs) {
+    let n = costs.length;
     /**std.vector<int>*/
-    let lx(n, 0);
-    let ly(n, 0);
+    let lx = new Array(n).fill(0);
+    let ly = new Array(n).fill(0);
     /**std.vector<int>*/
-    let xy(n, 0);
-    let yx(n, 0);
+    let xy = new Array(n).fill(0);
+    let yx = new Array(n).fill(0);
     /**std.vector<bool>*/
-    let S(n, false);
-    let T(n, false);
+    let S = new Array(n).fill(false);
+    let T = new Array(n).fill(false);
     /**std.vector<int>*/
-    let slack(n, 0);
-    let slackx(n, 0);
+    let slack = new Array(n).fill(0);
+    let slackx = new Array(n).fill(0);
     /**std.vector<int>*/
-    let prev(n, -1);
+    let prev = new Array(n).fill(-1);
     for (let x = 0; x < n; x++) {
         for (let y = 0; y < n; y++) {
-            lx[x] = Math.max(lx[x], costs(x, y));
+            lx[x] = Math.max(lx[x], costs[x][y]);
         }
         ly[x] = 0;
         xy[x] = -1;
@@ -44,7 +44,7 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
     let numMatched = 0;
     while (numMatched < n) {
         /**std.vector<int>*/
-        let q(n, 0);
+        let q = new Array(n).fill(0);
         let rd = 0,
             wr = 0;
         for (let i = 0; i < n; ++i) {
@@ -54,7 +54,7 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
         }
         let root = -1;
         for (let x = 0; x < n; x++) {
-            if (xy[x] == -1) {
+            if (xy[x] === -1) {
                 root = x;
                 q[wr++] = x;
                 prev[x] = -2;
@@ -64,18 +64,18 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
         }
 
         for (let y = 0; y < n; y++) {
-            slack[y] = lx[root] + ly[y] - costs(root, y);
+            slack[y] = lx[root] + ly[y] - costs[root][y];
             slackx[y] = root;
         }
 
         let px, py;
-        bool foundPath = false;
+        let foundPath = false;
         while (!foundPath) {
             while (rd < wr) {
-                int x = q[rd++];
+                let x = q[rd++];
                 for (let y = 0; y < n; y++) {
-                    if (costs(x, y) == lx[x] + ly[y] && !T[y]) {
-                        if (yx[y] == -1) {
+                    if (costs[x][y] === lx[x] + ly[y] && !T[y]) {
+                        if (yx[y] === -1) {
                             foundPath = true;
                             px = x;
                             py = y;
@@ -86,8 +86,8 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
                         S[yx[y]] = true;
                         prev[yx[y]] = x;
                         for (let sy = 0; sy < n; sy++) {
-                            if (lx[yx[y]] + ly[sy] - costs(yx[y], sy) < slack[sy]) {
-                                slack[sy] = lx[yx[y]] + ly[sy] - costs(yx[y], sy);
+                            if (lx[yx[y]] + ly[sy] - costs[yx[y]][sy] < slack[sy]) {
+                                slack[sy] = lx[yx[y]] + ly[sy] - costs[yx[y]][sy];
                                 slackx[sy] = yx[y];
                             }
                         }
@@ -120,8 +120,8 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
             }
             wr = rd = 0;
             for (let y = 0; y < n; y++) {
-                if (!T[y] && slack[y] == 0) {
-                    if (yx[y] == -1) {
+                if (!T[y] && slack[y] === 0) {
+                    if (yx[y] === -1) {
                         px = slackx[y];
                         py = y;
                         foundPath = true;
@@ -135,8 +135,8 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
                             S[sx] = true;
                             prev[sx] = sp;
                             for (let sy = 0; sy < n; sy++) {
-                                if (lx[sx] + ly[sy] - costs(sx, sy) < slack[sy]) {
-                                    slack[sy] = lx[sx] + ly[sy] - costs(sx, sy);
+                                if (lx[sx] + ly[sy] - costs[sx][sy] < slack[sy]) {
+                                    slack[sy] = lx[sx] + ly[sy] - costs[sx][sy];
                                     slackx[sy] = sx;
                                 }
                             }
@@ -147,17 +147,16 @@ function FindBestMatching( /*boost.numeric.ublas.matrix<int>*/ costs) {
         }
 
         numMatched++;
-        for (let cx = px, cy = py, ty; cx != -2; cx = prev[cx], cy = ty) {
+        for (let cx = px, cy = py, ty; cx !== -2; cx = prev[cx], cy = ty) {
             ty = xy[cx];
             yx[cy] = cx;
             xy[cx] = cy;
         }
     }
 
-    /**std.vector<int>*/
     let rtn;
     for (let x = 0; x < n; x++) {
-        rtn.push_back(xy[x]);
+        rtn.push(xy[x]);
     }
     return rtn;
 }

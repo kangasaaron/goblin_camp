@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -36,8 +36,8 @@ class SquadsDialog extends Dialog {
     squadName = "";
     squadMembers = 1;
     squadPriority = 0;
-    // UIList < std.pair < std.string, boost.shared_ptr < Squad > > , std.map < std.string, boost.shared_ptr < Squad > > > * squadList;
-    squadList = new UIList();
+    // UIList < std.pair < std.string, boost.shared_ptr < Squad > > , std.map < std.string, boost.shared_ptr < Squad > > > * squadUIList;
+    squadUIList = new UIList();
     /**Frame * */
     rightFrame;
     /**Frame * */
@@ -53,11 +53,11 @@ class SquadsDialog extends Dialog {
             // UIContainer * 
             let contents = new UIContainer([], 0, 0, 50, 20);
             squadDialog = new SquadsDialog(contents, "Squads", 50, 20);
-            // squadDialog.squadList = new UIList < std.pair < std.string, boost.shared_ptr < Squad > > , std.map < std.string, boost.shared_ptr < Squad > > > ( &
-            //     (Game.squadList), 0, 0, 46, 16, SquadsDialog.DrawSquad, boost.bind( & SquadsDialog.SelectSquad, squadDialog, _1), true, & SquadsDialog.GetSquadTooltip);
-            squadDialog.squadList = new UIList((Game.squadList), 0, 0, 46, 16, SquadsDialog.DrawSquad, boost.bind(SquadsDialog.SelectSquad, squadDialog, _1), true, SquadsDialog.GetSquadTooltip);
+            // squadDialog.squadUIList = new UIList < std.pair < std.string, boost.shared_ptr < Squad > > , std.map < std.string, boost.shared_ptr < Squad > > > ( &
+            //     (Game.i.squadUIList), 0, 0, 46, 16, SquadsDialog.DrawSquad, boost.bind( & SquadsDialog.SelectSquad, squadDialog, _1), true, & SquadsDialog.GetSquadTooltip);
+            squadDialog.squadUIList = new UIList((Game.i.squadUIList), 0, 0, 46, 16, SquadsDialog.DrawSquad, boost.bind(SquadsDialog.SelectSquad, squadDialog, _1), true, SquadsDialog.GetSquadTooltip);
             let left = new Frame("Existing", [], 1, 1, 24, 18);
-            left.AddComponent(new ScrollPanel(1, 0, 23, 18, squadDialog.squadList, false));
+            left.AddComponent(new ScrollPanel(1, 0, 23, 18, squadDialog.squadUIList, false));
             contents.AddComponent(left);
             squadDialog.rightFrame = new Frame("New Squad", [], 25, 1, 24, 18);
             squadDialog.rightFrame.AddComponent(new Label("Name (required)", 12, 2));
@@ -111,7 +111,7 @@ class SquadsDialog extends Dialog {
     // static void DrawSquad(std.pair < std.string, boost.shared_ptr < Squad > > , int, int, int, int, bool, TCODConsole * );
     // void SquadsDialog.DrawSquad(std.pair < std.string, boost.shared_ptr < Squad > > squadi, int i, int x, int y, int width, bool selected, TCODConsole * the_console) {
     static DrawSquad(squadi, i, x, y, width, selected, the_console) {
-        the_console.setBackgroundFlag(TCOD_BKGND_SET);
+        the_console.setBackgroundFlag(TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
         the_console.setDefaultBackground(selected ? Color.blue : Color.black);
         the_console.print(x, y, "%s (%d/%d)", squadi.first.c_str(), squadi.second.MemberCount(),
             squadi.second.MemberLimit());
@@ -121,24 +121,24 @@ class SquadsDialog extends Dialog {
     // boost.shared_ptr < Squad > GetSquad(int);
     // boost.shared_ptr < Squad > SquadsDialog.GetSquad(int i) {
     GetSquad(i) {
-        let it = Game.squadList.begin();
-        if (i >= 0 && i < Game.squadList.size()) {
+        let it = Game.i.squadUIList.begin();
+        if (i >= 0 && i < Game.i.squadUIList.size()) {
             return boost.next(it, i).second;
         }
         return null
     }
     RefreshMarkers() {
-        for (let markeri = markers.begin(); markeri != markers.end();) {
-            Map.RemoveMarker(markeri);
+        for (let markeri = markers.begin(); markeri !== markers.end();) {
+            GameMap.i.RemoveMarker(markeri);
             markeri = markers.erase(markeri);
         }
-        let squad = GetSquad(squadList.Selected());
+        let squad = GetSquad(squadUIList.Selected());
         if (squad) {
             let orderIndex = 0;
             do {
-                markers.push_back(Map.AddMarker(MapMarker(FLASHINGMARKER, 'X', squad.TargetCoordinate(orderIndex), -1, Color.azure)));
+                markers.push(GameMap.i.AddMarker(MapMarker(FLASHINGMARKER, 'X', squad.TargetCoordinate(orderIndex), -1, Color.azure)));
                 squad.GetOrder(orderIndex);
-            } while (orderIndex != 0);
+            } while (orderIndex !== 0);
         }
     }
 
@@ -152,7 +152,7 @@ class SquadsDialog extends Dialog {
         tooltip.AddEntry(TooltipEntry(squadi.first, Color.white));
         tooltip.AddEntry(TooltipEntry((boost.format(" Priority: %d") % squadi.second.Priority()).str(), Color.grey));
 
-        if (squadi.second.GetGeneralOrder() != NOORDER) {
+        if (squadi.second.GetGeneralOrder() !== NOORDER) {
             let order;
             switch (squadi.second.GetGeneralOrder()) {
                 case GUARD:
@@ -175,7 +175,7 @@ class SquadsDialog extends Dialog {
     }
 
     SelectSquad(i) {
-        if (i >= 0 && i < Game.squadList.size()) {
+        if (i >= 0 && i < Game.i.squadUIList.size()) {
             rightFrame.SetTitle("Modify Squad");
             squadName = GetSquad(i).Name();
             squadPriority = GetSquad(i).Priority();
@@ -190,53 +190,53 @@ class SquadsDialog extends Dialog {
         RefreshMarkers();
     }
     SquadSelected(selected) {
-        return (squadList.Selected() >= 0) == selected;
+        return (squadUIList.Selected() >= 0) === selected;
     }
     CreateSquad() {
         if (squadName.length() > 0) {
-            Game.squadList.insert(squadName, new Squad(squadName, squadMembers, squadPriority));
+            Game.i.squadUIList.insert(squadName, new Squad(squadName, squadMembers, squadPriority));
             let squad = 0;
-            for (let it = Game.squadList.begin(); it != Game.squadList.end(); ++it) {
-                if (it.first == squadName) {
+            for (let it = Game.i.squadUIList.begin(); it !== Game.i.squadUIList.end(); ++it) {
+                if (it.first === squadName) {
                     break;
                 }
                 ++squad;
             }
-            squad = Math.min(squad, Game.squadList.size() - 1);
-            squadList.Select(squad);
+            squad = Math.min(squad, Game.i.squadUIList.size() - 1);
+            squadUIList.Select(squad);
             SelectSquad(squad);
         }
     }
     ModifySquad() {
-        let tempSquad = GetSquad(squadList.Selected());
-        Game.squadList.erase(tempSquad.Name());
+        let tempSquad = GetSquad(squadUIList.Selected());
+        Game.i.squadUIList.erase(tempSquad.Name());
         tempSquad.Name(squadName);
-        Game.squadList.insert(squadName, tempSquad);
+        Game.i.squadUIList.insert(squadName, tempSquad);
         tempSquad.MemberLimit(squadMembers);
         tempSquad.Priority(squadPriority);
 
         //Reselect the squad, changing the name may change it's position in the list
         let squad = 0;
-        for (let it = Game.squadList.begin(); it != Game.squadList.end(); ++it) {
-            if (it.first == squadName) {
+        for (let it = Game.i.squadUIList.begin(); it !== Game.i.squadUIList.end(); ++it) {
+            if (it.first === squadName) {
                 break;
             }
             ++squad;
         }
-        squad = Math.min(squad, Game.squadList.size() - 1);
-        squadList.Select(squad);
+        squad = Math.min(squad, Game.i.squadUIList.size() - 1);
+        squadUIList.Select(squad);
         SelectSquad(squad);
 
     }
     DeleteSquad() {
-        let squad = GetSquad(squadList.Selected());
+        let squad = GetSquad(squadUIList.Selected());
         if (squad) {
             squad.RemoveAllMembers();
-            Game.squadList.erase(squad.Name());
+            Game.i.squadUIList.erase(squad.Name());
         }
     }
     SelectOrder(order) {
-        let squad = GetSquad(squadList.Selected());
+        let squad = GetSquad(squadUIList.Selected());
         if (squad) {
             squad.ClearOrders();
             squad.SetGeneralOrder(order);
@@ -257,37 +257,37 @@ class SquadsDialog extends Dialog {
     }
 
     OrderSelected(order) {
-        let squad = GetSquad(squadList.Selected());
-        return squad ? squad.GetGeneralOrder() == order : false;
+        let squad = GetSquad(squadUIList.Selected());
+        return squad ? squad.GetGeneralOrder() === order : false;
     }
     SelectedSquadWeapon() {
-        let weapon = GetSquad(squadList.Selected()).Weapon();
+        let weapon = GetSquad(squadUIList.Selected()).Weapon();
         return weapon >= 0 ? Item.Categories[weapon].name : "None";
     }
     SelectWeapon() {
         let weaponChoiceMenu = new Menu([], "Weapons");
-        weaponChoiceMenu.AddChoice(MenuChoice("None", boost.bind(Squad.Weapon, GetSquad(squadList.Selected()), -1)));
+        weaponChoiceMenu.AddChoice(MenuChoice("None", boost.bind(Squad.Weapon, GetSquad(squadUIList.Selected()), -1)));
         for (let i = 0; i < Item.Categories.size(); ++i) {
             if (Item.Categories[i].parent >= 0 && boost.iequals(Item.Categories[Item.Categories[i].parent].name, "Weapon")) {
-                weaponChoiceMenu.AddChoice(MenuChoice(Item.Categories[i].name.c_str(), boost.bind(Squad.Weapon, GetSquad(squadList.Selected()), i)));
+                weaponChoiceMenu.AddChoice(MenuChoice(Item.Categories[i].name.c_str(), boost.bind(Squad.Weapon, GetSquad(squadUIList.Selected()), i)));
             }
         }
         weaponChoiceMenu.ShowModal();
     }
     Rearm() {
-        GetSquad(squadList.Selected()).Rearm();
-        Announce.AddMsg(GetSquad(squadList.Selected()).Name() + " rearming");
+        GetSquad(squadUIList.Selected()).Rearm();
+        Announce.i.AddMsg(GetSquad(squadUIList.Selected()).Name() + " rearming");
     }
     SelectedSquadArmor() {
-        let armor = GetSquad(squadList.Selected()).Armor();
+        let armor = GetSquad(squadUIList.Selected()).Armor();
         return armor >= 0 ? Item.Categories[armor].name : "None";
     }
     SelectArmor() {
         let armorChoiceMenu = new Menu([], "Armor");
-        armorChoiceMenu.AddChoice(MenuChoice("None", boost.bind(Squad.Armor, GetSquad(squadList.Selected()), -1)));
+        armorChoiceMenu.AddChoice(MenuChoice("None", boost.bind(Squad.Armor, GetSquad(squadUIList.Selected()), -1)));
         for (let i = 0; i < Item.Categories.size(); ++i) {
             if (Item.Categories[i].parent >= 0 && boost.iequals(Item.Categories[Item.Categories[i].parent].name, "Armor")) {
-                armorChoiceMenu.AddChoice(MenuChoice(Item.Categories[i].name.c_str(), boost.bind(Squad.Armor, GetSquad(squadList.Selected()), i)));
+                armorChoiceMenu.AddChoice(MenuChoice(Item.Categories[i].name.c_str(), boost.bind(Squad.Armor, GetSquad(squadUIList.Selected()), i)));
             }
         }
         armorChoiceMenu.ShowModal();
@@ -295,13 +295,13 @@ class SquadsDialog extends Dialog {
 
 
     Reequip() {
-        GetSquad(squadList.Selected()).Reequip();
-        Announce.AddMsg(GetSquad(squadList.Selected()).Name() + " re-equipping armor");
+        GetSquad(squadUIList.Selected()).Reequip();
+        Announce.i.AddMsg(GetSquad(squadUIList.Selected()).Name() + " re-equipping armor");
     }
     Close() {
         UI.SetTextMode(false);
-        for (let markeri = markers.begin(); markeri != markers.end();) {
-            Map.RemoveMarker(markeri);
+        for (let markeri = markers.begin(); markeri !== markers.end();) {
+            GameMap.i.RemoveMarker(markeri);
             markeri = markers.erase(markeri);
         }
     }

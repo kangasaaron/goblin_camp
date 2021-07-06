@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -125,7 +125,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
             gmask = 0,
             bmask = 0,
             amask = 0;
-        if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+        if (SDL_BYTEORDER === SDL_BIG_ENDIAN) {
             rmask = 0xff000000;
             gmask = 0x00ff0000;
             bmask = 0x0000ff00;
@@ -179,11 +179,11 @@ class OGLTilesetRenderer extends TilesetRenderer {
         }
         let rawTile = new RawTileData(tile, tilesetTexture);
         let existing = std.find(rawTiles.begin(), rawTiles.end(), rawTile);
-        if (existing != rawTiles.end()) {
+        if (existing !== rawTiles.end()) {
             return SpritePtr(new OGLSprite(this, existing - rawTiles.begin()));
         } else {
             let id = (rawTiles.size());
-            rawTiles.push_back(rawTile);
+            rawTiles.push(rawTile);
             return SpritePtr(new OGLSprite(this, id));
         }
     }
@@ -196,18 +196,18 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         /**std.vector < int >*/
         let tileIds = [];
-        for (let tileIter = tiles.begin(); tileIter != tiles.end(); ++tileIter) {
+        for (let tileIter = tiles.begin(); tileIter !== tiles.end(); ++tileIter) {
             if (tileIter < tilesetTexture.Count()) {
                 let rawTile = new RawTileData(tileIter, tilesetTexture);
                 let existing = std.find(rawTiles.begin(), rawTiles.end(), rawTile);
-                if (existing != rawTiles.end()) {
-                    tileIds.push_back(existing - rawTiles.begin());
+                if (existing !== rawTiles.end()) {
+                    tileIds.push(existing - rawTiles.begin());
                 } else {
-                    tileIds.push_back(rawTiles.size());
-                    rawTiles.push_back(rawTile);
+                    tileIds.push(rawTiles.size());
+                    rawTiles.push(rawTile);
                 }
             } else {
-                tileIds.push_back(-1);
+                tileIds.push(-1);
             }
         }
         return SpritePtr(new OGLSprite(this, tileIds.begin(), tileIds.end(), connectionMap, frameRate, frameCount));
@@ -232,7 +232,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
                 return;
             }
         }
-        renderQueue.push_back(new RenderTile(x, y, tile));
+        renderQueue.push(new RenderTile(x, y, tile));
     }
     render() {
         if (renderInProgress) {
@@ -281,7 +281,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         InitialiseConsoleTextures();
 
-        if (TCODSystem.getRenderer() == TCOD_RENDERER_GLSL) {
+        if (TCODSystem.getRenderer() === TCOD_RENDERER_GLSL) {
             viewportTexW = MathEx.NextPowerOfTwo(2 * viewportW);
             viewportTexH = MathEx.NextPowerOfTwo(2 * viewportH);
             for (let i = 0; i < viewportTextures.size(); ++i) {
@@ -308,7 +308,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
     InitialiseConsoleTextures() {
         /* Generate Textures */
         for (let i = 0; i < ConsoleTextureTypesCount; ++i) {
-            if (TCODSystem.getRenderer() == TCOD_RENDERER_GLSL || i == BackCol) {
+            if (TCODSystem.getRenderer() === TCOD_RENDERER_GLSL || i === BackCol) {
                 the_consoleTextures[i] = CreateOGLTexture();
             }
             the_consoleData[i] = (the_consoleDataAlignment[i] * tcodConsole.getWidth() * tcodConsole.getHeight());
@@ -324,7 +324,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        if (TCODSystem.getRenderer() == TCOD_RENDERER_GLSL) {
+        if (TCODSystem.getRenderer() === TCOD_RENDERER_GLSL) {
             /* Character Texture */
             glBindTexture(GL_TEXTURE_2D, the_consoleTextures[Character]);
 
@@ -383,7 +383,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
         // float offsetX = (float)mapOffsetX + startPixelX;
         // float offsetY = (float)mapOffsetY + startPixelY;
 
-        if (TCODSystem.getRenderer() == TCOD_RENDERER_GLSL) {
+        if (TCODSystem.getRenderer() === TCOD_RENDERER_GLSL) {
             RenderGLSLViewport();
         } else {
             RenderOGLViewport();
@@ -444,7 +444,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);
-        for (let queuedTile = renderQueue.begin(); queuedTile != renderQueue.end(); ++queuedTile) {
+        for (let queuedTile = renderQueue.begin(); queuedTile !== renderQueue.end(); ++queuedTile) {
             /**unsigned int */
             let srcX = 2 * (queuedTile.tile % tilesTextureW);
             /**unsigned int */
@@ -529,7 +529,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         glBegin(GL_QUADS);
         glColor4f(1.0, 1.0, 1.0, 1.0);
-        for (letqueuedTile = renderQueue.begin(); queuedTile != renderQueue.end(); ++queuedTile) {
+        for (letqueuedTile = renderQueue.begin(); queuedTile !== renderQueue.end(); ++queuedTile) {
             /**unsigned int*/
             let srcX = 2 * (queuedTile.tile % tilesTextureW);
             /**unsigned int*/
@@ -561,7 +561,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
             for (let y = 0; y < TCODConsole.root.getHeight(); ++y) {
                 let backCol = TCODConsole.root.getCharBackground(x, y);
                 /**unsigned char */
-                let alpha = (backCol == GetKeyColor()) ? 0 : ((translucentUI && backCol == Color.black) ? 128 : 255);
+                let alpha = (backCol === GetKeyColor()) ? 0 : ((translucentUI && backCol === Color.black) ? 128 : 255);
                 the_consoleData[BackCol][4 * (x + y * the_consoleW)] = backCol.r;
                 the_consoleData[BackCol][4 * (x + y * the_consoleW) + 1] = backCol.g;
                 the_consoleData[BackCol][4 * (x + y * the_consoleW) + 2] = backCol.b;
@@ -569,9 +569,9 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
                 /**unsigned char */
                 let c = TCODConsole.root.getCharCode(x, y);
-                if (c == -1) c = TCODSystem.asciiToTCOD(TCODConsole.root.getChar(x, y));
+                if (c === -1) c = TCODSystem.asciiToTCOD(TCODConsole.root.getChar(x, y));
                 the_consoleData[Character][x + y * the_consoleW] = c;
-                if (c != 0) {
+                if (c !== 0) {
                     let foreCol = TCODConsole.root.getCharForeground(x, y);
                     the_consoleData[ForeCol][3 * (x + y * the_consoleW)] = foreCol.r;
                     the_consoleData[ForeCol][3 * (x + y * the_consoleW) + 1] = foreCol.g;
@@ -581,7 +581,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
                 }
             }
         }
-        if (TCODSystem.getRenderer() == TCOD_RENDERER_GLSL) {
+        if (TCODSystem.getRenderer() === TCOD_RENDERER_GLSL) {
             RenderGLSLConsole();
         } else {
             RenderOGLConsole();
@@ -683,7 +683,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
         glBegin(GL_QUADS);
         for (let y = 0; y < the_consoleH; y++) {
             for (let x = 0; x < the_consoleW; x++) {
-                if (characterIter != 0 && characterIter != ' ') {
+                if (characterIter !== 0 && characterIter !== ' ') {
                     /**unsigned char */
                     let foreR = (fColorIter++);
                     /**unsigned char */
@@ -732,13 +732,13 @@ class OGLTilesetRenderer extends TilesetRenderer {
 
         /**GLint* */
         let width = (0);
-        while (width == 0 && texSize > tileSet.TileWidth()) {
+        while (width === 0 && texSize > tileSet.TileWidth()) {
             glTexImage2D(GL_PROXY_TEXTURE_2D, 0, GL_RGBA, texSize, texSize, 0, GL_BGRA, GL_UNSIGNED_BYTE, null);
             glGetTexLevelParameteriv(GL_PROXY_TEXTURE_2D, 0, GL_TEXTURE_WIDTH, width);
-            if (width == 0)
+            if (width === 0)
                 texSize /= 2;
         }
-        if (width == 0)
+        if (width === 0)
             return false;
 
         // Get initial horizontal tiles (based on tex size)
@@ -757,7 +757,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
         // Build texture
         /**Uint32 */
         let rmask, gmask, bmask, amask;
-        if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+        if (SDL_BYTEORDER === SDL_BIG_ENDIAN) {
             rmask = 0xff000000;
             gmask = 0x00ff0000;
             bmask = 0x0000ff00;
@@ -770,7 +770,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
         }
         /**boost.shared_ptr < SDL_Surface > */
         let tempSurface = (SDL_CreateRGBSurface(SDL_SWSURFACE, tileSet.TileWidth(), tileSet.TileHeight(), 32, bmask, gmask, rmask, amask), SDL_FreeSurface);
-        if (tempSurface.get() == null) {
+        if (tempSurface.get() === null) {
             LOG("CreateRGBSurface failed: " << SDL_GetError());
             return false;
         }
@@ -829,14 +829,14 @@ class OGLTilesetRenderer extends TilesetRenderer {
         let oglRenderer = (new OGLTilesetRenderer(width, height, the_console));
         /**boost.shared_ptr < TileSet >*/
         let tileset = TileSetLoader.LoadTileSet(oglRenderer, tilesetName);
-        if (tileset.get() != 0 && oglRenderer.SetTileset(tileset)) {
+        if (tileset.get() !== 0 && oglRenderer.SetTileset(tileset)) {
             return oglRenderer;
         }
         return null; //boost.shared_ptr < TilesetRenderer > ();
     }
 
     static equals(lhs, rhs) {
-        return lhs.tile == rhs.tile && lhs.texture == rhs.texture;
+        return lhs.tile === rhs.tile && lhs.texture === rhs.texture;
     }
 
 
@@ -847,7 +847,7 @@ class OGLTilesetRenderer extends TilesetRenderer {
     //         const int line) {
     CheckGL_Error(GLcall, file, line) {
         let errCode;
-        if ((errCode = glGetError()) != GL_NO_ERROR) {
+        if ((errCode = glGetError()) !== GL_NO_ERROR) {
             LOG("" << file << "(" << line << "): error " << errCode << ": " << GLcall << std.endl);
             return false;
         }

@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -44,12 +44,12 @@ class NPCSprite {
                 const std.vector < std.string > & weaponTypes,
                     const std.vector < std.string > & armourTypes);*/
     constructor() {
-        sprites.push_back(new SpritePtr());
+        sprites.push(new SpritePtr());
     }
 
     constructor(sprite) {
 
-        sprites.push_back(sprite);
+        sprites.push(sprite);
     }
 
     constructor(s,
@@ -63,9 +63,9 @@ class NPCSprite {
         armourTypeNames(armourTypes);
 
         if (sprites.empty()) {
-            sprites.push_back(SpritePtr());
+            sprites.push(SpritePtr());
         }
-        if ((weaponTypeNames.size() + 1) * (armourTypeNames.size() + 1) != sprites.size()) {
+        if ((weaponTypeNames.size() + 1) * (armourTypeNames.size() + 1) !== sprites.size()) {
             equipmentAware = false;
         }
     }
@@ -80,9 +80,9 @@ class NPCSprite {
         weaponTypeNames(weaponTypes);
         armourTypeNames(armourTypes);
         if (sprites.empty()) {
-            sprites.push_back(SpritePtr());
+            sprites.push(SpritePtr());
         }
-        if (sprites.size() != armourTypeNames.size() + 1 || weaponOverlays.size() != weaponTypeNames.size()) {
+        if (sprites.size() !== armourTypeNames.size() + 1 || weaponOverlays.size() !== weaponTypeNames.size()) {
             paperdoll = false;
         }
     }
@@ -123,7 +123,7 @@ class NPCSprite {
                 sprites.at((weaponIndex + 1) + ((armourIndex + 1) * (weaponTypeNames.size() + 1))).Draw(screenX, screenY);
             } else {
                 sprites.at(armourIndex + 1).Draw(screenX, screenY);
-                if (weaponIndex != -1) {
+                if (weaponIndex !== -1) {
                     weaponOverlays.at(weaponIndex).Draw(screenX, screenY);
                 }
             }
@@ -137,15 +137,15 @@ class NPCSprite {
     findIndex(itemPreset,
         vector) {
         let namePos = std.find(vector.begin(), vector.end(), itemPreset.name);
-        if (namePos != vector.end()) {
+        if (namePos !== vector.end()) {
             return namePos - vector.begin();
         } else {
-            for (let cati = itemPreset.specificCategories.begin(); cati != itemPreset.specificCategories.end(); ++cati) {
+            for (let cati = itemPreset.specificCategories.begin(); cati !== itemPreset.specificCategories.end(); ++cati) {
                 let catId = cati;
-                while (catId != -1) {
+                while (catId !== -1) {
                     let cat = Item.Categories.at(catId);
                     let catPos = std.find(vector.begin(), vector.end(), cat.GetName());
-                    if (catPos != vector.end()) {
+                    if (catPos !== vector.end()) {
                         return catPos - vector.begin();
                     }
                 }

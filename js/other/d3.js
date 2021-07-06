@@ -21,8 +21,8 @@ function bisector(f) {
   }
 
   function left(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
+    if (lo === null) lo = 0;
+    if (hi === null) hi = a.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
       if (compare(a[mid], x) < 0) lo = mid + 1;
@@ -32,8 +32,8 @@ function bisector(f) {
   }
 
   function right(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
+    if (lo === null) lo = 0;
+    if (hi === null) hi = a.length;
     while (lo < hi) {
       const mid = (lo + hi) >>> 1;
       if (compare(a[mid], x) > 0) hi = mid;
@@ -43,8 +43,8 @@ function bisector(f) {
   }
 
   function center(a, x, lo, hi) {
-    if (lo == null) lo = 0;
-    if (hi == null) hi = a.length;
+    if (lo === null) lo = 0;
+    if (hi === null) hi = a.length;
     const i = left(a, x, lo, hi - 1);
     return i > lo && delta(a[i - 1], x) > -delta(a[i], x) ? i - 1 : i;
   }
@@ -63,14 +63,14 @@ function number(x) {
 function* numbers(values, valueof) {
   if (valueof === undefined) {
     for (let value of values) {
-      if (value != null && (value = +value) >= value) {
+      if (value !== null && (value = +value) >= value) {
         yield value;
       }
     }
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+      if ((value = valueof(value, ++index, values)) !== null && (value = +value) >= value) {
         yield value;
       }
     }
@@ -86,14 +86,14 @@ function count(values, valueof) {
   let count = 0;
   if (valueof === undefined) {
     for (let value of values) {
-      if (value != null && (value = +value) >= value) {
+      if (value !== null && (value = +value) >= value) {
         ++count;
       }
     }
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+      if ((value = valueof(value, ++index, values)) !== null && (value = +value) >= value) {
         ++count;
       }
     }
@@ -153,7 +153,7 @@ function variance(values, valueof) {
   let sum = 0;
   if (valueof === undefined) {
     for (let value of values) {
-      if (value != null && (value = +value) >= value) {
+      if (value !== null && (value = +value) >= value) {
         delta = value - mean;
         mean += delta / ++count;
         sum += delta * (value - mean);
@@ -162,7 +162,7 @@ function variance(values, valueof) {
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+      if ((value = valueof(value, ++index, values)) !== null && (value = +value) >= value) {
         delta = value - mean;
         mean += delta / ++count;
         sum += delta * (value - mean);
@@ -182,7 +182,7 @@ function extent(values, valueof) {
   let max;
   if (valueof === undefined) {
     for (const value of values) {
-      if (value != null) {
+      if (value !== null) {
         if (min === undefined) {
           if (value >= value) min = max = value;
         } else {
@@ -194,7 +194,7 @@ function extent(values, valueof) {
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null) {
+      if ((value = valueof(value, ++index, values)) !== null) {
         if (min === undefined) {
           if (value >= value) min = max = value;
         } else {
@@ -242,7 +242,7 @@ class Adder {
       if (n > 0 && ((lo < 0 && p[n - 1] < 0) || (lo > 0 && p[n - 1] > 0))) {
         y = lo * 2;
         x = hi + y;
-        if (y == x - hi) hi = x;
+        if (y === x - hi) hi = x;
       }
     }
     return hi;
@@ -597,7 +597,7 @@ function max(values, valueof) {
   let max;
   if (valueof === undefined) {
     for (const value of values) {
-      if (value != null
+      if (value !== null
           && (max < value || (max === undefined && value >= value))) {
         max = value;
       }
@@ -605,7 +605,7 @@ function max(values, valueof) {
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
+      if ((value = valueof(value, ++index, values)) !== null
           && (max < value || (max === undefined && value >= value))) {
         max = value;
       }
@@ -618,7 +618,7 @@ function min(values, valueof) {
   let min;
   if (valueof === undefined) {
     for (const value of values) {
-      if (value != null
+      if (value !== null
           && (min > value || (min === undefined && value >= value))) {
         min = value;
       }
@@ -626,7 +626,7 @@ function min(values, valueof) {
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
+      if ((value = valueof(value, ++index, values)) !== null
           && (min > value || (min === undefined && value >= value))) {
         min = value;
       }
@@ -718,14 +718,14 @@ function maxIndex(values, valueof) {
   if (valueof === undefined) {
     for (const value of values) {
       ++index;
-      if (value != null
+      if (value !== null
           && (max < value || (max === undefined && value >= value))) {
         max = value, maxIndex = index;
       }
     }
   } else {
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
+      if ((value = valueof(value, ++index, values)) !== null
           && (max < value || (max === undefined && value >= value))) {
         max = value, maxIndex = index;
       }
@@ -739,14 +739,14 @@ function mean(values, valueof) {
   let sum = 0;
   if (valueof === undefined) {
     for (let value of values) {
-      if (value != null && (value = +value) >= value) {
+      if (value !== null && (value = +value) >= value) {
         ++count, sum += value;
       }
     }
   } else {
     let index = -1;
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null && (value = +value) >= value) {
+      if ((value = valueof(value, ++index, values)) !== null && (value = +value) >= value) {
         ++count, sum += value;
       }
     }
@@ -775,14 +775,14 @@ function minIndex(values, valueof) {
   if (valueof === undefined) {
     for (const value of values) {
       ++index;
-      if (value != null
+      if (value !== null
           && (min > value || (min === undefined && value >= value))) {
         min = value, minIndex = index;
       }
     }
   } else {
     for (let value of values) {
-      if ((value = valueof(value, ++index, values)) != null
+      if ((value = valueof(value, ++index, values)) !== null
           && (min > value || (min === undefined && value >= value))) {
         min = value, minIndex = index;
       }
@@ -1145,8 +1145,8 @@ function axis(orient, scale) {
       transform = orient === top || orient === bottom ? translateX : translateY;
 
   function axis(context) {
-    var values = tickValues == null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
-        format = tickFormat == null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$1) : tickFormat,
+    var values = tickValues === null ? (scale.ticks ? scale.ticks.apply(scale, tickArguments) : scale.domain()) : tickValues,
+        format = tickFormat === null ? (scale.tickFormat ? scale.tickFormat.apply(scale, tickArguments) : identity$1) : tickFormat,
         spacing = Math.max(tickSizeInner, 0) + tickPadding,
         range = scale.range(),
         range0 = +range[0] + 0.5,
@@ -1193,7 +1193,7 @@ function axis(orient, scale) {
     tickExit.remove();
 
     path
-        .attr("d", orient === left || orient == right
+        .attr("d", orient === left || orient === right
             ? (tickSizeOuter ? "M" + k * tickSizeOuter + "," + range0 + "H0.5V" + range1 + "H" + k * tickSizeOuter : "M0.5," + range0 + "V" + range1)
             : (tickSizeOuter ? "M" + range0 + "," + k * tickSizeOuter + "V0.5H" + range1 + "V" + k * tickSizeOuter : "M" + range0 + ",0.5H" + range1));
 
@@ -1227,11 +1227,11 @@ function axis(orient, scale) {
   };
 
   axis.tickArguments = function(_) {
-    return arguments.length ? (tickArguments = _ == null ? [] : slice$1.call(_), axis) : tickArguments.slice();
+    return arguments.length ? (tickArguments = _ === null ? [] : slice$1.call(_), axis) : tickArguments.slice();
   };
 
   axis.tickValues = function(_) {
-    return arguments.length ? (tickValues = _ == null ? null : slice$1.call(_), axis) : tickValues && tickValues.slice();
+    return arguments.length ? (tickValues = _ === null ? null : slice$1.call(_), axis) : tickValues && tickValues.slice();
   };
 
   axis.tickFormat = function(_) {
@@ -1313,10 +1313,10 @@ Dispatch.prototype = dispatch.prototype = {
 
     // If a type was specified, set the callback for the given type and name.
     // Otherwise, if a null callback was specified, remove callbacks of the given name.
-    if (callback != null && typeof callback !== "function") throw new Error("invalid callback: " + callback);
+    if (callback !== null && typeof callback !== "function") throw new Error("invalid callback: " + callback);
     while (++i < n) {
       if (t = (typename = T[i]).type) _[t] = set$1(_[t], typename.name, callback);
-      else if (callback == null) for (t in _) _[t] = set$1(_[t], typename.name, null);
+      else if (callback === null) for (t in _) _[t] = set$1(_[t], typename.name, null);
     }
 
     return this;
@@ -1352,7 +1352,7 @@ function set$1(type, name, callback) {
       break;
     }
   }
-  if (callback != null) type.push({name: name, value: callback});
+  if (callback !== null) type.push({name: name, value: callback});
   return type;
 }
 
@@ -1398,7 +1398,7 @@ function creator(name) {
 function none() {}
 
 function selector(selector) {
-  return selector == null ? none : function() {
+  return selector === null ? none : function() {
     return this.querySelector(selector);
   };
 }
@@ -1429,7 +1429,7 @@ function empty$1() {
 }
 
 function selectorAll(selector) {
-  return selector == null ? empty$1 : function() {
+  return selector === null ? empty$1 : function() {
     return this.querySelectorAll(selector);
   };
 }
@@ -1437,7 +1437,7 @@ function selectorAll(selector) {
 function arrayAll(select) {
   return function() {
     var group = select.apply(this, arguments);
-    return group == null ? [] : array$1(group);
+    return group === null ? [] : array$1(group);
   };
 }
 
@@ -1482,7 +1482,7 @@ function childFirst() {
 }
 
 function selection_selectChild(match) {
-  return this.select(match == null ? childFirst
+  return this.select(match === null ? childFirst
       : childFind(typeof match === "function" ? match : childMatcher(match)));
 }
 
@@ -1499,7 +1499,7 @@ function childrenFilter(match) {
 }
 
 function selection_selectChildren(match) {
-  return this.selectAll(match == null ? children
+  return this.selectAll(match === null ? children
       : childrenFilter(typeof match === "function" ? match : childMatcher(match)));
 }
 
@@ -1667,8 +1667,8 @@ function selection_exit() {
 function selection_join(onenter, onupdate, onexit) {
   var enter = this.enter(), update = this, exit = this.exit();
   enter = typeof onenter === "function" ? onenter(enter) : enter.append(onenter + "");
-  if (onupdate != null) update = onupdate(update);
-  if (onexit == null) exit.remove(); else onexit(exit);
+  if (onupdate !== null) update = onupdate(update);
+  if (onexit === null) exit.remove(); else onexit(exit);
   return enter && update ? enter.merge(update).order() : update;
 }
 
@@ -1798,7 +1798,7 @@ function attrConstantNS(fullname, value) {
 function attrFunction(name, value) {
   return function() {
     var v = value.apply(this, arguments);
-    if (v == null) this.removeAttribute(name);
+    if (v === null) this.removeAttribute(name);
     else this.setAttribute(name, v);
   };
 }
@@ -1806,7 +1806,7 @@ function attrFunction(name, value) {
 function attrFunctionNS(fullname, value) {
   return function() {
     var v = value.apply(this, arguments);
-    if (v == null) this.removeAttributeNS(fullname.space, fullname.local);
+    if (v === null) this.removeAttributeNS(fullname.space, fullname.local);
     else this.setAttributeNS(fullname.space, fullname.local, v);
   };
 }
@@ -1821,7 +1821,7 @@ function selection_attr(name, value) {
         : node.getAttribute(fullname);
   }
 
-  return this.each((value == null
+  return this.each((value === null
       ? (fullname.local ? attrRemoveNS : attrRemove) : (typeof value === "function"
       ? (fullname.local ? attrFunctionNS : attrFunction)
       : (fullname.local ? attrConstantNS : attrConstant)))(fullname, value));
@@ -1848,17 +1848,17 @@ function styleConstant(name, value, priority) {
 function styleFunction(name, value, priority) {
   return function() {
     var v = value.apply(this, arguments);
-    if (v == null) this.style.removeProperty(name);
+    if (v === null) this.style.removeProperty(name);
     else this.style.setProperty(name, v, priority);
   };
 }
 
 function selection_style(name, value, priority) {
   return arguments.length > 1
-      ? this.each((value == null
+      ? this.each((value === null
             ? styleRemove : typeof value === "function"
             ? styleFunction
-            : styleConstant)(name, value, priority == null ? "" : priority))
+            : styleConstant)(name, value, priority === null ? "" : priority))
       : styleValue(this.node(), name);
 }
 
@@ -1882,14 +1882,14 @@ function propertyConstant(name, value) {
 function propertyFunction(name, value) {
   return function() {
     var v = value.apply(this, arguments);
-    if (v == null) delete this[name];
+    if (v === null) delete this[name];
     else this[name] = v;
   };
 }
 
 function selection_property(name, value) {
   return arguments.length > 1
-      ? this.each((value == null
+      ? this.each((value === null
           ? propertyRemove : typeof value === "function"
           ? propertyFunction
           : propertyConstant)(name, value))
@@ -1985,13 +1985,13 @@ function textConstant(value) {
 function textFunction(value) {
   return function() {
     var v = value.apply(this, arguments);
-    this.textContent = v == null ? "" : v;
+    this.textContent = v === null ? "" : v;
   };
 }
 
 function selection_text(value) {
   return arguments.length
-      ? this.each(value == null
+      ? this.each(value === null
           ? textRemove : (typeof value === "function"
           ? textFunction
           : textConstant)(value))
@@ -2011,13 +2011,13 @@ function htmlConstant(value) {
 function htmlFunction(value) {
   return function() {
     var v = value.apply(this, arguments);
-    this.innerHTML = v == null ? "" : v;
+    this.innerHTML = v === null ? "" : v;
   };
 }
 
 function selection_html(value) {
   return arguments.length
-      ? this.each(value == null
+      ? this.each(value === null
           ? htmlRemove : (typeof value === "function"
           ? htmlFunction
           : htmlConstant)(value))
@@ -2053,7 +2053,7 @@ function constantNull() {
 
 function selection_insert(name, before) {
   var create = typeof name === "function" ? name : creator(name),
-      select = before == null ? constantNull : typeof before === "function" ? before : selector(before);
+      select = before === null ? constantNull : typeof before === "function" ? before : selector(before);
   return this.select(function() {
     return this.insertBefore(create.apply(this, arguments), select.apply(this, arguments) || null);
   });
@@ -2326,7 +2326,7 @@ function pointers(events, node) {
 function selectAll(selector) {
   return typeof selector === "string"
       ? new Selection([document.querySelectorAll(selector)], [document.documentElement])
-      : new Selection([selector == null ? [] : array$1(selector)], root);
+      : new Selection([selector === null ? [] : array$1(selector)], root);
 }
 
 function nopropagation(event) {
@@ -2405,7 +2405,7 @@ function defaultContainer() {
 }
 
 function defaultSubject(event, d) {
-  return d == null ? {x: event.x, y: event.y} : d;
+  return d === null ? {x: event.x, y: event.y} : d;
 }
 
 function defaultTouchable() {
@@ -2521,7 +2521,7 @@ function drag() {
         dx: 0,
         dy: 0,
         dispatch
-      }), d)) == null) return;
+      }), d)) === null) return;
 
     dx = s.x - p[0] || 0;
     dy = s.y - p[1] || 0;
@@ -2821,7 +2821,7 @@ function rgbConvert(o) {
 }
 
 function rgb(r, g, b, opacity) {
-  return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? rgbConvert(r) : new Rgb(r, g, b, opacity === null ? 1 : opacity);
 }
 
 function Rgb(r, g, b, opacity) {
@@ -2833,11 +2833,11 @@ function Rgb(r, g, b, opacity) {
 
 define(Rgb, rgb, extend(Color, {
   brighter: function(k) {
-    k = k == null ? brighter : Math.pow(brighter, k);
+    k = k === null ? brighter : Math.pow(brighter, k);
     return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
   },
   darker: function(k) {
-    k = k == null ? darker : Math.pow(darker, k);
+    k = k === null ? darker : Math.pow(darker, k);
     return new Rgb(this.r * k, this.g * k, this.b * k, this.opacity);
   },
   rgb: function() {
@@ -2907,7 +2907,7 @@ function hslConvert(o) {
 }
 
 function hsl(h, s, l, opacity) {
-  return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? hslConvert(h) : new Hsl(h, s, l, opacity === null ? 1 : opacity);
 }
 
 function Hsl(h, s, l, opacity) {
@@ -2919,11 +2919,11 @@ function Hsl(h, s, l, opacity) {
 
 define(Hsl, hsl, extend(Color, {
   brighter: function(k) {
-    k = k == null ? brighter : Math.pow(brighter, k);
+    k = k === null ? brighter : Math.pow(brighter, k);
     return new Hsl(this.h, this.s, this.l * k, this.opacity);
   },
   darker: function(k) {
-    k = k == null ? darker : Math.pow(darker, k);
+    k = k === null ? darker : Math.pow(darker, k);
     return new Hsl(this.h, this.s, this.l * k, this.opacity);
   },
   rgb: function() {
@@ -2991,11 +2991,11 @@ function labConvert(o) {
 }
 
 function gray(l, opacity) {
-  return new Lab(l, 0, 0, opacity == null ? 1 : opacity);
+  return new Lab(l, 0, 0, opacity === null ? 1 : opacity);
 }
 
 function lab(l, a, b, opacity) {
-  return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? labConvert(l) : new Lab(l, a, b, opacity === null ? 1 : opacity);
 }
 
 function Lab(l, a, b, opacity) {
@@ -3007,10 +3007,10 @@ function Lab(l, a, b, opacity) {
 
 define(Lab, lab, extend(Color, {
   brighter: function(k) {
-    return new Lab(this.l + K * (k == null ? 1 : k), this.a, this.b, this.opacity);
+    return new Lab(this.l + K * (k === null ? 1 : k), this.a, this.b, this.opacity);
   },
   darker: function(k) {
-    return new Lab(this.l - K * (k == null ? 1 : k), this.a, this.b, this.opacity);
+    return new Lab(this.l - K * (k === null ? 1 : k), this.a, this.b, this.opacity);
   },
   rgb: function() {
     var y = (this.l + 16) / 116,
@@ -3053,11 +3053,11 @@ function hclConvert(o) {
 }
 
 function lch(l, c, h, opacity) {
-  return arguments.length === 1 ? hclConvert(l) : new Hcl(h, c, l, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? hclConvert(l) : new Hcl(h, c, l, opacity === null ? 1 : opacity);
 }
 
 function hcl(h, c, l, opacity) {
-  return arguments.length === 1 ? hclConvert(h) : new Hcl(h, c, l, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? hclConvert(h) : new Hcl(h, c, l, opacity === null ? 1 : opacity);
 }
 
 function Hcl(h, c, l, opacity) {
@@ -3075,10 +3075,10 @@ function hcl2lab(o) {
 
 define(Hcl, hcl, extend(Color, {
   brighter: function(k) {
-    return new Hcl(this.h, this.c, this.l + K * (k == null ? 1 : k), this.opacity);
+    return new Hcl(this.h, this.c, this.l + K * (k === null ? 1 : k), this.opacity);
   },
   darker: function(k) {
-    return new Hcl(this.h, this.c, this.l - K * (k == null ? 1 : k), this.opacity);
+    return new Hcl(this.h, this.c, this.l - K * (k === null ? 1 : k), this.opacity);
   },
   rgb: function() {
     return hcl2lab(this).rgb();
@@ -3109,7 +3109,7 @@ function cubehelixConvert(o) {
 }
 
 function cubehelix(h, s, l, opacity) {
-  return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity == null ? 1 : opacity);
+  return arguments.length === 1 ? cubehelixConvert(h) : new Cubehelix(h, s, l, opacity === null ? 1 : opacity);
 }
 
 function Cubehelix(h, s, l, opacity) {
@@ -3121,11 +3121,11 @@ function Cubehelix(h, s, l, opacity) {
 
 define(Cubehelix, cubehelix, extend(Color, {
   brighter: function(k) {
-    k = k == null ? brighter : Math.pow(brighter, k);
+    k = k === null ? brighter : Math.pow(brighter, k);
     return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
   },
   darker: function(k) {
-    k = k == null ? darker : Math.pow(darker, k);
+    k = k === null ? darker : Math.pow(darker, k);
     return new Cubehelix(this.h, this.s, this.l * k, this.opacity);
   },
   rgb: function() {
@@ -3391,7 +3391,7 @@ function interpolateString(a, b) {
 
 function interpolate(a, b) {
   var t = typeof b, c;
-  return b == null || t === "boolean" ? constant$3(b)
+  return b === null || t === "boolean" ? constant$3(b)
       : (t === "number" ? interpolateNumber
       : t === "string" ? ((c = color(b)) ? (b = c, interpolateRgb) : interpolateString)
       : b instanceof color ? interpolateRgb
@@ -3459,7 +3459,7 @@ function parseCss(value) {
 }
 
 function parseSvg(value) {
-  if (value == null) return identity$2;
+  if (value === null) return identity$2;
   if (!svgNode) svgNode = document.createElementNS("http://www.w3.org/2000/svg", "g");
   svgNode.setAttribute("transform", value);
   if (!(value = svgNode.transform.baseVal.consolidate())) return identity$2;
@@ -3725,7 +3725,7 @@ Timer.prototype = timer.prototype = {
   constructor: Timer,
   restart: function(callback, delay, time) {
     if (typeof callback !== "function") throw new TypeError("callback is not a function");
-    time = (time == null ? now() : +time) + (delay == null ? 0 : +delay);
+    time = (time === null ? now() : +time) + (delay === null ? 0 : +delay);
     if (!this._next && taskTail !== this) {
       if (taskTail) taskTail._next = this;
       else taskHead = this;
@@ -3808,7 +3808,7 @@ function sleep(time) {
 
 function timeout$1(callback, delay, time) {
   var t = new Timer;
-  delay = delay == null ? 0 : +delay;
+  delay = delay === null ? 0 : +delay;
   t.restart(elapsed => {
     t.stop();
     callback(elapsed + delay);
@@ -3818,10 +3818,10 @@ function timeout$1(callback, delay, time) {
 
 function interval$1(callback, delay, time) {
   var t = new Timer, total = delay;
-  if (delay == null) return t.restart(callback, delay, time), t;
+  if (delay === null) return t.restart(callback, delay, time), t;
   t._restart = t.restart;
   t.restart = function(callback, delay, time) {
-    delay = +delay, time = time == null ? now() : +time;
+    delay = +delay, time = time === null ? now() : +time;
     t._restart(function tick(elapsed) {
       elapsed += total;
       t._restart(tick, total += delay, time);
@@ -3992,7 +3992,7 @@ function interrupt(node, name) {
 
   if (!schedules) return;
 
-  name = name == null ? null : name + "";
+  name = name === null ? null : name + "";
 
   for (i in schedules) {
     if ((schedule = schedules[i]).name !== name) { empty = false; continue; }
@@ -4076,7 +4076,7 @@ function transition_tween(name, value) {
     return null;
   }
 
-  return this.each((value == null ? tweenRemove : tweenFunction)(id, name, value));
+  return this.each((value === null ? tweenRemove : tweenFunction)(id, name, value));
 }
 
 function tweenValue(transition, name, value) {
@@ -4142,7 +4142,7 @@ function attrFunction$1(name, interpolate, value) {
       interpolate0;
   return function() {
     var string0, value1 = value(this), string1;
-    if (value1 == null) return void this.removeAttribute(name);
+    if (value1 === null) return void this.removeAttribute(name);
     string0 = this.getAttribute(name);
     string1 = value1 + "";
     return string0 === string1 ? null
@@ -4157,7 +4157,7 @@ function attrFunctionNS$1(fullname, interpolate, value) {
       interpolate0;
   return function() {
     var string0, value1 = value(this), string1;
-    if (value1 == null) return void this.removeAttributeNS(fullname.space, fullname.local);
+    if (value1 === null) return void this.removeAttributeNS(fullname.space, fullname.local);
     string0 = this.getAttributeNS(fullname.space, fullname.local);
     string1 = value1 + "";
     return string0 === string1 ? null
@@ -4170,7 +4170,7 @@ function transition_attr(name, value) {
   var fullname = namespace(name), i = fullname === "transform" ? interpolateTransformSvg : interpolate$1;
   return this.attrTween(name, typeof value === "function"
       ? (fullname.local ? attrFunctionNS$1 : attrFunction$1)(fullname, i, tweenValue(this, "attr." + name, value))
-      : value == null ? (fullname.local ? attrRemoveNS$1 : attrRemove$1)(fullname)
+      : value === null ? (fullname.local ? attrRemoveNS$1 : attrRemove$1)(fullname)
       : (fullname.local ? attrConstantNS$1 : attrConstant$1)(fullname, i, value));
 }
 
@@ -4211,7 +4211,7 @@ function attrTween(name, value) {
 function transition_attrTween(name, value) {
   var key = "attr." + name;
   if (arguments.length < 2) return (key = this.tween(key)) && key._value;
-  if (value == null) return this.tween(key, null);
+  if (value === null) return this.tween(key, null);
   if (typeof value !== "function") throw new Error;
   var fullname = namespace(name);
   return this.tween(key, (fullname.local ? attrTweenNS : attrTween)(fullname, value));
@@ -4451,7 +4451,7 @@ function styleFunction$1(name, interpolate, value) {
     var string0 = styleValue(this, name),
         value1 = value(this),
         string1 = value1 + "";
-    if (value1 == null) string1 = value1 = (this.style.removeProperty(name), styleValue(this, name));
+    if (value1 === null) string1 = value1 = (this.style.removeProperty(name), styleValue(this, name));
     return string0 === string1 ? null
         : string0 === string00 && string1 === string10 ? interpolate0
         : (string10 = string1, interpolate0 = interpolate(string00 = string0, value1));
@@ -4463,7 +4463,7 @@ function styleMaybeRemove(id, name) {
   return function() {
     var schedule = set$2(this, id),
         on = schedule.on,
-        listener = schedule.value[key] == null ? remove || (remove = styleRemove$1(name)) : undefined;
+        listener = schedule.value[key] === null ? remove || (remove = styleRemove$1(name)) : undefined;
 
     // If this node shared a dispatch with the previous node,
     // just assign the updated shared dispatch and we’re done!
@@ -4476,7 +4476,7 @@ function styleMaybeRemove(id, name) {
 
 function transition_style(name, value, priority) {
   var i = (name += "") === "transform" ? interpolateTransformCss : interpolate$1;
-  return value == null ? this
+  return value === null ? this
       .styleTween(name, styleNull(name, i))
       .on("end.style." + name, styleRemove$1(name))
     : typeof value === "function" ? this
@@ -4507,9 +4507,9 @@ function styleTween(name, value, priority) {
 function transition_styleTween(name, value, priority) {
   var key = "style." + (name += "");
   if (arguments.length < 2) return (key = this.tween(key)) && key._value;
-  if (value == null) return this.tween(key, null);
+  if (value === null) return this.tween(key, null);
   if (typeof value !== "function") throw new Error;
-  return this.tween(key, styleTween(name, value, priority == null ? "" : priority));
+  return this.tween(key, styleTween(name, value, priority === null ? "" : priority));
 }
 
 function textConstant$1(value) {
@@ -4521,14 +4521,14 @@ function textConstant$1(value) {
 function textFunction$1(value) {
   return function() {
     var value1 = value(this);
-    this.textContent = value1 == null ? "" : value1;
+    this.textContent = value1 === null ? "" : value1;
   };
 }
 
 function transition_text(value) {
   return this.tween("text", typeof value === "function"
       ? textFunction$1(tweenValue(this, "text", value))
-      : textConstant$1(value == null ? "" : value + ""));
+      : textConstant$1(value === null ? "" : value + ""));
 }
 
 function textInterpolate(i) {
@@ -4551,7 +4551,7 @@ function textTween(value) {
 function transition_textTween(value) {
   var key = "text";
   if (arguments.length < 1) return (key = this.tween(key)) && key._value;
-  if (value == null) return this.tween(key, null);
+  if (value === null) return this.tween(key, null);
   if (typeof value !== "function") throw new Error;
   return this.tween(key, textTween(value));
 }
@@ -4894,7 +4894,7 @@ function selection_transition(name) {
   if (name instanceof Transition) {
     id = name._id, name = name._name;
   } else {
-    id = newId(), (timing = defaultTiming).time = now(), name = name == null ? null : name + "";
+    id = newId(), (timing = defaultTiming).time = now(), name = name === null ? null : name + "";
   }
 
   for (var groups = this._groups, m = groups.length, j = 0; j < m; ++j) {
@@ -4919,7 +4919,7 @@ function active(node, name) {
       i;
 
   if (schedules) {
-    name = name == null ? null : name + "";
+    name = name === null ? null : name + "";
     for (i in schedules) {
       if ((schedule = schedules[i]).state > SCHEDULED && schedule.name === name) {
         return new Transition([[node]], root$1, name, +i);
@@ -4976,21 +4976,21 @@ function number2(e) {
 var X = {
   name: "x",
   handles: ["w", "e"].map(type),
-  input: function(x, e) { return x == null ? null : [[+x[0], e[0][1]], [+x[1], e[1][1]]]; },
+  input: function(x, e) { return x === null ? null : [[+x[0], e[0][1]], [+x[1], e[1][1]]]; },
   output: function(xy) { return xy && [xy[0][0], xy[1][0]]; }
 };
 
 var Y = {
   name: "y",
   handles: ["n", "s"].map(type),
-  input: function(y, e) { return y == null ? null : [[e[0][0], +y[0]], [e[1][0], +y[1]]]; },
+  input: function(y, e) { return y === null ? null : [[e[0][0], +y[0]], [e[1][0], +y[1]]]; },
   output: function(xy) { return xy && [xy[0][1], xy[1][1]]; }
 };
 
 var XY = {
   name: "xy",
   handles: ["n", "w", "e", "s", "nw", "ne", "sw", "se"].map(type),
-  input: function(xy) { return xy == null ? null : number2(xy); },
+  input: function(xy) { return xy === null ? null : number2(xy); },
   output: function(xy) { return xy; }
 };
 
@@ -5695,7 +5695,7 @@ function chord$1(directed, transpose) {
   };
 
   chord.sortChords = function(_) {
-    return arguments.length ? (_ == null ? sortChords = null : (sortChords = compareValue(_))._ = _, chord) : sortChords && sortChords._;
+    return arguments.length ? (_ === null ? sortChords = null : (sortChords = compareValue(_))._ = _, chord) : sortChords && sortChords._;
   };
 
   return chord;
@@ -5954,7 +5954,7 @@ function ribbon(headRadius) {
   };
 
   ribbon.context = function(_) {
-    return arguments.length ? ((context = _ == null ? null : _), ribbon) : context;
+    return arguments.length ? ((context = _ === null ? null : _), ribbon) : context;
   };
 
   return ribbon;
@@ -7005,7 +7005,7 @@ class Voronoi {
     }
   }
   render(context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const {delaunay: {halfedges, inedges, hull}, circumcenters, vectors} = this;
     if (hull.length <= 1) return null;
     for (let i = 0, n = halfedges.length; i < n; ++i) {
@@ -7032,12 +7032,12 @@ class Voronoi {
     return buffer && buffer.value();
   }
   renderBounds(context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     context.rect(this.xmin, this.ymin, this.xmax - this.xmin, this.ymax - this.ymin);
     return buffer && buffer.value();
   }
   renderCell(i, context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const points = this._clip(i);
     if (points === null || !points.length) return;
     context.moveTo(points[0], points[1]);
@@ -7085,10 +7085,10 @@ class Voronoi {
       // find the common edge
       if (cj) loop: for (let ai = 0, li = ci.length; ai < li; ai += 2) {
         for (let aj = 0, lj = cj.length; aj < lj; aj += 2) {
-          if (ci[ai] == cj[aj]
-          && ci[ai + 1] == cj[aj + 1]
-          && ci[(ai + 2) % li] == cj[(aj + lj - 2) % lj]
-          && ci[(ai + 3) % li] == cj[(aj + lj - 1) % lj]
+          if (ci[ai] === cj[aj]
+          && ci[ai + 1] === cj[aj + 1]
+          && ci[(ai + 2) % li] === cj[(aj + lj - 2) % lj]
+          && ci[(ai + 3) % li] === cj[(aj + lj - 1) % lj]
           ) {
             yield j;
             break loop;
@@ -7406,7 +7406,7 @@ class Delaunay {
     return c;
   }
   render(context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const {points, halfedges, triangles} = this;
     for (let i = 0, n = halfedges.length; i < n; ++i) {
       const j = halfedges[i];
@@ -7420,7 +7420,7 @@ class Delaunay {
     return buffer && buffer.value();
   }
   renderPoints(context, r = 2) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const {points} = this;
     for (let i = 0, n = points.length; i < n; i += 2) {
       const x = points[i], y = points[i + 1];
@@ -7430,7 +7430,7 @@ class Delaunay {
     return buffer && buffer.value();
   }
   renderHull(context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const {hull, points} = this;
     const h = hull[0] * 2, n = hull.length;
     context.moveTo(points[h], points[h + 1]);
@@ -7447,7 +7447,7 @@ class Delaunay {
     return polygon.value();
   }
   renderTriangle(i, context) {
-    const buffer = context == null ? context = new Path$1 : undefined;
+    const buffer = context === null ? context = new Path$1 : undefined;
     const {points, triangles} = this;
     const t0 = triangles[i *= 3] * 2;
     const t1 = triangles[i + 1] * 2;
@@ -7605,7 +7605,7 @@ function dsvFormat(delimiter) {
     while ((t = token()) !== EOF) {
       var row = [];
       while (t !== EOL && t !== EOF) row.push(t), t = token();
-      if (f && (row = f(row, n++)) == null) continue;
+      if (f && (row = f(row, n++)) === null) continue;
       rows.push(row);
     }
 
@@ -7621,12 +7621,12 @@ function dsvFormat(delimiter) {
   }
 
   function format(rows, columns) {
-    if (columns == null) columns = inferColumns(rows);
+    if (columns === null) columns = inferColumns(rows);
     return [columns.map(formatValue).join(delimiter)].concat(preformatBody(rows, columns)).join("\n");
   }
 
   function formatBody(rows, columns) {
-    if (columns == null) columns = inferColumns(rows);
+    if (columns === null) columns = inferColumns(rows);
     return preformatBody(rows, columns).join("\n");
   }
 
@@ -7639,7 +7639,7 @@ function dsvFormat(delimiter) {
   }
 
   function formatValue(value) {
-    return value == null ? ""
+    return value === null ? ""
         : value instanceof Date ? formatDate(value)
         : reFormat.test(value += "") ? "\"" + value.replace(/"/g, "\"\"") + "\""
         : value;
@@ -7778,8 +7778,8 @@ var svg = parser("image/svg+xml");
 function center$1(x, y) {
   var nodes, strength = 1;
 
-  if (x == null) x = 0;
-  if (y == null) y = 0;
+  if (x === null) x = 0;
+  if (y === null) y = 0;
 
   function force() {
     var i,
@@ -7983,7 +7983,7 @@ function tree_find(x, y, radius) {
       i;
 
   if (node) quads.push(new Quad(node, x0, y0, x3, y3));
-  if (radius == null) radius = Infinity;
+  if (radius === null) radius = Infinity;
   else {
     x0 = x - radius, y0 = y - radius;
     x3 = x + radius, y3 = y + radius;
@@ -8163,8 +8163,8 @@ function tree_y(_) {
 }
 
 function quadtree(nodes, x, y) {
-  var tree = new Quadtree(x == null ? defaultX$1 : x, y == null ? defaultY$1 : y, NaN, NaN, NaN, NaN);
-  return nodes == null ? tree : tree.addAll(nodes);
+  var tree = new Quadtree(x === null ? defaultX$1 : x, y === null ? defaultY$1 : y, NaN, NaN, NaN, NaN);
+  return nodes === null ? tree : tree.addAll(nodes);
 }
 
 function Quadtree(x, y, x0, y0, x1, y1) {
@@ -8248,7 +8248,7 @@ function collide(radius) {
       strength = 1,
       iterations = 1;
 
-  if (typeof radius !== "function") radius = constant$7(radius == null ? 1 : +radius);
+  if (typeof radius !== "function") radius = constant$7(radius === null ? 1 : +radius);
 
   function force() {
     var i, n = nodes.length,
@@ -8352,7 +8352,7 @@ function link(links) {
       random,
       iterations = 1;
 
-  if (links == null) links = [];
+  if (links === null) links = [];
 
   function defaultStrength(link) {
     return 1 / Math.min(count[link.source.index], count[link.target.index]);
@@ -8478,7 +8478,7 @@ function simulation(nodes) {
       event = dispatch("tick", "end"),
       random = lcg();
 
-  if (nodes == null) nodes = [];
+  if (nodes === null) nodes = [];
 
   function step() {
     tick();
@@ -8503,9 +8503,9 @@ function simulation(nodes) {
 
       for (i = 0; i < n; ++i) {
         node = nodes[i];
-        if (node.fx == null) node.x += node.vx *= velocityDecay;
+        if (node.fx === null) node.x += node.vx *= velocityDecay;
         else node.x = node.fx, node.vx = 0;
-        if (node.fy == null) node.y += node.vy *= velocityDecay;
+        if (node.fy === null) node.y += node.vy *= velocityDecay;
         else node.y = node.fy, node.vy = 0;
       }
     }
@@ -8516,8 +8516,8 @@ function simulation(nodes) {
   function initializeNodes() {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
       node = nodes[i], node.index = i;
-      if (node.fx != null) node.x = node.fx;
-      if (node.fy != null) node.y = node.fy;
+      if (node.fx !== null) node.x = node.fx;
+      if (node.fy !== null) node.y = node.fy;
       if (isNaN(node.x) || isNaN(node.y)) {
         var radius = initialRadius * Math.sqrt(0.5 + i), angle = i * initialAngle;
         node.x = radius * Math.cos(angle);
@@ -8576,7 +8576,7 @@ function simulation(nodes) {
     },
 
     force: function(name, _) {
-      return arguments.length > 1 ? ((_ == null ? forces.delete(name) : forces.set(name, initializeForce(_))), simulation) : forces.get(name);
+      return arguments.length > 1 ? ((_ === null ? forces.delete(name) : forces.set(name, initializeForce(_))), simulation) : forces.get(name);
     },
 
     find: function(x, y, radius) {
@@ -8588,7 +8588,7 @@ function simulation(nodes) {
           node,
           closest;
 
-      if (radius == null) radius = Infinity;
+      if (radius === null) radius = Infinity;
       else radius *= radius;
 
       for (i = 0; i < n; ++i) {
@@ -8727,8 +8727,8 @@ function radial(radius, x, y) {
       radiuses;
 
   if (typeof radius !== "function") radius = constant$7(+radius);
-  if (x == null) x = 0;
-  if (y == null) y = 0;
+  if (x === null) x = 0;
+  if (y === null) y = 0;
 
   function force(alpha) {
     for (var i = 0, n = nodes.length; i < n; ++i) {
@@ -8782,7 +8782,7 @@ function x$2(x) {
       strengths,
       xz;
 
-  if (typeof x !== "function") x = constant$7(x == null ? 0 : +x);
+  if (typeof x !== "function") x = constant$7(x === null ? 0 : +x);
 
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
@@ -8822,7 +8822,7 @@ function y$2(y) {
       strengths,
       yz;
 
-  if (typeof y !== "function") y = constant$7(y == null ? 0 : +y);
+  if (typeof y !== "function") y = constant$7(y === null ? 0 : +y);
 
   function force(alpha) {
     for (var i = 0, n = nodes.length, node; i < n; ++i) {
@@ -9805,7 +9805,7 @@ function circleStream(stream, radius, delta, direction, t0, t1) {
   var cosRadius = cos$1(radius),
       sinRadius = sin$1(radius),
       step = direction * delta;
-  if (t0 == null) {
+  if (t0 === null) {
     t0 = radius + direction * tau$4;
     t1 = radius - step / 2;
   } else {
@@ -10263,7 +10263,7 @@ function clipAntimeridianIntersect(lambda0, phi0, lambda1, phi1) {
 
 function clipAntimeridianInterpolate(from, to, direction, stream) {
   var phi;
-  if (from == null) {
+  if (from === null) {
     phi = direction * halfPi$2;
     stream.point(-pi$3, phi);
     stream.point(0, phi);
@@ -10530,7 +10530,7 @@ function clipRectangle(x0, y0, x1, y1) {
 
   function interpolate(from, to, direction, stream) {
     var a = 0, a1 = 0;
-    if (from == null
+    if (from === null
         || (a = corner(from, direction)) !== (a1 = corner(to, direction))
         || comparePoint(from, to) < 0 ^ direction > 0) {
       do stream.point(a === 0 || a === 3 ? x0 : x1, a > 1 ? y1 : y0);
@@ -11277,7 +11277,7 @@ PathString.prototype = {
         break;
       }
       default: {
-        if (this._circle == null) this._circle = circle$1(this._radius);
+        if (this._circle === null) this._circle = circle$1(this._radius);
         this._string.push("M", x, ",", y, this._circle);
         break;
       }
@@ -11335,12 +11335,12 @@ function index$2(projection, context) {
   };
 
   path.projection = function(_) {
-    return arguments.length ? (projectionStream = _ == null ? (projection = null, identity$4) : (projection = _).stream, path) : projection;
+    return arguments.length ? (projectionStream = _ === null ? (projection = null, identity$4) : (projection = _).stream, path) : projection;
   };
 
   path.context = function(_) {
     if (!arguments.length) return context;
-    contextStream = _ == null ? (context = null, new PathString) : new PathContext(context = _);
+    contextStream = _ === null ? (context = null, new PathString) : new PathContext(context = _);
     if (typeof pointRadius !== "function") contextStream.pointRadius(pointRadius);
     return path;
   };
@@ -11384,10 +11384,10 @@ TransformStream.prototype = {
 function fit(projection, fitBounds, object) {
   var clip = projection.clipExtent && projection.clipExtent();
   projection.scale(150).translate([0, 0]);
-  if (clip != null) projection.clipExtent(null);
+  if (clip !== null) projection.clipExtent(null);
   geoStream(object, projection.stream(boundsStream$1));
   fitBounds(boundsStream$1.result());
-  if (clip != null) projection.clipExtent(clip);
+  if (clip !== null) projection.clipExtent(clip);
   return projection;
 }
 
@@ -11619,7 +11619,7 @@ function projectionMutator(projectAt) {
   };
 
   projection.clipExtent = function(_) {
-    return arguments.length ? (postclip = _ == null ? (x0 = y0 = x1 = y1 = null, identity$4) : clipRectangle(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
+    return arguments.length ? (postclip = _ === null ? (x0 = y0 = x1 = y1 = null, identity$4) : clipRectangle(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 === null ? null : [[x0, y0], [x1, y1]];
   };
 
   projection.scale = function(_) {
@@ -11953,13 +11953,13 @@ function mercatorProjection(project) {
   };
 
   m.clipExtent = function(_) {
-    return arguments.length ? ((_ == null ? x0 = y0 = x1 = y1 = null : (x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1])), reclip()) : x0 == null ? null : [[x0, y0], [x1, y1]];
+    return arguments.length ? ((_ === null ? x0 = y0 = x1 = y1 = null : (x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1])), reclip()) : x0 === null ? null : [[x0, y0], [x1, y1]];
   };
 
   function reclip() {
     var k = pi$3 * scale(),
         t = m(rotation(m.rotate()).invert([0, 0]));
-    return clipExtent(x0 == null
+    return clipExtent(x0 === null
         ? [[t[0] - k, t[1] - k], [t[0] + k, t[1] + k]] : project === mercatorRaw
         ? [[Math.max(t[0] - k, x0), y0], [Math.min(t[0] + k, x1), y1]]
         : [[x0, Math.max(t[1] - k, y0)], [x1, Math.min(t[1] + k, y1)]]);
@@ -12137,7 +12137,7 @@ function identity$5() {
     return arguments.length ? (postclip = _, x0 = y0 = x1 = y1 = null, reset()) : postclip;
   };
   projection.clipExtent = function(_) {
-    return arguments.length ? (postclip = _ == null ? (x0 = y0 = x1 = y1 = null, identity$4) : clipRectangle(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 == null ? null : [[x0, y0], [x1, y1]];
+    return arguments.length ? (postclip = _ === null ? (x0 = y0 = x1 = y1 = null, identity$4) : clipRectangle(x0 = +_[0][0], y0 = +_[0][1], x1 = +_[1][0], y1 = +_[1][1]), reset()) : x0 === null ? null : [[x0, y0], [x1, y1]];
   };
   projection.scale = function(_) {
     return arguments.length ? (k = +_, reset()) : k;
@@ -12822,7 +12822,7 @@ function siblings(circles) {
 }
 
 function optional(f) {
-  return f == null ? null : required(f);
+  return f === null ? null : required(f);
 }
 
 function required(f) {
@@ -13015,11 +13015,11 @@ function stratify() {
 
     for (i = 0; i < n; ++i) {
       d = nodes[i], node = nodes[i] = new Node(d);
-      if ((nodeId = id(d, i, data)) != null && (nodeId += "")) {
+      if ((nodeId = id(d, i, data)) !== null && (nodeId += "")) {
         nodeKey = node.id = nodeId;
         nodeByKey.set(nodeKey, nodeByKey.has(nodeKey) ? ambiguous : node);
       }
-      if ((nodeId = parentId(d, i, data)) != null && (nodeId += "")) {
+      if ((nodeId = parentId(d, i, data)) !== null && (nodeId += "")) {
         node.parent = nodeId;
       }
     }
@@ -13684,8 +13684,8 @@ var defaultSource$1 = Math.random;
 
 var uniform = (function sourceRandomUniform(source) {
   function randomUniform(min, max) {
-    min = min == null ? 0 : +min;
-    max = max == null ? 1 : +max;
+    min = min === null ? 0 : +min;
+    max = max === null ? 1 : +max;
     if (arguments.length === 1) max = min, min = 0;
     else max -= min;
     return function() {
@@ -13716,13 +13716,13 @@ var int = (function sourceRandomInt(source) {
 var normal = (function sourceRandomNormal(source) {
   function randomNormal(mu, sigma) {
     var x, r;
-    mu = mu == null ? 0 : +mu;
-    sigma = sigma == null ? 1 : +sigma;
+    mu = mu === null ? 0 : +mu;
+    sigma = sigma === null ? 1 : +sigma;
     return function() {
       var y;
 
       // If available, use the second previously-generated uniform random.
-      if (x != null) y = x, x = null;
+      if (x !== null) y = x, x = null;
 
       // Otherwise, generate a new x and y.
       else do {
@@ -13848,7 +13848,7 @@ var gamma$1 = (function sourceRandomGamma(source) {
     if ((k = +k) < 0) throw new RangeError("invalid k");
     // degenerate distribution if k === 0
     if (k === 0) return () => 0;
-    theta = theta == null ? 1 : +theta;
+    theta = theta === null ? 1 : +theta;
     // exponential distribution if k === 1
     if (k === 1) return () => -Math.log1p(-source()) * theta;
 
@@ -13934,8 +13934,8 @@ var weibull = (function sourceRandomWeibull(source) {
       k = 1 / k;
       outerFunc = x => Math.pow(x, k);
     }
-    a = a == null ? 0 : +a;
-    b = b == null ? 1 : +b;
+    a = a === null ? 0 : +a;
+    b = b === null ? 1 : +b;
     return function() {
       return a + b * outerFunc(-Math.log1p(-source()));
     };
@@ -13948,8 +13948,8 @@ var weibull = (function sourceRandomWeibull(source) {
 
 var cauchy = (function sourceRandomCauchy(source) {
   function randomCauchy(a, b) {
-    a = a == null ? 0 : +a;
-    b = b == null ? 1 : +b;
+    a = a === null ? 0 : +a;
+    b = b === null ? 1 : +b;
     return function() {
       return a + b * Math.tan(Math.PI * source());
     };
@@ -13962,8 +13962,8 @@ var cauchy = (function sourceRandomCauchy(source) {
 
 var logistic = (function sourceRandomLogistic(source) {
   function randomLogistic(a, b) {
-    a = a == null ? 0 : +a;
-    b = b == null ? 1 : +b;
+    a = a === null ? 0 : +a;
+    b = b === null ? 1 : +b;
     return function() {
       var u = source();
       return a + b * Math.log(u / (1 - u));
@@ -14313,11 +14313,11 @@ function continuous() {
 function tickFormat(start, stop, count, specifier) {
   var step = tickStep(start, stop, count),
       precision;
-  specifier = formatSpecifier(specifier == null ? ",f" : specifier);
+  specifier = formatSpecifier(specifier === null ? ",f" : specifier);
   switch (specifier.type) {
     case "s": {
       var value = Math.max(Math.abs(start), Math.abs(stop));
-      if (specifier.precision == null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
+      if (specifier.precision === null && !isNaN(precision = precisionPrefix(step, value))) specifier.precision = precision;
       return exports.formatPrefix(specifier, value);
     }
     case "":
@@ -14325,12 +14325,12 @@ function tickFormat(start, stop, count, specifier) {
     case "g":
     case "p":
     case "r": {
-      if (specifier.precision == null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
+      if (specifier.precision === null && !isNaN(precision = precisionRound(step, Math.max(Math.abs(start), Math.abs(stop))))) specifier.precision = precision - (specifier.type === "e");
       break;
     }
     case "f":
     case "%": {
-      if (specifier.precision == null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
+      if (specifier.precision === null && !isNaN(precision = precisionFixed(step))) specifier.precision = precision - (specifier.type === "%") * 2;
       break;
     }
   }
@@ -14342,16 +14342,16 @@ function linearish(scale) {
 
   scale.ticks = function(count) {
     var d = domain();
-    return ticks(d[0], d[d.length - 1], count == null ? 10 : count);
+    return ticks(d[0], d[d.length - 1], count === null ? 10 : count);
   };
 
   scale.tickFormat = function(count, specifier) {
     var d = domain();
-    return tickFormat(d[0], d[d.length - 1], count == null ? 10 : count, specifier);
+    return tickFormat(d[0], d[d.length - 1], count === null ? 10 : count, specifier);
   };
 
   scale.nice = function(count) {
-    if (count == null) count = 10;
+    if (count === null) count = 10;
 
     var d = domain();
     var i0 = 0;
@@ -14526,7 +14526,7 @@ function loggish(transform) {
         p,
         k,
         t,
-        n = count == null ? 10 : +count,
+        n = count === null ? 10 : +count,
         z = [];
 
     if (!(base % 1) && j - i < n) {
@@ -14555,10 +14555,10 @@ function loggish(transform) {
   };
 
   scale.tickFormat = function(count, specifier) {
-    if (specifier == null) specifier = base === 10 ? ".0e" : ",";
+    if (specifier === null) specifier = base === 10 ? ".0e" : ",";
     if (typeof specifier !== "function") specifier = exports.format(specifier);
     if (count === Infinity) return specifier;
-    if (count == null) count = 10;
+    if (count === null) count = 10;
     var k = Math.max(1, base * count / scale.ticks().length); // TODO fast estimate?
     return function(d) {
       var i = d / pows(Math.round(logs(d)));
@@ -14755,7 +14755,7 @@ function quantile$1() {
   scale.domain = function(_) {
     if (!arguments.length) return domain.slice();
     domain = [];
-    for (let d of _) if (d != null && !isNaN(d = +d)) domain.push(d);
+    for (let d of _) if (d !== null && !isNaN(d = +d)) domain.push(d);
     domain.sort(ascending);
     return rescale();
   };
@@ -14896,13 +14896,13 @@ function newInterval(floori, offseti, count, field) {
   };
 
   interval.offset = function(date, step) {
-    return offseti(date = new Date(+date), step == null ? 1 : Math.floor(step)), date;
+    return offseti(date = new Date(+date), step === null ? 1 : Math.floor(step)), date;
   };
 
   interval.range = function(start, stop, step) {
     var range = [], previous;
     start = interval.ceil(start);
-    step = step == null ? 1 : Math.floor(step);
+    step = step === null ? 1 : Math.floor(step);
     if (!(start < stop) || !(step > 0)) return range; // also handles Invalid Date
     do range.push(previous = new Date(+start)), offseti(start, step), floori(start);
     while (previous < start && start < stop);
@@ -15341,7 +15341,7 @@ function formatLocale$1(locale) {
       while (++i < n) {
         if (specifier.charCodeAt(i) === 37) {
           string.push(specifier.slice(j, i));
-          if ((pad = pads[c = specifier.charAt(++i)]) != null) c = specifier.charAt(++i);
+          if ((pad = pads[c = specifier.charAt(++i)]) !== null) c = specifier.charAt(++i);
           else pad = c === "e" ? " " : "0";
           if (format = formats[c]) c = format(date, pad);
           string.push(c);
@@ -15359,7 +15359,7 @@ function formatLocale$1(locale) {
       var d = newDate(1900, undefined, 1),
           i = parseSpecifier(d, specifier, string += "", 0),
           week, day$1;
-      if (i != string.length) return null;
+      if (i !== string.length) return null;
 
       // If a UNIX timestamp is specified, return it.
       if ("Q" in d) return new Date(d.Q);
@@ -15427,7 +15427,7 @@ function formatLocale$1(locale) {
         c = specifier.charAt(i++);
         parse = parses[c in pads ? specifier.charAt(i++) : c];
         if (!parse || ((j = parse(d, string, j)) < 0)) return -1;
-      } else if (c != string.charCodeAt(j++)) {
+      } else if (c !== string.charCodeAt(j++)) {
         return -1;
       }
     }
@@ -15958,7 +15958,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   }
 
   function tickInterval(interval, start, stop) {
-    if (interval == null) interval = 10;
+    if (interval === null) interval = 10;
 
     // If a desired tick count is specified, pick a reasonable tick interval
     // based on the extent of the domain and a rough estimate of tick size.
@@ -16005,7 +16005,7 @@ function calendar(year, month, week, day, hour, minute, second, millisecond, for
   };
 
   scale.tickFormat = function(count, specifier) {
-    return specifier == null ? tickFormat : format(specifier);
+    return specifier === null ? tickFormat : format(specifier);
   };
 
   scale.nice = function(interval) {
@@ -16141,7 +16141,7 @@ function sequentialQuantile() {
   scale.domain = function(_) {
     if (!arguments.length) return domain.slice();
     domain = [];
-    for (let d of _) if (d != null && !isNaN(d = +d)) domain.push(d);
+    for (let d of _) if (d !== null && !isNaN(d = +d)) domain.push(d);
     domain.sort(ascending);
     return scale;
   };
@@ -16957,7 +16957,7 @@ function arc() {
   };
 
   arc.padRadius = function(_) {
-    return arguments.length ? (padRadius = _ == null ? null : typeof _ === "function" ? _ : constant$a(+_), arc) : padRadius;
+    return arguments.length ? (padRadius = _ === null ? null : typeof _ === "function" ? _ : constant$a(+_), arc) : padRadius;
   };
 
   arc.startAngle = function(_) {
@@ -16973,7 +16973,7 @@ function arc() {
   };
 
   arc.context = function(_) {
-    return arguments.length ? ((context = _ == null ? null : _), arc) : context;
+    return arguments.length ? ((context = _ === null ? null : _), arc) : context;
   };
 
   return arc;
@@ -17043,7 +17043,7 @@ function line(x, y) {
         defined0 = false,
         buffer;
 
-    if (context == null) output = curve(buffer = path());
+    if (context === null) output = curve(buffer = path());
 
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
@@ -17069,11 +17069,11 @@ function line(x, y) {
   };
 
   line.curve = function(_) {
-    return arguments.length ? (curve = _, context != null && (output = curve(context)), line) : curve;
+    return arguments.length ? (curve = _, context !== null && (output = curve(context)), line) : curve;
   };
 
   line.context = function(_) {
-    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), line) : context;
+    return arguments.length ? (_ === null ? context = output = null : output = curve(context = _), line) : context;
   };
 
   return line;
@@ -17101,7 +17101,7 @@ function area$3(x0, y0, y1) {
         x0z = new Array(n),
         y0z = new Array(n);
 
-    if (context == null) output = curve(buffer = path());
+    if (context === null) output = curve(buffer = path());
 
     for (i = 0; i <= n; ++i) {
       if (!(i < n && defined(d = data[i], i, data)) === defined0) {
@@ -17141,7 +17141,7 @@ function area$3(x0, y0, y1) {
   };
 
   area.x1 = function(_) {
-    return arguments.length ? (x1 = _ == null ? null : typeof _ === "function" ? _ : constant$a(+_), area) : x1;
+    return arguments.length ? (x1 = _ === null ? null : typeof _ === "function" ? _ : constant$a(+_), area) : x1;
   };
 
   area.y = function(_) {
@@ -17153,7 +17153,7 @@ function area$3(x0, y0, y1) {
   };
 
   area.y1 = function(_) {
-    return arguments.length ? (y1 = _ == null ? null : typeof _ === "function" ? _ : constant$a(+_), area) : y1;
+    return arguments.length ? (y1 = _ === null ? null : typeof _ === "function" ? _ : constant$a(+_), area) : y1;
   };
 
   area.lineX0 =
@@ -17174,11 +17174,11 @@ function area$3(x0, y0, y1) {
   };
 
   area.curve = function(_) {
-    return arguments.length ? (curve = _, context != null && (output = curve(context)), area) : curve;
+    return arguments.length ? (curve = _, context !== null && (output = curve(context)), area) : curve;
   };
 
   area.context = function(_) {
-    return arguments.length ? (_ == null ? context = output = null : output = curve(context = _), area) : context;
+    return arguments.length ? (_ === null ? context = output = null : output = curve(context = _), area) : context;
   };
 
   return area;
@@ -17222,8 +17222,8 @@ function pie() {
     }
 
     // Optionally sort the arcs by previously-computed values or by data.
-    if (sortValues != null) index.sort(function(i, j) { return sortValues(arcs[i], arcs[j]); });
-    else if (sort != null) index.sort(function(i, j) { return sort(data[i], data[j]); });
+    if (sortValues !== null) index.sort(function(i, j) { return sortValues(arcs[i], arcs[j]); });
+    else if (sort !== null) index.sort(function(i, j) { return sort(data[i], data[j]); });
 
     // Compute the arcs! They are stored in the original data's order.
     for (i = 0, k = sum ? (da - n * pa) / sum : 0; i < n; ++i, a0 = a1) {
@@ -17388,7 +17388,7 @@ function link$2(curve) {
   };
 
   link.context = function(_) {
-    return arguments.length ? ((context = _ == null ? null : _), link) : context;
+    return arguments.length ? ((context = _ === null ? null : _), link) : context;
   };
 
   return link;
@@ -17571,7 +17571,7 @@ function symbol(type, size) {
   };
 
   symbol.context = function(_) {
-    return arguments.length ? (context = _ == null ? null : _, symbol) : context;
+    return arguments.length ? (context = _ === null ? null : _, symbol) : context;
   };
 
   return symbol;
@@ -18469,11 +18469,11 @@ function stack() {
   };
 
   stack.order = function(_) {
-    return arguments.length ? (order = _ == null ? none$2 : typeof _ === "function" ? _ : constant$a(Array.from(_)), stack) : order;
+    return arguments.length ? (order = _ === null ? none$2 : typeof _ === "function" ? _ : constant$a(Array.from(_)), stack) : order;
   };
 
   stack.offset = function(_) {
-    return arguments.length ? (offset = _ == null ? none$1 : _, stack) : offset;
+    return arguments.length ? (offset = _ === null ? none$1 : _, stack) : offset;
   };
 
   return stack;
@@ -18770,7 +18770,7 @@ function zoom() {
     zoom.transform(selection, function() {
       var e = extent.apply(this, arguments),
           t0 = this.__zoom,
-          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p,
           p1 = t0.invert(p0),
           k1 = typeof k === "function" ? k.apply(this, arguments) : k;
       return constrain(translate(scale(t0, k1), p0, p1), e, translateExtent);
@@ -18790,7 +18790,7 @@ function zoom() {
     zoom.transform(selection, function() {
       var e = extent.apply(this, arguments),
           t = this.__zoom,
-          p0 = p == null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p;
+          p0 = p === null ? centroid(e) : typeof p === "function" ? p.apply(this, arguments) : p;
       return constrain(identity$9.translate(p0[0], p0[1]).scale(t.k).translate(
         typeof x === "function" ? -x.apply(this, arguments) : -x,
         typeof y === "function" ? -y.apply(this, arguments) : -y
@@ -18821,7 +18821,7 @@ function zoom() {
               args = arguments,
               g = gesture(that, args).event(event),
               e = extent.apply(that, args),
-              p = point == null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
+              p = point === null ? centroid(e) : typeof point === "function" ? point.apply(that, args) : point,
               w = Math.max(e[1][0] - e[0][0], e[1][1] - e[0][1]),
               a = that.__zoom,
               b = typeof transform === "function" ? transform.apply(that, args) : transform,

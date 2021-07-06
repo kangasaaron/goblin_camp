@@ -1,6 +1,6 @@
 import {
     Enum
-} from "./other/Enums.js";
+} from "./cplusplus/Enums.js";
 
 export class SpriteType extends Enum {
     static SPRITE_Single = 0x0;

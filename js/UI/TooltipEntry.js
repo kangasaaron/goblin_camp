@@ -1,12 +1,9 @@
-import {
-    Color
-} from "../libtcod.js;
 
 export class TooltipEntry {
-    text = "";
-    color = new Color();
     constructor(ntext, ncolor) {
+        /** @type {String} */
         this.text = ntext;
+        /** @type {TCODColor} */
         this.color = ncolor.clone();
     }
 }

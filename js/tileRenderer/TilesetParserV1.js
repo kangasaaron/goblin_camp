@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -63,39 +63,39 @@ class TempConstruction {
         let spriteSet = new ConstructionSprite();
         if (connectionMapped) {
             if (mainSprites.size() > 0) {
-                if (mainSprites.size() == 16 || mainSprites.size() == 47) {
+                if (mainSprites.size() === 16 || mainSprites.size() === 47) {
                     std.vector < int > orderedTiles;
                     for (let i = 12; i < 16; ++i)
-                        orderedTiles.push_back(mainSprites.at(i));
+                        orderedTiles.push(mainSprites.at(i));
                     for (let i = 0; i < 12; ++i)
-                        orderedTiles.push_back(mainSprites.at(i));
+                        orderedTiles.push(mainSprites.at(i));
                     for (let i = 16; i < mainSprites.size(); ++i)
-                        orderedTiles.push_back(mainSprites.at(i));
+                        orderedTiles.push(mainSprites.at(i));
                     spriteSet.AddSprite(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, orderedTiles.begin(), orderedTiles.end(), true));
                 } else {
                     spriteSet.AddSprite(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, mainSprites.begin(), mainSprites.end(), true));
                 }
             }
             if (underConstructionSprites.size() > 0) {
-                if (underConstructionSprites.size() == 16 || underConstructionSprites.size() == 47) {
+                if (underConstructionSprites.size() === 16 || underConstructionSprites.size() === 47) {
                     /**std.vector < int > */
                     orderedTile = null;
                     for (let i = 12; i < 16; ++i)
-                        orderedTiles.push_back(underConstructionSprites.at(i));
+                        orderedTiles.push(underConstructionSprites.at(i));
                     for (let i = 0; i < 12; ++i)
-                        orderedTiles.push_back(underConstructionSprites.at(i));
+                        orderedTiles.push(underConstructionSprites.at(i));
                     for (let i = 16; i < underConstructionSprites.size(); ++i)
-                        orderedTiles.push_back(underConstructionSprites.at(i));
+                        orderedTiles.push(underConstructionSprites.at(i));
                     spriteSet.AddUnderConstructionSprite(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, orderedTiles.begin(), orderedTiles.end(), true));
                 } else {
                     spriteSet.AddUnderConstructionSprite(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, underConstructionSprites.begin(), underConstructionSprites.end(), true));
                 }
             }
         } else {
-            for (let iter = mainSprites.begin(); iter != mainSprites.end(); ++iter) {
+            for (let iter = mainSprites.begin(); iter !== mainSprites.end(); ++iter) {
                 spriteSet.AddSprite(spriteFactory.CreateSprite(currentTexture, iter));
             }
-            for (let iter = underConstructionSprites.begin(); iter != underConstructionSprites.end(); ++iter) {
+            for (let iter = underConstructionSprites.begin(); iter !== underConstructionSprites.end(); ++iter) {
                 spriteSet.AddUnderConstructionSprite(spriteFactory.CreateSprite(currentTexture, iter));
             }
             spriteSet.SetWidth(width);
@@ -258,7 +258,7 @@ class TileSetParserV1 {
             currentTexture = (new TileSetTexture(tileSetPath + "/" + name, tileWidth, tileHeight));
             fireSprites.clear();
             fireFPS = 15;
-            if (currentTexture.Count() == 0) {
+            if (currentTexture.Count() === 0) {
                 parser.error("Failed to load texture %s", name);
             }
             return success;
@@ -318,15 +318,15 @@ class TileSetParserV1 {
     // SpritePtr ReadConnectionMap(TCOD_list_t indices);
     ReadConnectionMap(tiles) {
         let size = TCOD_list_size(tiles);
-        if (size == 47 || size == 16) {
+        if (size === 47 || size === 16) {
             /**std.vector < int >*/
             let orderedTiles = [];
             for (let i = 12; i < 16; ++i)
-                orderedTiles.push_back(TCOD_list_get(tiles, i));
+                orderedTiles.push(TCOD_list_get(tiles, i));
             for (let i = 0; i < 12; ++i)
-                orderedTiles.push_back(TCOD_list_get(tiles, i));
+                orderedTiles.push(TCOD_list_get(tiles, i));
             for (let i = 16; i < size; ++i)
-                orderedTiles.push_back(TCOD_list_get(tiles, i));
+                orderedTiles.push(TCOD_list_get(tiles, i));
             return spriteFactory.CreateSprite(currentTexture, orderedTiles, true);
         } else {
             return TilesetRenderer.CreateSprite(spriteFactory, currentTexture, TCOD_list_begin(tiles), TCOD_list_end(tiles), true);
@@ -448,8 +448,8 @@ class TileSetParserV1 {
                     } else if (boost.iequals(name, "fireFPS")) {
                         fireFPS = value.i;
                     } else if (boost.iequals(name, "fire")) {
-                        for (let iter = TCOD_list_begin(value.list); iter != TCOD_list_end(value.list); ++iter) {
-                            fireSprites.push_back(iter);
+                        for (let iter = TCOD_list_begin(value.list); iter !== TCOD_list_end(value.list); ++iter) {
+                            fireSprites.push(iter);
                         }
                     }
                     break;
@@ -472,10 +472,10 @@ class TileSetParserV1 {
                     // Record sprites, under construction sprites for later assembly once width/connection map flag is known
                     if (boost.iequals(name, "sprites")) {
                         for (let i = 0; i < TCOD_list_size(value.list); ++i)
-                            tempConstruction.mainSprites.push_back(TCOD_list_get(value.list, i));
+                            tempConstruction.mainSprites.push(TCOD_list_get(value.list, i));
                     } else if (boost.iequals(name, "underconstruction_sprites")) {
                         for (let i = 0; i < TCOD_list_size(value.list); ++i)
-                            tempConstruction.underConstructionSprites.push_back(TCOD_list_get(value.list, i));
+                            tempConstruction.underConstructionSprites.push(TCOD_list_get(value.list, i));
                     } else if (boost.iequals(name, "openSprite")) {
                         tempConstruction.openDoor = spriteFactory.CreateSprite(currentTexture, value.i);
                     } else if (boost.iequals(name, "width")) {
@@ -486,7 +486,7 @@ class TileSetParserV1 {
                     // Record sprites for later construction once both sprites and framerate is determined
                     if (boost.iequals(name, "sprites")) {
                         for (let i = 0; i < TCOD_list_size(value.list); ++i)
-                            tempSpell.sprites.push_back(TCOD_list_get(value.list, i));
+                            tempSpell.sprites.push(TCOD_list_get(value.list, i));
                     } else if (boost.iequals(name, "fps")) {
                         tempSpell.fps = value.i;
                     }
@@ -498,13 +498,13 @@ class TileSetParserV1 {
         // Mandatory tile set properties
         if (boost.iequals(name, "tileWidth")) {
             tileWidth = value.i;
-            if (tileWidth != -1 && tileHeight != -1) {
+            if (tileWidth !== -1 && tileHeight !== -1) {
                 tileSet = boost.shared_ptr < TileSet > (new TileSet(tileSetName, tileWidth, tileHeight));
             }
             return success;
         } else if (boost.iequals(name, "tileHeight")) {
             tileHeight = value.i;
-            if (tileWidth != -1 && tileHeight != -1) {
+            if (tileWidth !== -1 && tileHeight !== -1) {
                 tileSet = boost.shared_ptr < TileSet > (new TileSet(tileSetName, tileWidth, tileHeight));
             }
             return success;
@@ -550,21 +550,21 @@ class TileSetParserV1 {
             // currentTexture = boost.shared_ptr < TileSetTexture > ();
             currentTexture = null;
         } else if (boost.iequals(str.getName(), "creature_sprite_data")) {
-            if (name == 0) {
+            if (name === 0) {
                 tileSet.SetDefaultNPCSprite(npcSprite);
             } else {
                 tileSet.AddNPCSprite(std.string(name), npcSprite);
             }
             currentSpriteSet = SS_NONE;
         } else if (boost.iequals(str.getName(), "plant_sprite_data")) {
-            if (name == 0) {
+            if (name === 0) {
                 tileSet.SetDefaultNatureObjectSpriteSet(natureObjectSpriteSet);
             } else {
                 tileSet.AddNatureObjectSpriteSet(std.string(name), natureObjectSpriteSet);
             }
             currentSpriteSet = SS_NONE;
         } else if (boost.iequals(str.getName(), "item_sprite_data")) {
-            if (name == 0) {
+            if (name === 0) {
                 tileSet.SetDefaultItemSprite(itemSprite);
             } else {
                 tileSet.AddItemSprite(std.string(name), itemSprite);
@@ -573,13 +573,13 @@ class TileSetParserV1 {
         } else if (boost.iequals(str.getName(), "construction_sprite_data")) {
             let constructionSprite = tempConstruction.Build(currentTexture);
             if (constructionSprite.IsValid()) {
-                if (name == 0) {
+                if (name === 0) {
                     tileSet.SetDefaultConstructionSprite(constructionSprite);
                 } else {
                     tileSet.AddConstructionSprite(std.string(name), constructionSprite);
                 }
             } else {
-                if (name == 0) {
+                if (name === 0) {
                     LOG("Skipping invalid construction sprite data: default");
                 } else {
                     LOG("Skipping invalid construction sprite data: " << std.string(name));
@@ -587,7 +587,7 @@ class TileSetParserV1 {
             }
             currentSpriteSet = SS_NONE;
         } else if (boost.iequals(str.getName(), "spell_sprite_data")) {
-            if (name == 0) {
+            if (name === 0) {
                 tileSet.SetDefaultSpellSpriteSet(tempSpell.Build(currentTexture));
             } else {
                 tileSet.AddSpellSpriteSet(std.string(name), tempSpell.Build(currentTexture));
@@ -611,7 +611,7 @@ class TileSetParserV1 {
     // void TileSetParserV1.SetCursorSprites(CursorType type, TCOD_list_t cursors) {
     SetCursorSprites(type, cursors) {
         let size = TCOD_list_size(cursors);
-        if (size == 1) {
+        if (size === 1) {
             tileSet.SetCursorSprites(type, spriteFactory.CreateSprite(currentTexture, TCOD_list_get(cursors, 0)));
         } else if (size > 1) {
             tileSet.SetCursorSprites(type, spriteFactory.CreateSprite(currentTexture, TCOD_list_get(cursors, 0)), spriteFactory.CreateSprite(currentTexture, TCOD_list_get(cursors, 1)));

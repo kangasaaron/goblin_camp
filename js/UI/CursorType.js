@@ -1,46 +1,46 @@
 import {
-    Enum
-} from "../other/Enums.js";
+    Enumify
+} from "../cplusplus/Enums.js";
 
 /**
  * @enum CursorType
  */
 
-export class CursorType extends Enum {
+export const CursorType = {
     /** @type {CursorType} Cursor_None */
-    static Cursor_None;
+    Cursor_None: null,
     /** @type {CursorType} Cursor_Construct */
-    static Cursor_Construct;
+    Cursor_Construct: null,
     /** @type {CursorType} Cursor_Stockpile */
-    static Cursor_Stockpile;
+    Cursor_Stockpile: null,
     /** @type {CursorType} Cursor_TreeFelling */
-    static Cursor_TreeFelling;
+    Cursor_TreeFelling: null,
     /** @type {CursorType} Cursor_Harvest */
-    static Cursor_Harvest;
+    Cursor_Harvest: null,
     /** @type {CursorType} Cursor_Order */
-    static Cursor_Order;
+    Cursor_Order: null,
     /** @type {CursorType} Cursor_Tree */
-    static Cursor_Tree;
+    Cursor_Tree: null,
     /** @type {CursorType} Cursor_Dismantle */
-    static Cursor_Dismantle;
+    Cursor_Dismantle: null,
     /** @type {CursorType} Cursor_Undesignate */
-    static Cursor_Undesignate;
+    Cursor_Undesignate: null,
     /** @type {CursorType} Cursor_Bog */
-    static Cursor_Bog;
+    Cursor_Bog: null,
     /** @type {CursorType} Cursor_Dig */
-    static Cursor_Dig;
+    Cursor_Dig: null,
     /** @type {CursorType} Cursor_AddTerritory */
-    static Cursor_AddTerritory;
+    Cursor_AddTerritory: null,
     /** @type {CursorType} Cursor_RemoveTerritory */
-    static Cursor_RemoveTerritory;
+    Cursor_RemoveTerritory: null,
     /** @type {CursorType} Cursor_Gather */
-    static Cursor_Gather;
+    Cursor_Gather: null,
     /** @type {CursorType} Cursor_Simple_Mode_Count */
-    static Cursor_Simple_Mode_Count;
+    Cursor_Simple_Mode_Count: null,
     /** @type {CursorType} Cursor_NPC_Mode */
-    static Cursor_NPC_Mode;
+    Cursor_NPC_Mode: null,
     /** @type {CursorType} Cursor_Item_Mode */
-    static Cursor_Item_Mode;
+    Cursor_Item_Mode: null,
 }
 
-CursorType.enumify();
+Enumify(CursorType);

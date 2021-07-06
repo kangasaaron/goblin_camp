@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -116,7 +116,7 @@ export class TCODMapRenderer {
         viewportX /= charX;
         viewportY /= charY;
 
-        return new Coordinate(FloorToInt.convert(focusX) - (viewportW / 2) + (x - viewportX) / charX, FloorToInt.convert(focusY) - (viewportH / 2) + (y - viewportY) / charY);
+        return new Coordinate(Math.floor(focusX) - (viewportW / 2) + (x - viewportX) / charX, Math.floor(focusY) - (viewportH / 2) + (y - viewportY) / charY);
     }
 
     DrawCursor(...args) {
@@ -159,12 +159,12 @@ export class TCODMapRenderer {
     //TODO: Optimize. This causes the biggest performance hit by far right now 
     DrawMap(map, focusX, focusY, viewportX, viewportY, viewportW, viewportH) {
         let { charX, charY } = TCODSystem.getCharSize();
-        if (viewportW == -1) {
+        if (viewportW === -1) {
             viewportW = this.the_console.getWidth();
         } else {
             viewportW /= charX;
         }
-        if (viewportH == -1) {
+        if (viewportH === -1) {
             viewportH = this.the_console.getHeight();
         } else {
             viewportH /= charY;
@@ -172,7 +172,7 @@ export class TCODMapRenderer {
         viewportX /= charX;
         viewportY /= charY;
 
-        this.upleft = new Coordinate(FloorToInt.convert(focusX) - (viewportW / 2), FloorToInt.convert(focusY) - (viewportH / 2));
+        this.upleft = new Coordinate(Math.floor(focusX) - (viewportW / 2), Math.floor(focusY) - (viewportH / 2));
 
         let screenDeltaX = this.upleft.X();
         let screenDeltaY = this.upleft.Y();
@@ -199,7 +199,7 @@ export class TCODMapRenderer {
                     }
                     let natNum = map.GetNatureObject(xy);
                     if (natNum >= 0) {
-                        Game.natureList[natNum].Draw(this.upleft, minimap);
+                        Game.i.natureList[natNum].Draw(this.upleft, minimap);
                     }
                 }
                 if (map.GetOverlayFlags() & TERRITORY_OVERLAY) {
@@ -210,8 +210,8 @@ export class TCODMapRenderer {
         }
 
         if (!(map.GetOverlayFlags() & TERRAIN_OVERLAY)) {
-            this.InternalDrawMapItems("static constructions", Game.staticConstructionList, this.upleft, minimap);
-            this.InternalDrawMapItems("dynamic constructions", Game.dynamicConstructionList, this.upleft, minimap);
+            this.InternalDrawMapItems("static constructions", Game.i.staticConstructionList, this.upleft, minimap);
+            this.InternalDrawMapItems("dynamic constructions", Game.i.dynamicConstructionList, this.upleft, minimap);
             //TODO: Make this consistent
             for (let itemi of Game.itemList.entries()) {
                 if (!itemi[1]) {
@@ -236,11 +236,11 @@ export class TCODMapRenderer {
         }
 
 
-        this.InternalDrawMapItems("NPCs", Game.npcList, this.upleft, minimap);
-        for (let firei of Game.fireList) {
+        this.InternalDrawMapItems("NPCs", Game.i.npcList, this.upleft, minimap);
+        for (let firei of Game.i.fireNodes) {
             if (firei.lock()) firei.lock().Draw(this.upleft, minimap);
         }
-        for (let spelli of Game.spellList) {
+        for (let spelli of Game.i.spells) {
             spelli.Draw(this.upleft, minimap);
         }
 
@@ -254,7 +254,7 @@ export class TCODMapRenderer {
                 ptr.Draw(upleft, buffer);
                 ++it;
             } else {
-                if (DEBUG) {
+                if (Globals.DEBUG) {
                     console.error("!!! null POINTER !!! " + name + " ; id " + it[0]);
                 }
                 let tmp = it;

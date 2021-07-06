@@ -1,16 +1,14 @@
-import {
-    Enum
-} from "./other/Enums.js";
+import { Enum } from "./cplusplus/Enums.js";
 
 /**
  * @constant
  * @enum
  */
 export class Trait extends Enum {
-    FRESH;
-    CHICKENHEART;
-    VETERAN;
-    BOSS;
-    CRACKEDSKULL;
+    static FRESH;
+    static CHICKENHEART;
+    static VETERAN;
+    static BOSS;
+    static CRACKEDSKULL;
 }
 Trait.enumify();

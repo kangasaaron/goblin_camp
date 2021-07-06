@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -39,7 +39,7 @@ class PermutationTable {
 
         let size = 1 << pow;
         for (let i = 0; i < size; ++i) {
-            table.push_back(i);
+            table.push(i);
         }
         let random = TCODRandom.getInstance();
         for (let i = size - 1; i > 0; --i) {
@@ -58,7 +58,7 @@ class PermutationTable {
         let random(seed, TCOD_RNG_CMWC);
         let size = 1 << pow;
         for (let i = 0; i < size; ++i) {
-            table.push_back(i);
+            table.push(i);
         }
 
         for (let i = size - 1; i > 0; --i) {

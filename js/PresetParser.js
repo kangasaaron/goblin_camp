@@ -1,19 +1,18 @@
-import { FilePath } from "./other/FilePath.js";
+import { FilePath } from "./cplusplus/FilePath.js";
 import { Paths } from "./data/Paths.js";
 
 export class PresetParser extends EventTarget {
-    /** @type {FilePath} */
-    filename;
-    ready = false;
     constructor(filename) {
+        super();
+        this.ready = false;
+        /** @type {FilePath} */
         this.filename = new FilePath(filename);
-        this.Paths = new Paths();
     }
 
     /** @returns {Promise} that resolves into this, with data having been parsed */
     fetch() {
         let me = this;
-        return this.Paths.GetFilePath(this.filename)
+        return Paths.i.GetFilePath(this.filename)
             .then(function (data) {
                 return me.parse(data);
             });
@@ -23,9 +22,9 @@ export class PresetParser extends EventTarget {
         for (let obj of this.data) {
             this.parserNewStruct(obj);
             for (let key of Object.keys(obj)) {
-                if (key == "name")
+                if (key === "name")
                     continue;
-                else if (typeof obj[key] == "boolean")
+                else if (typeof obj[key] === "boolean")
                     this.parserFlag(key, obj[key]);
                 else
                     this.parserProperty(key, obj[key]);
@@ -35,8 +34,8 @@ export class PresetParser extends EventTarget {
         this.ready = true;
         return new Promise((resolve, reject) => { resolve(this) });
     }
-    parserNewStruct() { return true; };
-    parserFlag() { return true; };
-    parserProperty() { return true; };
-    parserEndStruct() { return true; };
+    parserNewStruct() { return true; }
+    parserFlag() { return true; }
+    parserProperty() { return true; }
+    parserEndStruct() { return true; }
 }

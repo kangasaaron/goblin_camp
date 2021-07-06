@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -55,10 +55,10 @@ export class UIList extends Drawable {
 			if (Number.isFinite(args[0]))
 				_height = args.shift();
 		}
-		the_console.setAlignment(TCOD_LEFT);
+		the_console.setAlignment((TCOD_alignment_t.TCOD_LEFT));
 		for (let item of this.items) {
 			if (count >= scroll && count < scroll + _height) {
-				this.draw(item, count, x, y + (count - scroll), _width, this.selection == count, the_console);
+				this.draw(item, count, x, y + (count - scroll), _width, this.selection === count, the_console);
 			}
 			count++;
 		}

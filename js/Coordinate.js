@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -105,13 +105,13 @@ export class Coordinate extends Array {
        dimension-generic code, that is code which access both X and
        Y in the same way. For example:
 
-    	   randomLocation.X(Random.Generate(upperCorner.X(), lowerCorner.X()));
-    	   randomLocation.Y(Random.Generate(upperCorner.Y(), lowerCorner.Y()));
+    	   randomLocation.X(Random.i.Generate(upperCorner.X(), lowerCorner.X()));
+    	   randomLocation.Y(Random.i.Generate(upperCorner.Y(), lowerCorner.Y()));
 
        can be profitably turned into:
 
-    	   for (int d = 0; d < 2; ++d)
-    		   randomLocation[d] =  Random.Generate(upperCorner[d], lowerCorder[d]);
+    	   for (let d = 0; d < 2; ++d)
+    		   randomLocation[d] =  Random.i.Generate(upperCorner[d], lowerCorder[d]);
 
        This latter form will avoid all kinds of copy-paste bugs.
     */
@@ -131,11 +131,11 @@ export class Coordinate extends Array {
     // in order not to have to handle failure, we use a bool-like
     // semantics where 0 gets mapped to X and everyone else to Y
     // inline int operator[](int d) const {
-    // 	if (d == 0) return x;
+    // 	if (d === 0) return x;
     // 	else return y;
     // }
     // inline int &operator[](int d) {
-    // 	if (d == 0) return x;
+    // 	if (d === 0) return x;
     // 	else return y;
     // }
 
@@ -255,7 +255,7 @@ export class Coordinate extends Array {
     onRectangleEdges(low, high) {
         validCoordinate(low, "onRectangleEdges", "low");
         validCoordinate(high, "onRectangleEdges", "high");
-        return (this.x == low.x || this.x == high.x || this.y == low.y || this.y == high.y);
+        return (this.x === low.x || this.x === high.x || this.y === low.y || this.y === high.y);
     }
 
     onExtentEdges(origin, extent) {

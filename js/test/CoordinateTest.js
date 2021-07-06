@@ -6,7 +6,7 @@ import {
 } from "../Direction.js";
 import {
     Enum
-} from "../other/Enums.js";
+} from "../cplusplus/Enums.js";
 
 QUnit.module("Direction test", function () {
     QUnit.test("test enum", function (assert) {
@@ -70,29 +70,29 @@ QUnit.module("Coordinate test", function () {
         let c1 = new Coordinate(1, 1),
             c2 = new Coordinate(4, 4),
             result = Coordinate.min(c1, c2);
-        assert.ok(result.x == 1 && result.y == 1);
+        assert.ok(result.x === 1 && result.y === 1);
 
         result = Coordinate.max(c1, c2);
-        assert.ok(result.x == 4 && result.y == 4);
+        assert.ok(result.x === 4 && result.y === 4);
 
         result = Coordinate.DirectionToCoordinate(Direction.NORTH);
-        assert.ok(result.x == 0 && result.y == -1, "NORTH")
+        assert.ok(result.x === 0 && result.y === -1, "NORTH")
         result = Coordinate.DirectionToCoordinate(Direction.NORTHEAST);
-        assert.ok(result.x == 1 && result.y == -1, "NORTHEAST")
+        assert.ok(result.x === 1 && result.y === -1, "NORTHEAST")
         result = Coordinate.DirectionToCoordinate(Direction.EAST);
-        assert.ok(result.x == 1 && result.y == 0, "EAST")
+        assert.ok(result.x === 1 && result.y === 0, "EAST")
         result = Coordinate.DirectionToCoordinate(Direction.SOUTHEAST);
-        assert.ok(result.x == 1 && result.y == 1, "SOUTHEAST")
+        assert.ok(result.x === 1 && result.y === 1, "SOUTHEAST")
         result = Coordinate.DirectionToCoordinate(Direction.SOUTH);
-        assert.ok(result.x == 0 && result.y == 1, "SOUTH")
+        assert.ok(result.x === 0 && result.y === 1, "SOUTH")
         result = Coordinate.DirectionToCoordinate(Direction.SOUTHWEST);
-        assert.ok(result.x == -1 && result.y == 1, "SOUTHWEST")
+        assert.ok(result.x === -1 && result.y === 1, "SOUTHWEST")
         result = Coordinate.DirectionToCoordinate(Direction.WEST);
-        assert.ok(result.x == -1 && result.y == 0, "WEST")
+        assert.ok(result.x === -1 && result.y === 0, "WEST")
         result = Coordinate.DirectionToCoordinate(Direction.NORTHWEST);
-        assert.ok(result.x == -1 && result.y == -1, "NORTHWEST")
+        assert.ok(result.x === -1 && result.y === -1, "NORTHWEST")
         result = Coordinate.DirectionToCoordinate(Direction.NODIRECTION);
-        assert.ok(result.x == 0 && result.y == 0, "NODIRECTION")
+        assert.ok(result.x === 0 && result.y === 0, "NODIRECTION")
     });
 
     QUnit.test("constructor", function (assert) {

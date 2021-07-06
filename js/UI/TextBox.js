@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -36,9 +36,9 @@ export class TextBox extends Drawable {
 	}
 
 	Draw(x, y, the_console) {
-		the_console.setAlignment(TCOD_CENTER);
+		the_console.setAlignment(TCOD_alignment_t.TCOD_CENTER);
 		the_console.setDefaultBackground(Color.darkGrey);
-		the_console.rect(x + this._x, y + this._y, this.width, 1, true, TCOD_BKGND_SET);
+		the_console.rect(x + this._x, y + this._y, this.width, 1, true, TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
 		the_console.setDefaultBackground(Color.black);
 		if (this.value) {
 			the_console.print(x + this._x + this.width / 2, y + this._y, this.value);
@@ -54,7 +54,7 @@ export class TextBox extends Drawable {
 		} else {
 			currValue = this.getter();
 		}
-		if (key.vk == TCODK_BACKSPACE && currValue.length > 0) {
+		if (key.vk === TCODK_BACKSPACE && currValue.length > 0) {
 			if (this.value) {
 				value.splice(value.length - 1, 1);
 			} else {
@@ -62,7 +62,7 @@ export class TextBox extends Drawable {
 				this.setter(currValue);
 			}
 			return MenuResult.KEYRESPOND;
-		} else if (key.c >= ' ' && key.c <= '}' && key.c != '+' && key.c != '-') {
+		} else if (key.c >= ' ' && key.c <= '}' && key.c !== '+' && key.c !== '-') {
 			if (currValue.length < this.width) {
 				if (this.value) {
 					this.value += key.c;

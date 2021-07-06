@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -141,53 +141,53 @@ class TerrainSpriteFactory {
 };
 
 template < typename IterT > void ConstructionSpriteFactory.SetSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        spriteIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        spriteIndices.push( * iter);
     }
 }
 
 template < typename IterT > void ConstructionSpriteFactory.SetUnderConstructionSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        underConstructionSpriteIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        underConstructionSpriteIndices.push( * iter);
     }
 }
 
 template < typename IterT > void ConstructionSpriteFactory.SetUnreadyTrapSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        unreadyTrapSpriteIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        unreadyTrapSpriteIndices.push( * iter);
     }
 }
 
 template < typename IterT > void TerrainSpriteFactory.SetSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        spriteIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        spriteIndices.push( * iter);
     }
 }
 
 template < typename IterT > void TerrainSpriteFactory.SetSnowSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        snowSpriteIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        snowSpriteIndices.push( * iter);
     }
 }
 
 
 template < typename IterT > void TerrainSpriteFactory.SetHeightSplits(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        heightSplits.push_back( * reinterpret_cast < float * > (iter));
+    for (; iter !== end; ++iter) {
+        heightSplits.push( * reinterpret_cast < float * > (iter));
     }
 }
 
 
 
 template < typename IterT > void TerrainSpriteFactory.SetEdgeSpriteIndices(IterT iter, IterT end) {
-    for (; iter != end; ++iter) {
-        edgeIndices.push_back( * iter);
+    for (; iter !== end; ++iter) {
+        edgeIndices.push( * iter);
     }
 }
 
 template < typename IterT > void TerrainSpriteFactory.SetSnowEdgeSpriteIndices(IterT iter, IterT end) {
-        for (; iter != end; ++iter) {
-            snowEdgeIndices.push_back( * iter);
+        for (; iter !== end; ++iter) {
+            snowEdgeIndices.push( * iter);
         }
     }
     /* Copyright 2011 Ilkka Halila
@@ -199,8 +199,8 @@ template < typename IterT > void TerrainSpriteFactory.SetSnowEdgeSpriteIndices(I
     (at your option) any later version.
 
     Goblin Camp is distributed in the hope that it will be useful,
-    but WITHOUT ANY WARRANTY; without even the implied warranty of
-    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+    but without any warranty; without even the implied warranty of
+    merchantability or fitness for a particular purpose. See the
     GNU General Public License for more details.
 
     You should have received a copy of the GNU General Public License 
@@ -245,18 +245,18 @@ ConstructionSprite ConstructionSpriteFactory.Build(boost.shared_ptr < TilesetRen
         }
     } else {
         int numSprites = spriteIndices.size() / frameCount;
-        for (int sprite = 0; sprite < numSprites; ++sprite) {
+        for (let sprite = 0; sprite < numSprites; ++sprite) {
             std.vector < int > frames;
-            for (int frame = 0; frame < frameCount; ++frame) {
-                frames.push_back(spriteIndices.at(sprite + frame * numSprites));
+            for (let frame = 0; frame < frameCount; ++frame) {
+                frames.push(spriteIndices.at(sprite + frame * numSprites));
             }
             spriteSet.AddSprite(spriteFactory.CreateSprite(currentTexture, frames, false, frameRate));
         }
 
-        for (std.vector < int > .iterator iter = underConstructionSpriteIndices.begin(); iter != underConstructionSpriteIndices.end(); ++iter) {
+        for (std.vector < int > .iterator iter = underConstructionSpriteIndices.begin(); iter !== underConstructionSpriteIndices.end(); ++iter) {
             spriteSet.AddUnderConstructionSprite(spriteFactory.CreateSprite(currentTexture, * iter));
         }
-        for (std.vector < int > .iterator iter = unreadyTrapSpriteIndices.begin(); iter != unreadyTrapSpriteIndices.end(); ++iter) {
+        for (std.vector < int > .iterator iter = unreadyTrapSpriteIndices.begin(); iter !== unreadyTrapSpriteIndices.end(); ++iter) {
             spriteSet.AddUnreadyTrapSprite(spriteFactory.CreateSprite(currentTexture, * iter));
         }
         spriteSet.SetWidth(width);
@@ -308,10 +308,10 @@ void NPCSpriteFactory.Reset() {
 
 NPCSprite NPCSpriteFactory.Build(boost.shared_ptr < TilesetRenderer > spriteFactory, boost.shared_ptr < TileSetTexture > currentTexture) {
     if (equipmentMap) {
-        if (frames.size() == (weaponTypes.size() + 1) * (armourTypes.size() + 1)) {
+        if (frames.size() === (weaponTypes.size() + 1) * (armourTypes.size() + 1)) {
             std.vector < SpritePtr > sprites;
-            for (std.vector < int > .iterator iter = frames.begin(); iter != frames.end(); ++iter)
-                sprites.push_back(spriteFactory.CreateSprite(currentTexture, * iter));
+            for (std.vector < int > .iterator iter = frames.begin(); iter !== frames.end(); ++iter)
+                sprites.push(spriteFactory.CreateSprite(currentTexture, * iter));
 
             return NPCSprite(sprites, weaponTypes, armourTypes);
         } else if (frames.size() > 0) {
@@ -320,14 +320,14 @@ NPCSprite NPCSpriteFactory.Build(boost.shared_ptr < TilesetRenderer > spriteFact
             return NPCSprite();
         }
     } else if (paperdoll) {
-        if (frames.size() == armourTypes.size() + 1 && weaponOverlayIndices.size() == weaponTypes.size()) {
+        if (frames.size() === armourTypes.size() + 1 && weaponOverlayIndices.size() === weaponTypes.size()) {
             std.vector < SpritePtr > sprites;
-            for (std.vector < int > .iterator iter = frames.begin(); iter != frames.end(); ++iter)
-                sprites.push_back(spriteFactory.CreateSprite(currentTexture, * iter));
+            for (std.vector < int > .iterator iter = frames.begin(); iter !== frames.end(); ++iter)
+                sprites.push(spriteFactory.CreateSprite(currentTexture, * iter));
 
             std.vector < SpritePtr > weaponOverlays;
-            for (std.vector < int > .iterator iter = weaponOverlayIndices.begin(); iter != weaponOverlayIndices.end(); ++iter)
-                weaponOverlays.push_back(spriteFactory.CreateSprite(currentTexture, * iter));
+            for (std.vector < int > .iterator iter = weaponOverlayIndices.begin(); iter !== weaponOverlayIndices.end(); ++iter)
+                weaponOverlays.push(spriteFactory.CreateSprite(currentTexture, * iter));
 
             return NPCSprite(sprites, weaponOverlays, weaponTypes, armourTypes);
         } else if (frames.size() > 0) {
@@ -341,7 +341,7 @@ NPCSprite NPCSpriteFactory.Build(boost.shared_ptr < TilesetRenderer > spriteFact
 }
 
 void NPCSpriteFactory.AddSpriteFrame(int frame) {
-    frames.push_back(frame);
+    frames.push(frame);
 }
 
 void NPCSpriteFactory.SetFPS(int fps) {
@@ -353,11 +353,11 @@ void NPCSpriteFactory.SetEquipmentMap(bool equipMap) {
 }
 
 void NPCSpriteFactory.AddArmourType(std.string armourType) {
-    armourTypes.push_back(armourType);
+    armourTypes.push(armourType);
 }
 
 void NPCSpriteFactory.AddWeaponType(std.string weaponType) {
-    weaponTypes.push_back(weaponType);
+    weaponTypes.push(weaponType);
 }
 
 void NPCSpriteFactory.SetPaperdoll(bool value) {
@@ -365,7 +365,7 @@ void NPCSpriteFactory.SetPaperdoll(bool value) {
 }
 
 void NPCSpriteFactory.AddWeaponOverlay(int index) {
-    weaponOverlayIndices.push_back(index);
+    weaponOverlayIndices.push(index);
 }
 
 StatusEffectSpriteFactory.StatusEffectSpriteFactory(): frames(),
@@ -389,7 +389,7 @@ StatusEffectSprite StatusEffectSpriteFactory.Build(boost.shared_ptr < TilesetRen
 }
 
 void StatusEffectSpriteFactory.AddSpriteFrame(int frame) {
-    frames.push_back(frame);
+    frames.push(frame);
 }
 
 void StatusEffectSpriteFactory.SetFPS(int framesPerSecond) {
@@ -428,32 +428,32 @@ TerrainSprite TerrainSpriteFactory.Build(boost.shared_ptr < TilesetRenderer > sp
     std.vector < SpritePtr > sprites;
     if (wang) {
         int indicesPerSprite = spriteIndices.size() / (heightSplits.size() + 1);
-        for (int i = 0; i < static_cast < int > (heightSplits.size()) + 1; ++i) {
-            sprites.push_back(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, spriteIndices.begin() + i * indicesPerSprite, spriteIndices.begin() + (i + 1) * indicesPerSprite, true));
+        for (let i = 0; i < static_cast < int > (heightSplits.size()) + 1; ++i) {
+            sprites.push(TilesetRenderer.CreateSprite(spriteFactory, currentTexture, spriteIndices.begin() + i * indicesPerSprite, spriteIndices.begin() + (i + 1) * indicesPerSprite, true));
         }
     } else {
-        for (std.vector < int > .iterator iter = spriteIndices.begin(); iter != spriteIndices.end(); ++iter) {
-            sprites.push_back(spriteFactory.CreateSprite(currentTexture, * iter));
+        for (std.vector < int > .iterator iter = spriteIndices.begin(); iter !== spriteIndices.end(); ++iter) {
+            sprites.push(spriteFactory.CreateSprite(currentTexture, * iter));
         }
     }
 
     std.vector < SpritePtr > snowSprites;
     if (snowWang) {
-        snowSprites.push_back(spriteFactory.CreateSprite(currentTexture, snowSpriteIndices, true));
+        snowSprites.push(spriteFactory.CreateSprite(currentTexture, snowSpriteIndices, true));
     } else {
-        for (std.vector < int > .iterator iter = snowSpriteIndices.begin(); iter != snowSpriteIndices.end(); ++iter) {
-            snowSprites.push_back(spriteFactory.CreateSprite(currentTexture, * iter));
+        for (std.vector < int > .iterator iter = snowSpriteIndices.begin(); iter !== snowSpriteIndices.end(); ++iter) {
+            snowSprites.push(spriteFactory.CreateSprite(currentTexture, * iter));
         }
     }
 
     // Set the skipped edge sprite to an existing one
     SpritePtr edgeSprite = SpritePtr();
     if (!edgeIndices.empty()) {
-        if (edgeIndices.size() == 4) {
-            edgeIndices.push_back(currentTexture.Count());
-        } else if (edgeIndices.size() == 15 || edgeIndices.size() == 46) {
+        if (edgeIndices.size() === 4) {
+            edgeIndices.push(currentTexture.Count());
+        } else if (edgeIndices.size() === 15 || edgeIndices.size() === 46) {
             edgeIndices.insert(edgeIndices.begin() + 10, currentTexture.Count());
-        } else if (edgeIndices.size() == 18) {
+        } else if (edgeIndices.size() === 18) {
             edgeIndices.insert(edgeIndices.begin() + 4, currentTexture.Count());
         }
         edgeSprite = spriteFactory.CreateSprite(currentTexture, edgeIndices, true);
@@ -463,11 +463,11 @@ TerrainSprite TerrainSpriteFactory.Build(boost.shared_ptr < TilesetRenderer > sp
     SpritePtr snowEdgeSprite = SpritePtr();
     if (!snowSpriteIndices.empty()) {
         if (snowSpriteIndices.size() > 0) {
-            if (snowEdgeIndices.size() == 4) {
-                snowEdgeIndices.push_back(snowSpriteIndices.at(0));
-            } else if (snowEdgeIndices.size() == 15 || snowEdgeIndices.size() == 46) {
+            if (snowEdgeIndices.size() === 4) {
+                snowEdgeIndices.push(snowSpriteIndices.at(0));
+            } else if (snowEdgeIndices.size() === 15 || snowEdgeIndices.size() === 46) {
                 snowEdgeIndices.insert(snowEdgeIndices.begin() + 10, currentTexture.Count());
-            } else if (snowEdgeIndices.size() == 18) {
+            } else if (snowEdgeIndices.size() === 18) {
                 snowEdgeIndices.insert(snowEdgeIndices.begin() + 4, snowSpriteIndices.at(0));
             }
         }
@@ -495,19 +495,19 @@ void TerrainSpriteFactory.Reset() {
 }
 
 void TerrainSpriteFactory.AddDetailSprite(SpritePtr sprite) {
-    details.push_back(sprite);
+    details.push(sprite);
 }
 
 void TerrainSpriteFactory.AddBurntDetailSprite(SpritePtr sprite) {
-    burntDetails.push_back(sprite);
+    burntDetails.push(sprite);
 }
 
 void TerrainSpriteFactory.AddSnowedDetailSprite(SpritePtr sprite) {
-    snowedDetails.push_back(sprite);
+    snowedDetails.push(sprite);
 }
 
 void TerrainSpriteFactory.AddCorruptedDetailSprite(SpritePtr sprite) {
-    corruptedDetails.push_back(sprite);
+    corruptedDetails.push(sprite);
 }
 
 void TerrainSpriteFactory.SetDetailsChance(float chance) {

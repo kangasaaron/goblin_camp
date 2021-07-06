@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -49,18 +49,18 @@ export class ScrollPanel extends Drawable {
 		}
 
 		this.contents.Draw(x + this._x + 1, y + this._y + 1, this.scroll, this.width - 2, this.height - 2, the_console);
-		the_console.putChar(x + this._x + this.width - 2, y + this._y + 1, TCOD_CHAR_ARROW_N, TCOD_BKGND_SET);
-		the_console.putChar(x + this._x + this.width - 2, y + this._y + this.height - 2, TCOD_CHAR_ARROW_S, TCOD_BKGND_SET);
-		the_console.putChar(x + this._x + this.width - 2, y + this._y + this.scrollBar, 219, TCOD_BKGND_SET);
+		the_console.putChar(x + this._x + this.width - 2, y + this._y + 1, TCOD_CHAR_ARROW_N, TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
+		the_console.putChar(x + this._x + this.width - 2, y + this._y + this.height - 2, TCOD_CHAR_ARROW_S, TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
+		the_console.putChar(x + this._x + this.width - 2, y + this._y + this.scrollBar, 219, TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
 	}
 
 	Update(x, y, clicked, key) {
 		if (x >= this._x && x < this._x + this.width && y >= this._y && y < this._y + this.height) {
 			if (clicked) {
-				if (x == this._x + this.width - 2) {
-					if (y == this._y + 1) {
+				if (x === this._x + this.width - 2) {
+					if (y === this._y + 1) {
 						this.scroll -= this.step;
-					} else if (y == this._y + this.height - 2) {
+					} else if (y === this._y + this.height - 2) {
 						this.scroll += this.step;
 					} else if (y < this._y + this.scrollBar) {
 						this.scroll -= this.height;
@@ -75,7 +75,7 @@ export class ScrollPanel extends Drawable {
 			}
 			return MenuResult.MENUHIT;
 		}
-		if (key.vk != TCODK_NONE) return this.contents.Update(x, y, clicked, key);
+		if (key.vk !== TCODK_NONE) return this.contents.Update(x, y, clicked, key);
 		return MenuResult.NOMENUHIT;
 	}
 

@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -106,8 +106,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -150,7 +150,7 @@ namespace {
         if (coord.X() < 0 || coord.Y() < 0 || coord.X() >= map.Width() || coord.Y() >= map.Height()) {
             return true;
         }
-        return map.GetType(coord) == type;
+        return map.GetType(coord) === type;
     }
 
     bool GrassConnectionTest(Map * map, Coordinate origin, Direction dir) {
@@ -158,18 +158,18 @@ namespace {
         if (!map.IsInside(coord))
             return true;
         TileType type = map.GetType(coord);
-        return type == TILEGRASS || type == TILESNOW;
+        return type === TILEGRASS || type === TILESNOW;
     }
 
     bool SnowConnectionTest(Map * map, Coordinate origin, Direction dir) {
         Coordinate coord = origin + Coordinate.DirectionToCoordinate(dir);
         if (!map.IsInside(coord))
             return true;
-        if (map.GetType(coord) == TILESNOW)
+        if (map.GetType(coord) === TILESNOW)
             return true;
         int natNum = -1;
         if ((natNum = map.GetNatureObject(coord)) >= 0) {
-            return Game.natureList[natNum].IsIce();
+            return Game.i.natureList[natNum].IsIce();
         }
         return false;
     }
@@ -185,7 +185,7 @@ namespace {
         Coordinate coord = origin + Coordinate.DirectionToCoordinate(dir);
         if (!map.IsInside(coord))
             return true;
-        return map.GetType(coord) == TILEGRASS && map.Burnt(coord) >= 10;
+        return map.GetType(coord) === TILEGRASS && map.Burnt(coord) >= 10;
     }
 
     int WaterConnectionTest(Map * map, Coordinate origin, Direction dir) {
@@ -196,7 +196,7 @@ namespace {
         else if (boost.shared_ptr < WaterNode > water = map.GetWater(coord).lock()) {
             return (water.Depth() > 0) ? 1 : 0;
         } else if ((natNum = map.GetNatureObject(coord)) >= 0) {
-            return (Game.natureList[natNum].IsIce()) ? 2 : 0;
+            return (Game.i.natureList[natNum].IsIce()) ? 2 : 0;
         }
         return 0;
     }
@@ -237,7 +237,7 @@ namespace {
 
     bool TerritoryConnectionTest(Map * map, Coordinate origin, bool owned, Direction dir) {
         Coordinate coord = origin + Coordinate.DirectionToCoordinate(dir);
-        return map.IsTerritory(coord) == owned;
+        return map.IsTerritory(coord) === owned;
     }
 
     bool GroundMarkedConnectionTest(Map * map, Coordinate origin, Direction dir) {
@@ -248,43 +248,43 @@ namespace {
 
 
 void TilesetRenderer.PreparePrefabs() {
-    for (std.vector < NPCPreset > .iterator npci = NPC.Presets.begin(); npci != NPC.Presets.end(); ++npci) {
+    for (std.vector < NPCPreset > .iterator npci = NPC.Presets.begin(); npci !== NPC.Presets.end(); ++npci) {
         npci.graphicsHint = tileSet.GetGraphicsHintFor( * npci);
     }
-    for (std.vector < NatureObjectPreset > .iterator nopi = NatureObject.Presets.begin(); nopi != NatureObject.Presets.end(); ++nopi) {
+    for (std.vector < NatureObjectPreset > .iterator nopi = NatureObject.Presets.begin(); nopi !== NatureObject.Presets.end(); ++nopi) {
         nopi.graphicsHint = tileSet.GetGraphicsHintFor( * nopi);
     }
-    for (std.vector < ItemPreset > .iterator itemi = Item.Presets.begin(); itemi != Item.Presets.end(); ++itemi) {
+    for (std.vector < ItemPreset > .iterator itemi = Item.Presets.begin(); itemi !== Item.Presets.end(); ++itemi) {
         itemi.graphicsHint = tileSet.GetGraphicsHintFor( * itemi);
     }
-    for (std.vector < ConstructionPreset > .iterator constructi = Construction.Presets.begin(); constructi != Construction.Presets.end(); ++constructi) {
+    for (std.vector < ConstructionPreset > .iterator constructi = Construction.Presets.begin(); constructi !== Construction.Presets.end(); ++constructi) {
         constructi.graphicsHint = tileSet.GetGraphicsHintFor( * constructi);
     }
-    for (std.vector < SpellPreset > .iterator spelli = Spell.Presets.begin(); spelli != Spell.Presets.end(); ++spelli) {
+    for (std.vector < SpellPreset > .iterator spelli = Spell.Presets.begin(); spelli !== Spell.Presets.end(); ++spelli) {
         spelli.graphicsHint = tileSet.GetGraphicsHintFor( * spelli);
     }
 }
 
 Coordinate TilesetRenderer.TileAt(int x, int y, float focusX, float focusY, int viewportX, int viewportY, int viewportW, int viewportH) const {
-    if (viewportW == -1) viewportW = screenWidth;
-    if (viewportH == -1) viewportH = screenHeight;
+    if (viewportW === -1) viewportW = screenWidth;
+    if (viewportH === -1) viewportH = screenHeight;
 
     float left = focusX * tileSet.TileWidth() - viewportW * 0.5 f;
     float up = focusY * tileSet.TileHeight() - viewportH * 0.5 f;
 
-    return Coordinate(FloorToInt.convert((left + x) / tileSet.TileWidth()), FloorToInt.convert((up + y) / tileSet.TileHeight()));
+    return Coordinate(Math.floor((left + x) / tileSet.TileWidth()), Math.floor((up + y) / tileSet.TileHeight()));
 }
 
 void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int viewportX, int viewportY, int viewportW, int viewportH) {
-    if (viewportW == -1) viewportW = screenWidth;
-    if (viewportH == -1) viewportH = screenHeight;
+    if (viewportW === -1) viewportW = screenWidth;
+    if (viewportH === -1) viewportH = screenHeight;
 
     // Merge viewport to the_console (because the the_console is composed of discrete tiles, expand to fill the space used to render the world).
-    if (tcodConsole != 0) {
+    if (tcodConsole !== 0) {
         int charX, charY;
         TCODSystem.getCharSize( & charX, & charY);
-        int offsetX = FloorToInt.convert(float(viewportX) / charX);
-        int offsetY = FloorToInt.convert(float(viewportY) / charY);
+        int offsetX = Math.floor(float(viewportX) / charX);
+        int offsetY = Math.floor(float(viewportY) / charY);
         int sizeX = CeilToInt.convert(float(viewportW + offsetX * charX) / charX) - offsetX;
         int sizeY = CeilToInt.convert(float(viewportH + offsetY * charY) / charY) - offsetY;
         viewportX = offsetX * charX;
@@ -292,8 +292,8 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
         viewportW = sizeX * charX;
         viewportH = sizeY * charY;
 
-        for (int x = offsetX; x < offsetX + sizeX; x++) {
-            for (int y = offsetY; y < offsetY + sizeY; y++) {
+        for (let x = offsetX; x < offsetX + sizeX; x++) {
+            for (let y = offsetY; y < offsetY + sizeY; y++) {
                 tcodConsole.putCharEx(x, y, ' ', Color.black, keyColor);
             }
         }
@@ -305,20 +305,20 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
     map = mapToDraw;
     startPixelX = viewportX;
     startPixelY = viewportY;
-    int absStartPixelX = FloorToInt.convert(focusX * tileSet.TileWidth() - viewportW / 2);
-    int absStartPixelY = FloorToInt.convert(focusY * tileSet.TileHeight() - viewportH / 2);
+    int absStartPixelX = Math.floor(focusX * tileSet.TileWidth() - viewportW / 2);
+    int absStartPixelY = Math.floor(focusY * tileSet.TileHeight() - viewportH / 2);
     pixelW = viewportW;
     pixelH = viewportH;
-    startTileX = FloorToInt.convert(boost.numeric_cast < float > (absStartPixelX) / tileSet.TileWidth());
-    startTileY = FloorToInt.convert(boost.numeric_cast < float > (absStartPixelY) / tileSet.TileHeight());
+    startTileX = Math.floor(boost.numeric_cast < float > (absStartPixelX) / tileSet.TileWidth());
+    startTileY = Math.floor(boost.numeric_cast < float > (absStartPixelY) / tileSet.TileHeight());
     mapOffsetX = startTileX * tileSet.TileWidth() - absStartPixelX;
     mapOffsetY = startTileY * tileSet.TileHeight() - absStartPixelY;
     tilesX = CeilToInt.convert((focusX * tileSet.TileWidth() + viewportW / 2) / tileSet.TileWidth()) - startTileX;
     tilesY = CeilToInt.convert((focusY * tileSet.TileHeight() + viewportH / 2) / tileSet.TileHeight()) - startTileY;
 
     // And then render to map
-    for (int y = 0; y < tilesY; ++y) {
-        for (int x = 0; x <= tilesX; ++x) {
+    for (let y = 0; y < tilesY; ++y) {
+        for (let x = 0; x <= tilesX; ++x) {
             Coordinate pos(x + startTileX, y + startTileY);
 
             // Draw Terrain
@@ -326,7 +326,7 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
                 DrawTerrain(x, y, pos);
 
                 if (!(map.GetOverlayFlags() & TERRAIN_OVERLAY)) {
-                    if (boost.shared_ptr < Construction > construction = (Game.GetConstruction(map.GetConstruction(pos))).lock()) {
+                    if (boost.shared_ptr < Construction > construction = (Game.i.GetConstruction(map.GetConstruction(pos))).lock()) {
                         DrawConstructionVisitor visitor(this, tileSet.get(), x, y, pos);
                         construction.AcceptVisitor(visitor);
                     } else {
@@ -335,7 +335,7 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
 
                     int natNum = map.GetNatureObject(pos);
                     if (natNum >= 0) {
-                        boost.shared_ptr < NatureObject > natureObj = Game.natureList[natNum];
+                        boost.shared_ptr < NatureObject > natureObj = Game.i.natureList[natNum];
                         if (natureObj.Marked()) {
                             tileSet.DrawMarkedOverlay(x, y);
                         }
@@ -365,13 +365,13 @@ void TilesetRenderer.DrawMap(Map * mapToDraw, float focusX, float focusY, int vi
     DrawSpells();
 
     if (!(map.GetOverlayFlags() & TERRAIN_OVERLAY)) {
-        for (int y = 0; y < tilesY; ++y) {
-            for (int x = 0; x <= tilesX; ++x) {
+        for (let y = 0; y < tilesY; ++y) {
+            for (let x = 0; x <= tilesX; ++x) {
                 Coordinate tile(x + startTileX, y + startTileY);
                 // Corruption
                 if (map.GetCorruption(tile) >= 100) {
                     TileType type = map.GetType(tile);
-                    const TerrainSprite & terrainSprite = (type == TILESNOW) ? tileSet.GetTerrainSprite(TILEGRASS) : tileSet.GetTerrainSprite(type);
+                    const TerrainSprite & terrainSprite = (type === TILESNOW) ? tileSet.GetTerrainSprite(TILEGRASS) : tileSet.GetTerrainSprite(type);
                     terrainSprite.DrawCorruptionOverlay(x, y, boost.bind( & CorruptionConnectionTest, map, tile, _1));
                 }
             }
@@ -411,8 +411,8 @@ void TilesetRenderer.DrawCursor(const Coordinate & pos, bool placeable) {
 
 void TilesetRenderer.DrawCursor(const Coordinate & start,
     const Coordinate & end, bool placeable) {
-    for (int x = start.X(); x <= end.X(); ++x) {
-        for (int y = start.Y(); y <= end.Y(); ++y) {
+    for (let x = start.X(); x <= end.X(); ++x) {
+        for (let y = start.Y(); y <= end.Y(); ++y) {
             tileSet.DrawCursor(x - startTileX, y - startTileY, cursorMode, cursorHint, placeable);
         }
     }
@@ -420,10 +420,10 @@ void TilesetRenderer.DrawCursor(const Coordinate & start,
 
 //TODO factorize all those DrawFoo
 void TilesetRenderer.DrawItems() const {
-    for (std.map < int, boost.shared_ptr < Item > > .iterator itemi = Game.itemList.begin(); itemi != Game.itemList.end(); ++itemi) {
-        if (itemi.second == 0) { // should not be here. but it happens. null pointer
+    for (std.map < int, boost.shared_ptr < Item > > .iterator itemi = Game.itemList.begin(); itemi !== Game.itemList.end(); ++itemi) {
+        if (itemi.second === 0) { // should not be here. but it happens. null pointer
             itemi = Game.itemList.erase(itemi); // delete this shit
-            if (itemi == Game.itemList.end()) break;
+            if (itemi === Game.itemList.end()) break;
             continue;
         }
 
@@ -437,7 +437,7 @@ void TilesetRenderer.DrawItems() const {
 }
 
 void TilesetRenderer.DrawNPCs() const {
-    for (std.map < int, boost.shared_ptr < NPC > > .iterator npci = Game.npcList.begin(); npci != Game.npcList.end(); ++npci) {
+    for (std.map < int, boost.shared_ptr < NPC > > .iterator npci = Game.i.npcList.begin(); npci !== Game.i.npcList.end(); ++npci) {
         Coordinate npcPos = npci.second.Position();
         Coordinate start(startTileX, startTileY), extent(tilesX, tilesY);
         if (npcPos.insideExtent(start, extent))
@@ -446,7 +446,7 @@ void TilesetRenderer.DrawNPCs() const {
 }
 
 void TilesetRenderer.DrawSpells() const {
-    for (std.list < boost.shared_ptr < Spell > > .iterator spelli = Game.spellList.begin(); spelli != Game.spellList.end(); ++spelli) {
+    for (std.list < boost.shared_ptr < Spell > > .iterator spelli = Game.i.spells.begin(); spelli !== Game.i.spells.end(); ++spelli) {
         Coordinate spellPos = ( * spelli).Position();
         Coordinate start(startTileX, startTileY), extent(tilesX, tilesY);
         if (spellPos.insideExtent(start, extent))
@@ -455,7 +455,7 @@ void TilesetRenderer.DrawSpells() const {
 }
 
 void TilesetRenderer.DrawFires() const {
-    for (std.list < boost.weak_ptr < FireNode > > .iterator firei = Game.fireList.begin(); firei != Game.fireList.end(); ++firei) {
+    for (std.list < boost.weak_ptr < FireNode > > .iterator firei = Game.i.fireNodes.begin(); firei !== Game.i.fireNodes.end(); ++firei) {
         if (boost.shared_ptr < FireNode > fire = firei.lock()) {
             Coordinate firePos = fire.Position();
             Coordinate start(startTileX, startTileY), extent(tilesX, tilesY);
@@ -466,7 +466,7 @@ void TilesetRenderer.DrawFires() const {
 }
 
 void TilesetRenderer.DrawMarkers() const {
-    for (Map.MarkerIterator markeri = map.MarkerBegin(); markeri != map.MarkerEnd(); ++markeri) {
+    for (GameMap.i.MarkerIterator markeri = map.MarkerBegin(); markeri !== map.MarkerEnd(); ++markeri) {
         Coordinate markerPos = markeri.second.Position();
         Coordinate start(startTileX, startTileY), extent(tilesX, tilesY);
         if (markerPos.insideExtent(start, extent))
@@ -476,16 +476,16 @@ void TilesetRenderer.DrawMarkers() const {
 
 void TilesetRenderer.DrawTerrain(int screenX, int screenY, Coordinate pos) const {
     TileType type(map.GetType(pos));
-    const TerrainSprite & terrainSprite = (type == TILESNOW) ? tileSet.GetTerrainSprite(TILEGRASS) : tileSet.GetTerrainSprite(type);
+    const TerrainSprite & terrainSprite = (type === TILESNOW) ? tileSet.GetTerrainSprite(TILEGRASS) : tileSet.GetTerrainSprite(type);
     bool corrupted = map.GetCorruption(pos) >= 100;
-    if (type == TILESNOW) {
+    if (type === TILESNOW) {
         if (corrupted) {
             terrainSprite.DrawSnowedAndCorrupted(screenX, screenY, pos, permutationTable, map.heightMap.getValue(pos.X(), pos.Y()), boost.bind( & GrassConnectionTest, map, pos, _1), boost.bind( & SnowConnectionTest, map, pos, _1), boost.bind( & CorruptionConnectionTest, map, pos, _1));
         } else {
             terrainSprite.DrawSnowed(screenX, screenY, pos, permutationTable, map.heightMap.getValue(pos.X(), pos.Y()), boost.bind( & GrassConnectionTest, map, pos, _1), boost.bind( & SnowConnectionTest, map, pos, _1));
         }
-    } else if (type == TILEGRASS) {
-        bool burnt = type == TILEGRASS && map.Burnt(pos) >= 10;
+    } else if (type === TILEGRASS) {
+        bool burnt = type === TILEGRASS && map.Burnt(pos) >= 10;
         if (corrupted) {
             terrainSprite.DrawCorrupted(screenX, screenY, pos, permutationTable, map.heightMap.getValue(pos.X(), pos.Y()), boost.bind( & GrassConnectionTest, map, pos, _1), boost.bind( & CorruptionConnectionTest, map, pos, _1));
         } else if (burnt) {
@@ -511,7 +511,7 @@ void TilesetRenderer.DrawTerrain(int screenX, int screenY, Coordinate pos) const
         }
         int natNum = -1;
         if ((natNum = map.GetNatureObject(pos)) >= 0) {
-            if (Game.natureList[natNum].IsIce()) {
+            if (Game.i.natureList[natNum].IsIce()) {
                 tileSet.DrawIce(screenX, screenY, boost.bind( & WaterConnectionTest, map, pos, _1));
             }
         }
@@ -579,7 +579,7 @@ boost.shared_ptr < TilesetRenderer > CreateOGLTilesetRenderer(int width, int hei
 boost.shared_ptr < TilesetRenderer > CreateSDLTilesetRenderer(int width, int height, TCODConsole * the_console, std.string tilesetName);
 
 boost.shared_ptr < TilesetRenderer > CreateTilesetRenderer(int width, int height, TCODConsole * the_console, std.string tilesetName) {
-    if (TCODSystem.getRenderer() == TCOD_RENDERER_SDL) {
+    if (TCODSystem.getRenderer() === TCOD_RENDERER_SDL) {
         return CreateSDLTilesetRenderer(width, height, the_console, tilesetName);
     }
     /* else {

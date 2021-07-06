@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -43,7 +43,7 @@ class SDLTilesetRenderer extends TilesetRenderer {
         let sdlRenderer = (new SDLTilesetRenderer(width, height, the_console));
         /**boost.shared_ptr < TileSet >*/
         let tileset = TileSetLoader.LoadTileSet(sdlRenderer, tilesetName);
-        if (tileset.get() != 0 && sdlRenderer.SetTileset(tileset)) {
+        if (tileset.get() !== 0 && sdlRenderer.SetTileset(tileset)) {
             return sdlRenderer;
         }
         // return boost.shared_ptr < TilesetRenderer > ();
@@ -58,7 +58,7 @@ class SDLTilesetRenderer extends TilesetRenderer {
         TCODSystem.registerSDLRenderer(this /*, translucentUI*/ ); // FIXME
         /**Uint32*/
         let rmask, gmask, bmask, amask;
-        if (SDL_BYTEORDER == SDL_BIG_ENDIAN) {
+        if (SDL_BYTEORDER === SDL_BIG_ENDIAN) {
             rmask = 0xff000000;
             gmask = 0x00ff0000;
             bmask = 0x0000ff00;
@@ -157,7 +157,7 @@ class SDLTilesetRenderer extends TilesetRenderer {
         SDL_LowerBlit(mapSurface.get(), srcRect, screen, dstRect);
     }
     SetTranslucentUI(translucent) {
-            if (translucent != translucentUI) {
+            if (translucent !== translucentUI) {
                 TCODSystem.registerSDLRenderer(this /*, translucent*/ ); // FIXME
             }
             translucentUI = translucent;
@@ -185,13 +185,13 @@ class SDLTilesetRenderer extends TilesetRenderer {
     setPixelAlpha(surface, x, y, keyColor) {
         let fmt = surface.format;
         let bpp = fmt.BytesPerPixel;
-        if (bpp != 4) return;
+        if (bpp !== 4) return;
 
         let p = (surface.pixels + y * surface.pitch) + x;
         let c = (p | fmt.Amask);
-        if (c == keyColor) {
+        if (c === keyColor) {
             p = p & ~fmt.Amask;
-        } else if (c == fmt.Amask) {
+        } else if (c === fmt.Amask) {
             p = (p & ~fmt.Amask) | (128 << fmt.Ashift);
         }
     }

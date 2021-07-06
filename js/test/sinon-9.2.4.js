@@ -4286,7 +4286,7 @@ module.exports = {
 
 var copyPrototype = require("./copy-prototype");
 
-module.exports = copyPrototype(Map.prototype);
+module.exports = copyPrototype(GameMap.i.prototype);
 
 },{"./copy-prototype":47}],51:[function(require,module,exports){
 "use strict";
@@ -6293,7 +6293,7 @@ var createTypeMap = function(match) {
         number: function(m, expectation) {
             m.test = function(actual) {
                 // we need type coercion here
-                return expectation == actual; // eslint-disable-line eqeqeq
+                return expectation === actual; // eslint-disable-line eqeqeq
             };
         },
         object: function(m, expectation) {
@@ -9852,7 +9852,7 @@ module.exports = {
       if (iso2022jp_state === states.Roman &&
           ((isASCIICodePoint(code_point) &&
            code_point !== 0x005C && code_point !== 0x007E) ||
-          (code_point == 0x00A5 || code_point == 0x203E))) {
+          (code_point === 0x00A5 || code_point === 0x203E))) {
 
         // 1. If code point is an ASCII code point, return a byte
         // whose value is code point.
@@ -11193,7 +11193,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
           break;
         }
 
-        var operation = diffstr[i].length == 0 && i != diffstr.length - 1 ? ' ' : diffstr[i][0];
+        var operation = diffstr[i].length === 0 && i !== diffstr.length - 1 ? ' ' : diffstr[i][0];
 
         if (operation === '+' || operation === '-' || operation === ' ' || operation === '\\') {
           hunk.lines.push(diffstr[i]);
@@ -11548,7 +11548,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
               // EOF is inside this hunk
               var oldEOFNewline = /\n$/.test(oldStr);
               var newEOFNewline = /\n$/.test(newStr);
-              var noNlBeforeAdds = lines.length == 0 && curRange.length > hunk.oldLines;
+              var noNlBeforeAdds = lines.length === 0 && curRange.length > hunk.oldLines;
 
               if (!oldEOFNewline && noNlBeforeAdds) {
                 // special case: old has no eol and no trailing context; no-nl can end up before adds
@@ -11588,7 +11588,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
     var diff = structuredPatch(oldFileName, newFileName, oldStr, newStr, oldHeader, newHeader, options);
     var ret = [];
 
-    if (oldFileName == newFileName) {
+    if (oldFileName === newFileName) {
       ret.push('Index: ' + oldFileName);
     }
 
@@ -12112,7 +12112,7 @@ OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 },{}],87:[function(require,module,exports){
 module.exports = Array.isArray || function (arr) {
-  return Object.prototype.toString.call(arr) == '[object Array]';
+  return Object.prototype.toString.call(arr) === '[object Array]';
 };
 
 },{}],88:[function(require,module,exports){
@@ -12149,7 +12149,7 @@ module.exports = extend;
 function extend(/* [deep], obj1, obj2, [objn] */) {
   var args = [].slice.call(arguments);
   var deep = false;
-  if (typeof args[0] == 'boolean') {
+  if (typeof args[0] === 'boolean') {
     deep = args.shift();
   }
   var result = args[0];
@@ -12182,11 +12182,11 @@ function extend(/* [deep], obj1, obj2, [objn] */) {
 }
 
 function isCloneable(obj) {
-  return Array.isArray(obj) || {}.toString.call(obj) == '[object Object]';
+  return Array.isArray(obj) || {}.toString.call(obj) === '[object Object]';
 }
 
 function isUnextendable(val) {
-  return !val || (typeof val != 'object' && typeof val != 'function');
+  return !val || (typeof val !== 'object' && typeof val !== 'function');
 }
 
 },{}],89:[function(require,module,exports){
@@ -12232,10 +12232,10 @@ var reEscapeChar = /\\(\\)?/g;
 var reIsHostCtor = /^\[object .+?Constructor\]$/;
 
 /** Detect free variable `global` from Node.js. */
-var freeGlobal = typeof global == 'object' && global && global.Object === Object && global;
+var freeGlobal = typeof global === 'object' && global && global.Object === Object && global;
 
 /** Detect free variable `self`. */
-var freeSelf = typeof self == 'object' && self && self.Object === Object && self;
+var freeSelf = typeof self === 'object' && self && self.Object === Object && self;
 
 /** Used as a reference to the global object. */
 var root = freeGlobal || freeSelf || Function('return this')();
@@ -12249,7 +12249,7 @@ var root = freeGlobal || freeSelf || Function('return this')();
  * @returns {*} Returns the property value.
  */
 function getValue(object, key) {
-  return object == null ? undefined : object[key];
+  return object === null ? undefined : object[key];
 }
 
 /**
@@ -12263,7 +12263,7 @@ function isHostObject(value) {
   // Many host objects are `Object` objects that can coerce to strings
   // despite having improperly defined `toString` methods.
   var result = false;
-  if (value != null && typeof value.toString != 'function') {
+  if (value !== null && typeof value.toString !== 'function') {
     try {
       result = !!(value + '');
     } catch (e) {}
@@ -12460,7 +12460,7 @@ function listCacheDelete(key) {
     return false;
   }
   var lastIndex = data.length - 1;
-  if (index == lastIndex) {
+  if (index === lastIndex) {
     data.pop();
   } else {
     splice.call(data, index, 1);
@@ -12652,10 +12652,10 @@ function baseGet(object, path) {
   var index = 0,
       length = path.length;
 
-  while (object != null && index < length) {
+  while (object !== null && index < length) {
     object = object[toKey(path[index++])];
   }
-  return (index && index == length) ? object : undefined;
+  return (index && index === length) ? object : undefined;
 }
 
 /**
@@ -12684,14 +12684,14 @@ function baseIsNative(value) {
  */
 function baseToString(value) {
   // Exit early for strings to avoid a performance hit in some environments.
-  if (typeof value == 'string') {
+  if (typeof value === 'string') {
     return value;
   }
   if (isSymbol(value)) {
     return symbolToString ? symbolToString.call(value) : '';
   }
   var result = (value + '');
-  return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
+  return (result === '0' && (1 / value) === -INFINITY) ? '-0' : result;
 }
 
 /**
@@ -12716,7 +12716,7 @@ function castPath(value) {
 function getMapData(map, key) {
   var data = map.__data__;
   return isKeyable(key)
-    ? data[typeof key == 'string' ? 'string' : 'hash']
+    ? data[typeof key === 'string' ? 'string' : 'hash']
     : data.map;
 }
 
@@ -12746,12 +12746,12 @@ function isKey(value, object) {
     return false;
   }
   var type = typeof value;
-  if (type == 'number' || type == 'symbol' || type == 'boolean' ||
-      value == null || isSymbol(value)) {
+  if (type === 'number' || type === 'symbol' || type === 'boolean' ||
+      value === null || isSymbol(value)) {
     return true;
   }
   return reIsPlainProp.test(value) || !reIsDeepProp.test(value) ||
-    (object != null && value in Object(object));
+    (object !== null && value in Object(object));
 }
 
 /**
@@ -12763,7 +12763,7 @@ function isKey(value, object) {
  */
 function isKeyable(value) {
   var type = typeof value;
-  return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
+  return (type === 'string' || type === 'number' || type === 'symbol' || type === 'boolean')
     ? (value !== '__proto__')
     : (value === null);
 }
@@ -12807,11 +12807,11 @@ var stringToPath = memoize(function(string) {
  * @returns {string|symbol} Returns the key.
  */
 function toKey(value) {
-  if (typeof value == 'string' || isSymbol(value)) {
+  if (typeof value === 'string' || isSymbol(value)) {
     return value;
   }
   var result = (value + '');
-  return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
+  return (result === '0' && (1 / value) === -INFINITY) ? '-0' : result;
 }
 
 /**
@@ -12822,7 +12822,7 @@ function toKey(value) {
  * @returns {string} Returns the source code.
  */
 function toSource(func) {
-  if (func != null) {
+  if (func !== null) {
     try {
       return funcToString.call(func);
     } catch (e) {}
@@ -12878,7 +12878,7 @@ function toSource(func) {
  * _.memoize.Cache = WeakMap;
  */
 function memoize(func, resolver) {
-  if (typeof func != 'function' || (resolver && typeof resolver != 'function')) {
+  if (typeof func !== 'function' || (resolver && typeof resolver !== 'function')) {
     throw new TypeError(FUNC_ERROR_TEXT);
   }
   var memoized = function() {
@@ -12982,7 +12982,7 @@ function isFunction(value) {
   // The use of `Object#toString` avoids issues with the `typeof` operator
   // in Safari 8-9 which returns 'object' for typed array and other constructors.
   var tag = isObject(value) ? objectToString.call(value) : '';
-  return tag == funcTag || tag == genTag;
+  return tag === funcTag || tag === genTag;
 }
 
 /**
@@ -13012,7 +13012,7 @@ function isFunction(value) {
  */
 function isObject(value) {
   var type = typeof value;
-  return !!value && (type == 'object' || type == 'function');
+  return !!value && (type === 'object' || type === 'function');
 }
 
 /**
@@ -13040,7 +13040,7 @@ function isObject(value) {
  * // => false
  */
 function isObjectLike(value) {
-  return !!value && typeof value == 'object';
+  return !!value && typeof value === 'object';
 }
 
 /**
@@ -13061,8 +13061,8 @@ function isObjectLike(value) {
  * // => false
  */
 function isSymbol(value) {
-  return typeof value == 'symbol' ||
-    (isObjectLike(value) && objectToString.call(value) == symbolTag);
+  return typeof value === 'symbol' ||
+    (isObjectLike(value) && objectToString.call(value) === symbolTag);
 }
 
 /**
@@ -13087,7 +13087,7 @@ function isSymbol(value) {
  * // => '1,2,3'
  */
 function toString(value) {
-  return value == null ? '' : baseToString(value);
+  return value === null ? '' : baseToString(value);
 }
 
 /**
@@ -13116,7 +13116,7 @@ function toString(value) {
  * // => 'default'
  */
 function get(object, path, defaultValue) {
-  var result = object == null ? undefined : baseGet(object, path);
+  var result = object === null ? undefined : baseGet(object, path);
   return result === undefined ? defaultValue : result;
 }
 
@@ -14778,7 +14778,7 @@ function parse (str, options) {
   var defaultDelimiter = options && options.delimiter || '/'
   var res
 
-  while ((res = PATH_REGEXP.exec(str)) != null) {
+  while ((res = PATH_REGEXP.exec(str)) !== null) {
     var m = res[0]
     var escaped = res[1]
     var offset = res.index
@@ -14805,7 +14805,7 @@ function parse (str, options) {
       path = ''
     }
 
-    var partial = prefix != null && next != null && next !== prefix
+    var partial = prefix !== null && next !== null && next !== prefix
     var repeat = modifier === '+' || modifier === '*'
     var optional = modifier === '?' || modifier === '*'
     var delimiter = res[2] || defaultDelimiter
@@ -14903,7 +14903,7 @@ function tokensToFunction (tokens, options) {
       var value = data[token.name]
       var segment
 
-      if (value == null) {
+      if (value === null) {
         if (token.optional) {
           // Prepend partial segment prefixes.
           if (token.partial) {
@@ -15194,7 +15194,7 @@ var dataViewExists = typeof DataView !== 'undefined';
 var symbolIteratorExists = symbolExists && typeof Symbol.iterator !== 'undefined';
 var symbolToStringTagExists = symbolExists && typeof Symbol.toStringTag !== 'undefined';
 var setEntriesExists = setExists && typeof Set.prototype.entries === 'function';
-var mapEntriesExists = mapExists && typeof Map.prototype.entries === 'function';
+var mapEntriesExists = mapExists && typeof GameMap.i.prototype.entries === 'function';
 var setIteratorPrototype = setEntriesExists && Object.getPrototypeOf(new Set().entries());
 var mapIteratorPrototype = mapEntriesExists && Object.getPrototypeOf(new Map().entries());
 var arrayIteratorExists = symbolIteratorExists && typeof Array.prototype[Symbol.iterator] === 'function';
@@ -15463,7 +15463,7 @@ function typeDetect(obj) {
   * Post:
   *   map                x 4,183,945 ops/sec ±6.59% (82 runs sampled)
   */
-  if (mapExists && objPrototype === Map.prototype) {
+  if (mapExists && objPrototype === GameMap.i.prototype) {
     return 'Map';
   }
 
@@ -15885,7 +15885,7 @@ function formatValue(ctx, value, recurseTimes) {
     base = ' ' + formatError(value);
   }
 
-  if (keys.length === 0 && (!array || value.length == 0)) {
+  if (keys.length === 0 && (!array || value.length === 0)) {
     return braces[0] + base + braces[1];
   }
 
@@ -16056,7 +16056,7 @@ function isNull(arg) {
 exports.isNull = isNull;
 
 function isNullOrUndefined(arg) {
-  return arg == null;
+  return arg === null;
 }
 exports.isNullOrUndefined = isNullOrUndefined;
 

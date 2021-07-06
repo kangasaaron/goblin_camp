@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -70,7 +70,7 @@ namespace {
             CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, null
         );
 
-        if (dump == INVALID_HANDLE_VALUE) {
+        if (dump === INVALID_HANDLE_VALUE) {
             OutputDebugString(TEXT("[Goblin Camp] Could not create crash dump."));
             return false;
         }
@@ -96,7 +96,7 @@ namespace {
 
         bool result = !!MiniDumpWriteDump(
             GetCurrentProcess(), GetCurrentProcessId(),
-            dump, type, ((exception != null) ? & dumpExcInfo : null), null, & dumpCallback
+            dump, type, ((exception !== null) ? & dumpExcInfo : null), null, & dumpCallback
         );
 
         if (!result) {
@@ -112,7 +112,7 @@ namespace {
 
     BOOL CALLBACK DumpCallback(void * , MINIDUMP_CALLBACK_INPUT *
         const input, MINIDUMP_CALLBACK_OUTPUT * output) {
-        if (input == null || output == null) return FALSE;
+        if (input === null || output === null) return FALSE;
 
         switch (input.CallbackType) {
             case IncludeThreadCallback:
@@ -128,7 +128,7 @@ namespace {
                     wchar_t filename[_MAX_FNAME];
                     _wsplitpath_s(input.Module.FullPath, null, 0, null, 0, filename, _MAX_FNAME, null, 0);
 
-                    if (wcsicmp(filename, L "goblin-camp") != 0 && wcsicmp(filename, L "ntdll") != 0) {
+                    if (wcsicmp(filename, L "goblin-camp") !== 0 && wcsicmp(filename, L "ntdll") !== 0) {
                         output.ModuleWriteFlags = ModuleWriteModule;
                     }
                 }
@@ -174,7 +174,7 @@ namespace {
     //   - external crash handler is called, if it's possible
     //
     // It's also possible to disable the dumping with -nodumps CLI argument in debug builds.
-    if /* if(def */ (DEBUG) {) {#
+    if /* if(def */ (Globals.DEBUG) {) {#
         define GC_CREATE_DUMP(E, P) do { if (!IsDebuggerPresent() && !Globals.noDumpMode) CreateDump((E), (P)); } while (0)# define GC_REPORT_CRASH() EXCEPTION_CONTINUE_SEARCH
         else /*#else */ {#
             define GC_CREATE_DUMP(E, P) CreateDump((E), (P))# define GC_REPORT_CRASH() ExecuteCrashReporter(dumpFilename)

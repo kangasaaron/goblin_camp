@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -25,7 +25,7 @@ import { Config } from "./Config.js";
 import { Save } from "./Save.js";
 import { Paths } from "./Paths.js";
 import { Path } from "./Path.js";
-import { FilePath } from "../other/FilePath.js";
+import { FilePath } from "../cplusplus/FilePath.js";
 
 export class Data {
     static instance;
@@ -101,7 +101,7 @@ export class Data {
                     std.back_inserter(sanitized),
 
                     [&invalid](char x) . bool {
-                        return invalid.find(x) != std.string.npos;
+                        return invalid.find(x) !== std.string.npos;
                     }
                 );
             	
@@ -118,7 +118,7 @@ export class Data {
     DoSave(file, result) {
         console.log("Saving game to " + file);
 
-        if ((result = Game.SaveGame(file))) {
+        if ((result = Game.i.SaveGame(file))) {
             Script.Event.GameSaved(file);
         }
     }
@@ -238,7 +238,7 @@ export class Data {
         let file = (this.Paths.Get(Path.Saves) + "/" + save) + ".sav";
         console.log("Loading game from " + file);
 
-        if (!Game.LoadGame(file)) return false;
+        if (!Game.i.LoadGame(file)) return false;
         Script.Event.GameLoaded(file);
 
         return true;
@@ -257,7 +257,7 @@ export class Data {
     SaveGame(save, confirm) {
         let file = this.SanitizeFilename(save);
 
-        if (file.length == 0) {
+        if (file.length === 0) {
             file = "_";
         }
 

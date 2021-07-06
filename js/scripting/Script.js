@@ -13,7 +13,7 @@ export class Script {
             LOG("New listener: " + repr + ".");
         }
 
-        Globals.listeners.push_back(oListener);
+        Globals.listeners.push(oListener);
     }
 
     InvokeListeners(method, args) {

@@ -7,24 +7,19 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
  along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
 
-import {
-	Drawable
-} from "./Drawable.js";
+import { TCOD_alignment_t, TCOD_bkgnd_flag_t, TCODColor } from "../../fakeTCOD/libtcod.js";
+import { Drawable } from "./Drawable.js";
+import { MenuResult } from "./MenuResult.js";
 
 export class Button extends Drawable {
-	text = "";
-	selected = false;
-	shortcut = '';
-	dismiss = false;
-	callback = null;
 	constructor(ntext, ncallback, x, y, nwidth, nshortcut = '', ndismiss = false) {
 		super(x, y, nwidth, 0);
 		this.text = ntext;
@@ -35,7 +30,7 @@ export class Button extends Drawable {
 	}
 
 	Draw(x, y, the_console) {
-		the_console.setBackgroundFlag(TCOD_BKGND_SET);
+		the_console.setBackgroundFlag(TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
 		if (this.selected) {
 			the_console.setDefaultForeground(Color.black);
 			the_console.setDefaultBackground(Color.white);
@@ -43,7 +38,7 @@ export class Button extends Drawable {
 			the_console.setDefaultForeground(Color.white);
 			the_console.setDefaultBackground(Color.black);
 		}
-		the_console.setAlignment(TCOD_CENTER);
+		the_console.setAlignment(TCOD_alignment_t.TCOD_CENTER);
 		the_console.printFrame(x + this._x, y + this._y, this.width, 3);
 		the_console.print(x + this._x + this.width / 2, y + this._y + 1, this.text);
 		the_console.setDefaultForeground(Color.white);
@@ -51,7 +46,7 @@ export class Button extends Drawable {
 	}
 
 	Update(x, y, clicked, key) {
-		if (this.shortcut && (key.c == this.shortcut || key.vk == this.shortcut)) {
+		if (this.shortcut && (key.c === this.shortcut || key.vk === this.shortcut)) {
 			if (this.callback) {
 				this.callback();
 			}

@@ -1,6 +1,3 @@
-import {
-    Color
-} from "../libtcod.js;
 
 export class NatureObjectPreset {
     name = "NATUREOBJECT PRESET";

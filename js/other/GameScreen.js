@@ -16,5 +16,5 @@ export function ActiveAlways() {
 }
 
 export function ActiveIfRunning() {
-    return Game.Running();
+    return Game.i.Running();
 }

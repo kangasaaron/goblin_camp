@@ -7,8 +7,8 @@
  (at your option) any later version.
  
  Goblin Camp is distributed in the hope that it will be useful,
- but WITHOUT ANY WARRANTY; without even the implied warranty of
- MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ but without any warranty; without even the implied warranty of
+ merchantability or fitness for a particular purpose. See the
  GNU General Public License for more details.
  
  You should have received a copy of the GNU General Public License 
@@ -25,7 +25,7 @@ export class ToggleButton extends Button {
         this.isOn = nisOn;
     }
     Draw(x, y, the_console) {
-        the_console.setBackgroundFlag(TCOD_BKGND_SET);
+        the_console.setBackgroundFlag(TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
         if (selected) {
             the_console.setDefaultForeground(Color.black);
             the_console.setDefaultBackground(Color.white);
@@ -33,7 +33,7 @@ export class ToggleButton extends Button {
             the_console.setDefaultForeground(Color.white);
             the_console.setDefaultBackground(this.isOn() ? Color.blue : Color.black);
         }
-        the_console.setAlignment(TCOD_CENTER);
+        the_console.setAlignment(TCOD_alignment_t.TCOD_CENTER);
         the_console.printFrame(x + this._x, y + this._y, this.width, 3);
         the_console.print(x + this._x + this.width / 2, y + this._y + 1, this.text);
         the_console.setDefaultForeground(Color.white);

@@ -7,55 +7,65 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import { Item } from "./Item.js";
+import { Action } from "./jobs/Action.js";
+import { Camp } from "./Camp.js";
+import { Constants } from "./Constants.js";
+import { Construction } from "./constructions/Construction.js";
+import { Game } from "./Game.js";
+import { GameMap } from "./GameMap.js";
+import { Globals } from "./Globals.js";
+import { Item } from "./items/Item.js"; 
+import { Job } from "./jobs/Job.js";
+import { JobManager } from "./jobs/JobManager.js";
+import { JobPriority } from "./jobs/JobPriority.js";
+import { NatureObject } from "./NatureObject.js";
+import { ChooseIndex, Generate } from "./Random.js";
 import { Serializable } from "./data/Serialization.js";
+import { Singletonify } from "./cplusplus/Singleton.js";
+import { Task } from "./jobs/Task.js";
+import { TileType } from "./TileType.js";
 
 export class StockManager extends Serializable {
-
-    /** std.map <ItemCategory, int>**/
-    categoryQuantities = new Map();
-    /** std.map <ItemType, int>**/
-    typeQuantities = new Map();
-    /** std.map <ItemType, int>**/
-    minimums = new Map(); //If minimum is -1, the product isn't available yet
-    /** std.set <ItemType>**/
-    producables = new Set();
-    /** std.set <ItemType>**/
-    dumpables = new Set();
-    /** std.map <ItemType, ConstructionType>**/
-    producers = new Map();
-    /** std.multimap <ConstructionType, boost.weak_ptr < Construction>>**/
-    workshops = new Map();
-    /** std.set <ItemType>**/
-    fromTrees = new Set(); //Trees and stones are a special case, possibly fish in the future as well
-    /** std.set <ItemType>**/
-    fromEarth = new Set();
-    /** std.list <boost.weak_ptr < NatureObject>>**/
-    designatedTrees = [];
-    /** std.list <std.pair < boost.weak_ptr < Job>, boost.weak_ptr < NatureObject>>>**/
-    treeFellingJobs = [];
-    /** std.set <Coordinate>**/
-    designatedBog = new Set();
-    /** std.list <boost.weak_ptr < Job>>**/
-    bogIronJobs = [];
-    /** std.list <boost.weak_ptr < Job>>**/
-    barrelWaterJobs = [];
     //public extends 
 
 
-    static CLASS_VERSION = 1;
-
-
     constructor() {
-        if (StockManager.instance) return StockManager.instance;
         super();
+        /** @type {Map<ItemCategory, int>} **/
+        this.categoryQuantities = new Map();
+        /** @type {Map<ItemType, int>} **/
+        this.typeQuantities = new Map();
+        /** @type {Map<ItemType, int>} **/
+        this.minimums = new Map(); //If minimum is -1, the product isn't available yet
+        /** @type {std.set <ItemType>} **/
+        this.producables = new Set();
+        /** @type {std.set <ItemType>} **/
+        this.dumpables = new Set();
+        /** @type {Map<ItemType, ConstructionType>} **/
+        this.producers = new Map();
+        /** @type {std.multimap <ConstructionType, boost.weak_ptr < Construction>>} **/
+        this.workshops = new Map();
+        /** @type {std.set <ItemType>} **/
+        this.fromTrees = new Set(); //Trees and stones are a special case, possibly fish in the future as well
+        /** @type {std.set <ItemType>} **/
+        this.fromEarth = new Set();
+        /** @type {std.list <boost.weak_ptr < NatureObject>>} **/
+        this.designatedTrees = [];
+        /** @type {std.list <std.pair < boost.weak_ptr < Job>, boost.weak_ptr < NatureObject>>>} **/
+        this.treeFellingJobs = [];
+        /** @type {std.set <Coordinate>} **/
+        this.designatedBog = new Set();
+        /** @type {std.list <boost.weak_ptr < Job>>} **/
+        this.bogIronJobs = [];
+        /** @type {std.list <boost.weak_ptr < Job>>} **/
+        this.barrelWaterJobs = [];
         this.Init();
     }
 
@@ -66,8 +76,8 @@ export class StockManager extends Serializable {
         }
         for (let i = 0; i < Item.Presets.length; ++i) {
             this.typeQuantities.set(i, -1);
-            if (DEBUG) {
-                console.log("Initializing typeQuantity ", Item.ItemTypeToString(i), " to ", typeQuantities[i]);
+            if (Globals.DEBUG) {
+                console.log("Initializing typeQuantity ", Item.ItemTypeToString(i), " to ", this.typeQuantities[i]);
             }
         }
 
@@ -80,10 +90,10 @@ export class StockManager extends Serializable {
             let producerFound = false;
 
             //Bog iron is a hard coded special case, for now. TODO: Think about this
-            if (Item.Presets[itemIndex].name.toLowerCase() == "bog iron" ||
-                Item.Presets[itemIndex].name.toLowerCase() == "water") {
+            if (Item.Presets[itemIndex].name.toLowerCase() === "bog iron" ||
+                Item.Presets[itemIndex].name.toLowerCase() === "water") {
                 this.producables.add(item);
-                if (Item.Presets[itemIndex].name.toLowerCase == "bog iron")
+                if (Item.Presets[itemIndex].name.toLowerCase === "bog iron")
                     this.fromEarth.add(item);
                 producerFound = true;
                 this.UpdateQuantity(item, 0);
@@ -91,7 +101,7 @@ export class StockManager extends Serializable {
 
             for (let cons = 0; cons < Construction.Presets.length; ++cons) { //Look through all constructions
                 for (let prod = 0; prod < Construction.Presets[cons].products.length; ++prod) { //Products
-                    if (Construction.Presets[cons].products[prod] == item) {
+                    if (Construction.Presets[cons].products[prod] === item) {
                         //This construction has this itemtype as a product
                         this.producables.add(item);
                         this.producers.set(item, cons);
@@ -105,7 +115,7 @@ export class StockManager extends Serializable {
                 for (let natObj = 0; natObj < NatureObject.Presets.length; ++natObj) {
                     if (NatureObject.Presets[natObj].tree) {
                         for (let compi of NatureObject.Presets[natObj].components) {
-                            if (compi == item) {
+                            if (compi === item) {
                                 this.producables.add(item);
                                 this.fromTrees.add(item);
                                 this.UpdateQuantity(item, 0);
@@ -127,90 +137,90 @@ export class StockManager extends Serializable {
 
     Update() {
         //Check all ItemTypes
-        for (let type = 0; type < static_cast < int > (Item.Presets.size()); ++type) {
-            let difference = minimums[type] - typeQuantities[type];
-            if (producables.find(type) != producables.end()) {
-                if (minimums[type] > 0 && difference > 0) { //Only consider production if we have a positive minimum
+        for (let type = 0; type < Item.Presets.length(); ++type) {
+            let difference = this.minimums[type] - this.typeQuantities[type];
+            if (this.producables.find(type) !== this.producables.end()) {
+                if (this.minimums[type] > 0 && difference > 0) { //Only consider production if we have a positive minimum
                     difference = Math.max(1, difference / Item.Presets[type].multiplier);
                     //Difference is now equal to how many jobs are required to fulfill the deficit
-                    if (fromTrees.find(type) != fromTrees.end()) { //Item is a component of trees
+                    if (this.fromTrees.find(type) !== this.fromTrees.end()) { //Item is a component of trees
                         //Subtract the amount of active tree felling jobs from the difference
-                        difference -= treeFellingJobs.size();
+                        difference -= this.treeFellingJobs.size();
                         //Pick a designated tree and go chop it
-                        for (let treei = designatedTrees.begin(); treei != designatedTrees.end() && difference > 0; ++treei) {
+                        for (let treei = this.designatedTrees.begin(); treei !== this.designatedTrees.end() && difference > 0; ++treei) {
                             if (!treei.lock()) continue;
 
                             let componentInTree = false;
-                            for (let compi = NatureObject.Presets[treei.lock().Type()].components.begin(); compi != NatureObject.Presets[treei.lock().Type()].components.end(); ++compi) {
-                                if (compi == type) {
+                            for (let compi = NatureObject.Presets[treei.lock().Type()].components.begin(); compi !== NatureObject.Presets[treei.lock().Type()].components.end(); ++compi) {
+                                if (compi === type) {
                                     componentInTree = true;
                                     break;
                                 }
                             }
                             if (componentInTree) {
-                                let fellJob = (new Job("Fell tree", MED, 0, true));
+                                let fellJob = (new Job("Fell tree", JobPriority.MED, 0, true));
                                 fellJob.Attempts(50);
                                 fellJob.ConnectToEntity(treei);
                                 fellJob.DisregardTerritory();
                                 fellJob.SetRequiredTool(Item.StringToItemCategory("Axe"));
-                                fellJob.tasks.push_back(Task(MOVEADJACENT, treei.lock().Position(), treei));
-                                fellJob.tasks.push_back(Task(FELL, treei.lock().Position(), treei));
+                                fellJob.tasks.push(new Task(Action.MOVEADJACENT, treei.lock().Position(), treei));
+                                fellJob.tasks.push(new Task(Action.FELL, treei.lock().Position(), treei));
                                 JobManager.AddJob(fellJob);
                                 --difference;
-                                treeFellingJobs.push_back(
+                                this.treeFellingJobs.push(
                                     fellJob, treei);
-                                treei = designatedTrees.erase(treei);
+                                treei = this.designatedTrees.erase(treei);
                             }
                             // Fix MSVC iterator end overflow
-                            if (treei == designatedTrees.end()) break; // Break out of for loop
+                            if (treei === this.designatedTrees.end()) break; // Break out of for loop
                         }
-                    } else if (fromEarth.find(type) != fromEarth.end()) {
-                        difference -= bogIronJobs.size();
-                        if (designatedBog.size() > 0) {
-                            for (let i = bogIronJobs.size(); i < Math.max(1, (int)(designatedBog.size() / 100)) && difference > 0; ++i) {
-                                let cIndex = Random.ChooseIndex(designatedBog);
-                                let coord = boost.next(designatedBog.begin(), cIndex);
-                                boost.shared_ptr < Job > ironJob(new Job("Gather bog iron", MED, 0, true));
+                    } else if (this.fromEarth.find(type) !== this.fromEarth.end()) {
+                        difference -= this.bogIronJobs.size();
+                        if (this.designatedBog.size() > 0) {
+                            for (let i = this.bogIronJobs.size(); i < Math.max(1, (this.designatedBog.size() / 100)) && difference > 0; ++i) {
+                                let cIndex = ChooseIndex(this.designatedBog);
+                                let coord = boost.next(this.designatedBog.begin(), cIndex);
+                                let ironJob = (new Job("Gather bog iron", JobPriority.MED, 0, true));
                                 ironJob.DisregardTerritory();
-                                ironJob.tasks.push_back(Task(MOVE, coord));
-                                ironJob.tasks.push_back(Task(BOGIRON));
-                                ironJob.tasks.push_back(Task(STOCKPILEITEM));
+                                ironJob.tasks.push(new Task(Action.MOVE, coord));
+                                ironJob.tasks.push(new Task(Action.BOGIRON));
+                                ironJob.tasks.push(new Task(Action.STOCKPILEITEM));
                                 JobManager.AddJob(ironJob);
-                                bogIronJobs.push_back(ironJob);
+                                this.bogIronJobs.push(ironJob);
                                 --difference;
                             }
                         }
-                    } else if (type == Item.StringToItemType("Water")) {
-                        difference -= barrelWaterJobs.size();
+                    } else if (type === Item.StringToItemType("Water")) {
+                        difference -= this.barrelWaterJobs.size();
                         if (difference > 0) {
-                            let waterLocation = Game.FindWater(Camp.Center());
+                            let waterLocation = Game.i.FindWater(Camp.i.Center());
                             if (waterLocation.X() >= 0 && waterLocation.Y() >= 0) {
-                                boost.shared_ptr < Job > barrelWaterJob(new Job("Fill barrel", MED, 0, true));
+                                let barrelWaterJob = (new Job("Fill barrel", JobPriority.MED, 0, true));
                                 barrelWaterJob.DisregardTerritory();
-                                barrelWaterJob.tasks.push_back(Task(FIND, waterLocation, null, Item.StringToItemCategory("Barrel"), EMPTY));
-                                barrelWaterJob.tasks.push_back(Task(MOVE));
-                                barrelWaterJob.tasks.push_back(Task(TAKE));
-                                barrelWaterJob.tasks.push_back(Task(FORGET));
-                                barrelWaterJob.tasks.push_back(Task(MOVEADJACENT, waterLocation));
-                                barrelWaterJob.tasks.push_back(Task(FILL, waterLocation));
-                                barrelWaterJob.tasks.push_back(Task(STOCKPILEITEM));
+                                barrelWaterJob.tasks.push(new Task(Action.FIND, waterLocation, null, Item.StringToItemCategory("Barrel"), Constants.EMPTY));
+                                barrelWaterJob.tasks.push(new Task(Action.MOVE));
+                                barrelWaterJob.tasks.push(new Task(Action.TAKE));
+                                barrelWaterJob.tasks.push(new Task(Action.FORGET));
+                                barrelWaterJob.tasks.push(new Task(Action.MOVEADJACENT, waterLocation));
+                                barrelWaterJob.tasks.push(new Task(Action.FILL, waterLocation));
+                                barrelWaterJob.tasks.push(new Task(Action.STOCKPILEITEM));
                                 JobManager.AddJob(barrelWaterJob);
-                                barrelWaterJobs.push_back(barrelWaterJob);
+                                this.barrelWaterJobs.push(barrelWaterJob);
                             }
                         }
                     } else {
                         //First get all the workshops capable of producing this product
-                        let workshopRange = workshops.equal_range(producers[type]);
+                        let workshopRange = this.workshops.equal_range(this.producers[type]);
                         //By dividing the difference by the amount of workshops we get how many jobs each one should handle
                         let workshopCount = std.distance(workshopRange.first, workshopRange.second);
                         if (workshopCount > 0) {
                             //We clamp this value to 10, no point in queuing up more at a time
                             let jobCount = Math.min(Math.max(1, difference / workshopCount), 10);
                             //Now we just check that each workshop has 'jobCount' amount of jobs for this product
-                            for (let worki = workshopRange.first; worki != workshopRange.second && difference > 0; ++worki) {
+                            for (let worki = workshopRange.first; worki !== workshopRange.second && difference > 0; ++worki) {
                                 let jobsFound = 0;
                                 for (let jobi = 0; jobi < worki.second.lock().JobList().size(); ++jobi) {
-                                    if ((worki.second.lock().JobList())[jobi] == type) {
+                                    if ((worki.second.lock().JobList())[jobi] === type) {
                                         ++jobsFound;
                                         --difference;
                                     }
@@ -218,7 +228,7 @@ export class StockManager extends Serializable {
                                 if (jobsFound < jobCount) {
                                     for (let i = 0; i < jobCount - jobsFound; ++i) {
                                         worki.second.lock().AddJob(type);
-                                        if (Random.Generate(9) < 8) --difference; //Adds a bit of inexactness (see orcyness) to production
+                                        if (Generate(9) < 8) --difference; //Adds a bit of inexactness (see orcyness) to production
                                     }
                                 }
                             }
@@ -227,21 +237,21 @@ export class StockManager extends Serializable {
                 }
             }
 
-            if (dumpables.find(type) != dumpables.end() &&
-                difference < (minimums[type] <= 0 ? 100 : minimums[type]) * -2) {
+            if (this.dumpables.find(type) !== this.dumpables.end() &&
+                difference < (this.minimums[type] <= 0 ? 100 : this.minimums[type]) * -2) {
                 //The item is eligible for dumping and we have a surplus
-                if (Random.Generate(59) == 0) {
-                    let spawningPool;
-                    if (spawningPool = Camp.spawningPool.lock()) {
-                        let dumpJob = (new Job("Dump " + Item.ItemTypeToString(type), LOW));
-                        let item = Game.FindItemByTypeFromStockpiles(type, spawningPool.Position()).lock();
+                if (Generate(59) === 0) {
+                    let spawningPool = Camp.i.spawningPool.lock();
+                    if (spawningPool) {
+                        let dumpJob = (new Job("Dump " + Item.ItemTypeToString(type), JobPriority.LOW));
+                        let item = Game.i.FindItemByTypeFromStockpiles(type, spawningPool.Position()).lock();
                         if (item) {
                             dumpJob.Attempts(1);
                             dumpJob.ReserveEntity(item);
-                            dumpJob.tasks.push_back(Task(MOVE, item.Position()));
-                            dumpJob.tasks.push_back(Task(TAKE, item.Position(), item));
-                            dumpJob.tasks.push_back(Task(MOVEADJACENT, spawningPool.GetContainer().Position()));
-                            dumpJob.tasks.push_back(Task(PUTIN, spawningPool.GetContainer().Position(), spawningPool.GetContainer()));
+                            dumpJob.tasks.push(new Task(Action.MOVE, item.Position()));
+                            dumpJob.tasks.push(new Task(Action.TAKE, item.Position(), item));
+                            dumpJob.tasks.push(new Task(Action.MOVEADJACENT, spawningPool.GetContainer().Position()));
+                            dumpJob.tasks.push(new Task(Action.PUTIN, spawningPool.GetContainer().Position(), spawningPool.GetContainer()));
                             JobManager.AddJob(dumpJob);
                         }
                     }
@@ -250,31 +260,31 @@ export class StockManager extends Serializable {
         }
 
         //We need to check our treefelling jobs for successes and cancellations
-        for (let jobi = treeFellingJobs.begin(); jobi != treeFellingJobs.end();) { //*Phew*
+        for (let jobi = this.treeFellingJobs.begin(); jobi !== this.treeFellingJobs.end();) { //*Phew*
             if (!jobi.first.lock()) {
                 //Job no longer exists, so remove it from our list
                 //If the tree still exists, it means that the job was cancelled, so add
                 //the tree back to our designations.
                 if (jobi.second.lock()) {
-                    designatedTrees.push_back(jobi.second);
+                    this.designatedTrees.push(jobi.second);
                 }
-                jobi = treeFellingJobs.erase(jobi);
+                jobi = this.treeFellingJobs.erase(jobi);
             } else {
                 ++jobi;
             }
         }
 
-        for (let jobi = bogIronJobs.begin(); jobi != bogIronJobs.end();) {
+        for (let jobi = this.bogIronJobs.begin(); jobi !== this.bogIronJobs.end();) {
             if (!jobi.lock()) {
-                jobi = bogIronJobs.erase(jobi);
+                jobi = this.bogIronJobs.erase(jobi);
             } else {
                 ++jobi;
             }
         }
 
-        for (let jobi = barrelWaterJobs.begin(); jobi != barrelWaterJobs.end();) {
+        for (let jobi = this.barrelWaterJobs.begin(); jobi !== this.barrelWaterJobs.end();) {
             if (!jobi.lock()) {
-                jobi = barrelWaterJobs.erase(jobi);
+                jobi = this.barrelWaterJobs.erase(jobi);
             } else {
                 ++jobi;
             }
@@ -283,130 +293,127 @@ export class StockManager extends Serializable {
     UpdateQuantity(type, quantity) {
         //If we receive an update about a new type, it should be made available
         //Constructions issue a 0 quantity update when they are built
-        if (type >= 0 && type < static_cast < int > (Item.Presets.size())) {
-            if (DEBUG) {
-                std.cout << "Quantity update " << Item.ItemTypeToString(type) << "\n";
+        if (type >= 0 && type < Item.Presets.length) {
+            if (Globals.DEBUG) {
+                console.log("Quantity update " , Item.ItemTypeToString(type) , "\n");
             } /*#endif*/
 
-            if (typeQuantities[type] == -1) {
-                typeQuantities[type] = 0;
-                Game.UpdateFarmPlotSeedAllowances(type);
+            if (this.typeQuantities[type] === -1) {
+                this.typeQuantities[type] = 0;
+                Game.i.UpdateFarmPlotSeedAllowances(type);
             }
 
-            typeQuantities[type] += quantity;
-            if (DEBUG) {
-                std.cout << "Type " << type << " quantity now " << typeQuantities[type] << "\n";
+            this.typeQuantities[type] += quantity;
+            if (Globals.DEBUG) {
+                console.log("Type " , type , " quantity now " , this.typeQuantities[type] , "\n");
             } /*#endif*/
-            for (let cati = Item.Presets[type].categories.begin(); cati != Item.Presets[type].categories.end(); ++cati) {
-                if (categoryQuantities[cati] == -1) categoryQuantities[cati] = 0;
-                categoryQuantities[cati] += quantity;
-                if (DEBUG) {
-                    std.cout << Item.ItemCategoryToString(cati) << " " << quantity << "\n";
+            for (let cati = Item.Presets[type].categories.begin(); cati !== Item.Presets[type].categories.end(); ++cati) {
+                if (this.categoryQuantities[cati] === -1) this.categoryQuantities[cati] = 0;
+                this.categoryQuantities[cati] += quantity;
+                if (Globals.DEBUG) {
+                    console.log(Item.ItemCategoryToString(cati) , " " , quantity , "\n");
                 } /*#endif*/
             }
-            if (DEBUG) {
-                std.cout << Item.ItemTypeToString(type) << " " << quantity << "\n";
+            if (Globals.DEBUG) {
+                console.log(Item.ItemTypeToString(type) , " " , quantity , "\n");
             } /*#endif*/
         }
     }
 
-    CategoryQuantity(cat) { return categoryQuantities[cat]; }
-    TypeQuantity(type) { return typeQuantities[type]; }
+    CategoryQuantity(cat) { return this.categoryQuantities[cat]; }
+    TypeQuantity(type) { return this.typeQuantities[type]; }
 
-    Producables() { return producables; }
+    Producables() { return this.producables; }
 
     UpdateWorkshops(cons, add) {
         if (add) {
-            workshops.insert((cons.lock().Type(), cons));
+            this.workshops.insert((cons.lock().Type(), cons));
         } else {
             //Because it is being removed, this has been called from a destructor which means
             //that the construction no longer exists, and the weak_ptr should give !lock
-            for (let worki = workshops.begin(); worki != workshops.end(); ++worki) {
+            for (let worki = this.workshops.begin(); worki !== this.workshops.end(); ++worki) {
                 if (!worki.second.lock()) {
-                    workshops.erase(worki);
+                    this.workshops.erase(worki);
                     break;
                 }
             }
         }
     }
-    Minimum(item) { return minimums[item]; }
+    Minimum(item) { return this.minimums[item]; }
 
     AdjustMinimum(item, value) {
-        minimums[item] += value;
-        if (minimums[item] < 0) minimums[item] = 0;
-    }
-    SetMinimum(item, value) {
-        minimums[item] = Math.max(0, value);
+        this.minimums[item] += value;
+        if (this.minimums[item] < 0) this.minimums[item] = 0;
     }
 
+    SetMinimum(item, value) {
+        this.minimums[item] = Math.max(0, value);
+    }
 
     UpdateTreeDesignations(nObj, add) {
-        let natObj;
-        if (natObj = nObj.lock()) {
-            if (add) {
-                designatedTrees.push_back(natObj);
-            } else {
-                for (let desi = designatedTrees.begin(); desi != designatedTrees.end();) {
-                    //Now that we're iterating through the designations anyway, might as well
-                    //do some upkeeping
-                    if (!desi.lock()) desi = designatedTrees.erase(desi);
-                    else if (desi.lock() == natObj) {
-                        designatedTrees.erase(desi);
-                        break;
-                    } else ++desi;
-                }
-            }
-        }
+        let natObj = nObj.lock();
+        if (!natObj) 
+            return;
+        if (add) {
+            this.designatedTrees.push(natObj);
+            return;
+        } 
+
+        for (let desi of this.designatedTrees) {
+            //Now that we're iterating through the designations anyway, might as well
+            //do some upkeeping
+            if (!desi.lock()) 
+                desi = this.designatedTrees.splice(this.designatedTrees.indexOf(desi),1);
+            else if (desi.lock() === natObj) {
+                this.designatedTrees.splice(this.designatedTrees.indexOf(desi),1);
+                break;
+            } else ++desi;
+        }     
     }
 
     UpdateBogDesignations(coord, add) {
         if (add) {
-            if (Map.GetType(coord) == TILEBOG) {
-                designatedBog.insert(coord);
+            if (GameMap.i.GetType(coord) === TileType.TILEBOG) {
+                this.designatedBog.insert(coord);
             }
-        } else if (!add && designatedBog.find(coord) != designatedBog.end()) {
-            designatedBog.erase(coord);
+        } else if (!add && this.designatedBog.find(coord) !== this.designatedBog.end()) {
+            this.designatedBog.erase(coord);
         }
     }
 
-    static Reset() {
-        this.instance = null;
-        this.instance = new StockManager();
-        return this.instance;
-    }
-
-    save(ar, version) {
-        ar & categoryQuantities;
-        ar & typeQuantities;
-        ar & minimums;
-        ar & producables;
-        ar & producers;
-        ar & workshops;
-        ar & fromTrees;
-        ar & fromEarth;
-        ar & designatedTrees;
-        ar & treeFellingJobs;
-        ar & designatedBog;
-        ar & bogIronJobs;
-        ar & barrelWaterJobs;
+    save(ar, /*version*/) {
+        ar & this.categoryQuantities;
+        ar & this.typeQuantities;
+        ar & this.minimums;
+        ar & this.producables;
+        ar & this.producers;
+        ar & this.workshops;
+        ar & this.fromTrees;
+        ar & this.fromEarth;
+        ar & this.designatedTrees;
+        ar & this.treeFellingJobs;
+        ar & this.designatedBog;
+        ar & this.bogIronJobs;
+        ar & this.barrelWaterJobs;
     }
 
     load(ar, version) {
-        ar & categoryQuantities;
-        ar & typeQuantities;
-        ar & minimums;
-        ar & producables;
-        ar & producers;
-        ar & workshops;
-        ar & fromTrees;
-        ar & fromEarth;
-        ar & designatedTrees;
-        ar & treeFellingJobs;
-        ar & designatedBog;
-        ar & bogIronJobs;
+        ar & this.categoryQuantities;
+        ar & this.typeQuantities;
+        ar & this.minimums;
+        ar & this.producables;
+        ar & this.producers;
+        ar & this.workshops;
+        ar & this.fromTrees;
+        ar & this.fromEarth;
+        ar & this.designatedTrees;
+        ar & this.treeFellingJobs;
+        ar & this.designatedBog;
+        ar & this.bogIronJobs;
         if (version >= 1) {
-            ar & barrelWaterJobs;
+            ar & this.barrelWaterJobs;
         }
     }
 }
-
+StockManager.CLASS_VERSION = 1;
+Singletonify(StockManager);

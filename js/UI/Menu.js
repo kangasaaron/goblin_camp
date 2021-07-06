@@ -7,32 +7,40 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
 along with Goblin Camp. If not, see <http://www.gnu.org/licenses/>.*/
 
-import {
-    MenuChoice
-} from "./MenuChoice.js";
-import {
-    MenuResult
-} from "./MenuResult.js";
-import {
-    Panel
-} from "./Panel.js";
+
+import {AnnounceDialog} from "./AnnounceDialog.js";
+import {Camp} from "../Camp.js";
+import {TCODColor, TCOD_alignment_t, TCOD_bkgnd_flag_t} from "../../fakeTCOD/libtcod.js";
+import {Constants} from "../Constants.js";
+import {Construction} from "../Construction.js";
+import {ConstructionTag} from "../ConstructionTag.js";
+import {Coordinate} from "../Coordinate.js";
+import {Game} from "../Game.js";
+import {GameMap} from "../GameMap.js";
+import {Globals} from "../Globals.js";
+import {JobDialog} from "./JobDialog.js";
+import {MenuChoice} from "./MenuChoice.js";
+import {MenuResult} from "./MenuResult.js";
+import {NPCDialog} from "./NPCDialog.js";
+import {Panel} from "./Panel.js";
+import {SquadsDialog} from "./SquadsDialog.js";
+import {StockManagerDialog} from "./StockManagerDialog.js";
+import {TileType} from "../TileType.js";
+import {TooltipEntry} from "./TooltipEntry.js";
+import {UI} from "./UI.js";
+import {UIState} from "./UIState.js";
 
 class Menu extends Panel {
-    static constructionCategoryMenus = new Map();
-    static menuTier = 0;
-    choices = [];
-    _selected = -1;
-    title = "";
-
-    Menu.Menu(newChoices, ntitle = "") {
+    constructor(newChoices, ntitle = "") {
         super(0, 0);
+        this._selected = -1;
         this.choices = newChoices;
         this.title = ntitle;
         this.CalculateSize();
@@ -65,15 +73,15 @@ class Menu extends Panel {
         if (x <= 0 || y <= 0) return;
         if (x <= this._x || x >= this._x + this.width) return;
         y -= this._y;
-        if (y <= 0 || y >= height) return;
+        if (y <= 0 || y >= this.height) return;
         --y;
         if (y > 0)
             y /= 2;
         this._selected = y;
-        if (y >= this.choices.length || choices[y].tooltip === "") return;
+        if (y >= this.choices.length || this.choices[y].tooltip === "") return;
         tooltip.OffsetPosition((this._x + this.width) - x - 1, 0);
         for (let i = 0; i < this.choices[y].tooltip.length; i += 25) {
-            tooltip.AddEntry(new TooltipEntry(this.choices[y].tooltip.substr(i, 25), Color.white));
+            tooltip.AddEntry(new TooltipEntry(this.choices[y].tooltip.substr(i, 25), TCODColor.white));
         }
     }
 
@@ -84,63 +92,49 @@ class Menu extends Panel {
         }
         if (x <= 0 || y <= 0) return MenuResult.NOMENUHIT;
         if (x <= this._x || x >= this._x + this.width) return MenuResult.NOMENUHIT;
-        y -= _y;
+        y -= this._y;
         if (y <= 0 || y >= this.height) return MenuResult.NOMENUHIT;
         --y;
         if (y > 0) y /= 2;
         this._selected = y;
         if (!this.clicked || !this.choices[y].enabled) return MenuResult.MENUHIT;
 
-        choices[y].callback();
+        this.choices[y].callback();
         return MenuResult.DISMISS | MenuResult.MENUHIT;
     }
     Draw(x, y, the_console) {
-        the_console.setAlignment(TCOD_LEFT);
+        the_console.setAlignment((TCOD_alignment_t.TCOD_LEFT));
         //Draw the box
         if (x + this.width >= the_console.getWidth()) x = Math.max(the_console.getWidth() - this.width - 1, 0);
         if (y + this.height >= the_console.getHeight()) y = Math.max(the_console.getHeight() - this.height - 1, 0);
         this._x = x;
         this._y = y; //Save coordinates of menu top-left corner
-        the_console.printFrame(x, y, this.width, this.height, true, TCOD_BKGND_SET, (this.title.length == 0) ? 0 : this.title);
-        the_console.setBackgroundFlag(TCOD_BKGND_SET);
+        the_console.printFrame(x, y, this.width, this.height, true, TCOD_bkgnd_flag_t.TCOD_BKGND_SET, (this.title.length === 0) ? 0 : this.title);
+        the_console.setBackgroundFlag(TCOD_bkgnd_flag_t.TCOD_BKGND_SET);
         //Draw the menu entries
         for (let i = 0; i < this.choices.length; ++i) {
-            the_console.setDefaultBackground(Color.black);
-            if (UI.KeyHelpTextColor() > 0) {
-                the_console.setDefaultForeground(new Color(0, Math.min(255, UI.KeyHelpTextColor()), 0));
+            the_console.setDefaultBackground(TCODColor.black);
+            if (UI.i.KeyHelpTextColor() > 0) {
+                the_console.setDefaultForeground(new TCODColor(0, Math.min(255, UI.i.KeyHelpTextColor()), 0));
                 the_console.print(x, y + 1 + (i * 2), `${i + 1}`);
             }
-            if (this.choices[i].enabled) the_console.setDefaultForeground(Color.white);
-            else the_console.setDefaultForeground(Color.grey);
-            if (this._selected == i) {
-                the_console.setDefaultBackground(Color.white);
-                the_console.setDefaultForeground(Color.darkerGrey);
+            if (this.choices[i].enabled) the_console.setDefaultForeground(TCODColor.white);
+            else the_console.setDefaultForeground(TCODColor.grey);
+            if (this._selected === i) {
+                the_console.setDefaultBackground(TCODColor.white);
+                the_console.setDefaultForeground(TCODColor.darkerGrey);
             }
             the_console.print(x + 1, y + 1 + (i * 2), this.choices[i].label);
         }
-        the_console.setDefaultForeground(Color.white);
-        the_console.setDefaultBackground(Color.black);
+        the_console.setDefaultForeground(TCODColor.white);
+        the_console.setDefaultBackground(TCODColor.black);
     }
 
-    static mainMenu;
-    static MainMenu();
-    static constructionMenu;
-    static ConstructionMenu();
-    static basicsMenu;
-    static BasicsMenu();
-    static WorkshopsMenu();
-    static ordersMenu;
-    static OrdersMenu();
-    static FurnitureMenu();
-    static ConstructionCategoryMenu();
-    static devMenu;
-    static DevMenu();
-    static territoryMenu;
-    static TerritoryMenu();
-
+    
     // static ItemCategory WeaponChoiceDialog();
     static MainMenu() {
-        if (this.mainMenu && this.menuTier == Camp.GetTier()) return this.mainMenu;
+        if (this.mainMenu && this.menuTier === Camp.i.GetTier()) return this.mainMenu;
+
         if (this.mainMenu) { //Tier has changed
             delete this.mainMenu;
             this.mainMenu = 0;
@@ -151,44 +145,44 @@ class Menu extends Panel {
             if (this.constructionCategoryMenus.size) {
                 for (let iterator of this.constructionCategoryMenus.entries()) {
                     if (iterator[1])
-                        this.constructionCategoryMenus.delete(iterator[0]);
+                    this.constructionCategoryMenus.delete(iterator[0]);
                 }
                 this.constructionCategoryMenus = new Map();
             }
-            this.menuTier = Camp.GetTier();
+            this.menuTier = Camp.i.GetTier();
         }
         this.mainMenu = new Menu([]);
-        if (Game.DevMode())
-            this.mainMenu.AddChoice(new MenuChoice("Dev", UI.ChangeMenu.bind(this, Menu.DevMenu())));
-        this.mainMenu.AddChoice(new MenuChoice("Build", UI.ChangeMenu.bind(this, Menu.ConstructionMenu())));
-        this.mainMenu.AddChoice(new MenuChoice("Dismantle", UI.ChooseDismantle.bind(this)));
-        this.mainMenu.AddChoice(new MenuChoice("Orders", UI.ChangeMenu.bind(this, Menu.OrdersMenu())));
-        this.mainMenu.AddChoice(new MenuChoice("Stock Manager", UI.ChangeMenu.bind(this, StockManagerDialog.StocksDialog())));
-        this.mainMenu.AddChoice(new MenuChoice("Jobs", UI.ChangeMenu.bind(this, JobDialog.JobListingDialog())));
-        if (DEBUG) {
-            this.mainMenu.AddChoice(new MenuChoice("NPC List", UI.ChangeMenu.bind(this, NPCDialog.NPCListDialog())));
+        if (Game.i.DevMode())
+            this.mainMenu.AddChoice(new MenuChoice("Dev", () => UI.i.ChangeMenu(this, Menu.DevMenu())));
+        this.mainMenu.AddChoice(new MenuChoice("Build", () => UI.i.ChangeMenu(this, Menu.ConstructionMenu())));
+        this.mainMenu.AddChoice(new MenuChoice("Dismantle", () => UI.i.ChooseDismantle(this)));
+        this.mainMenu.AddChoice(new MenuChoice("Orders", () => UI.i.ChangeMenu(this, Menu.OrdersMenu())));
+        this.mainMenu.AddChoice(new MenuChoice("Stock Manager", () => UI.i.ChangeMenu(this, StockManagerDialog.StocksDialog())));
+        this.mainMenu.AddChoice(new MenuChoice("Jobs", () => UI.i.ChangeMenu(this, JobDialog.JobListingDialog())));
+        if (Globals.DEBUG) {
+            this.mainMenu.AddChoice(new MenuChoice("NPC List", () => UI.i.ChangeMenu(this, NPCDialog.NPCListDialog())));
         }
-        this.mainMenu.AddChoice(new MenuChoice("Announcements", UI.ChangeMenu.bind(this, AnnounceDialog.AnnouncementsDialog())));
-        this.mainMenu.AddChoice(new MenuChoice("Squads", UI.ChangeMenu.bind(this, SquadsDialog.SquadDialog())));
-        this.mainMenu.AddChoice(new MenuChoice("Territory", UI.ChangeMenu.bind(this, Menu.TerritoryMenu())));
-        this.mainMenu.AddChoice(new MenuChoice("Stats", & Game.bind(this, DisplayStats, Game.Inst())));
-        this.mainMenu.AddChoice(new MenuChoice("Main Menu", Game.ToMainMenu.bind(this, true)));
-        this.mainMenu.AddChoice(new MenuChoice("Quit", Game.Exit.bind(this, true)));
-
+        this.mainMenu.AddChoice(new MenuChoice("Announcements", () => UI.i.ChangeMenu(this, AnnounceDialog.AnnouncementsDialog())));
+        this.mainMenu.AddChoice(new MenuChoice("Squads", () => UI.i.ChangeMenu(this, SquadsDialog.SquadDialog())));
+        this.mainMenu.AddChoice(new MenuChoice("Territory", () => UI.i.ChangeMenu(this, Menu.TerritoryMenu())));
+        this.mainMenu.AddChoice(new MenuChoice("Stats", () => Game.i.DisplayStats(this)));
+        this.mainMenu.AddChoice(new MenuChoice("Main Menu", () => Game.i.ToMainMenu(this, true)));
+        this.mainMenu.AddChoice(new MenuChoice("Quit", () => Game.i.Exit(this, true)));
+        
         return this.mainMenu;
     }
-
+    
     static ConstructionMenu() {
         if (this.constructionMenu) return this.constructionMenu;
         this.constructionMenu = new Menu([]);
         for (let it of Construction.Categories) {
-            this.constructionMenu.AddChoice(new MenuChoice(it, UI.ChangeMenu.bind(this, Menu.ConstructionCategoryMenu(it))));
+            this.constructionMenu.AddChoice(new MenuChoice(it, () => UI.i.ChangeMenu(this, Menu.ConstructionCategoryMenu(it))));
         }
-
+        
         return this.constructionMenu;
     }
-
-    ConstructionCategoryMenu(category) {
+    
+    static ConstructionCategoryMenu(category) {
         let found = this.constructionCategoryMenus.has(category);
         let menu;
         if (found) {
@@ -198,120 +192,132 @@ class Menu extends Panel {
         menu = new Menu([]);
         for (let i = 0; i < Construction.Presets.length; ++i) {
             let preset = Construction.Presets[i];
-            if (boost.iequals(preset.category, category) && preset.tier <= Camp.GetTier() + 1) {
-                if (preset.tags[STOCKPILE] || preset.tags[FARMPLOT]) {
-                    menu.AddChoice(MenuChoice(preset.name, boost.bind(UI.ChooseStockpile, i), preset.tier <= Camp.GetTier(), preset.description));
+            if ((preset.category.toLowerCase() === category.toLowerCase()) && preset.tier <= Camp.i.GetTier() + 1) {
+                if (preset.tags[ConstructionTag.STOCKPILE] || preset.tags[ConstructionTag.FARMPLOT]) {
+                    menu.AddChoice(new MenuChoice(preset.name, () => UI.i.ChooseStockpile(i), preset.tier <= Camp.i.GetTier(), preset.description));
                 } else {
-                    UIState placementType = UIPLACEMENT;
-                    if (preset.placementType > 0 && preset.placementType < UICOUNT) {
-                        placementType = (UIState) preset.placementType;
+                    let placementType = UIState.UIPLACEMENT;
+                    if (preset.placementType > 0 && preset.placementType < UIState.UICOUNT) {
+                        placementType = preset.placementType;
                     }
-                    menu.AddChoice(MenuChoice(preset.name, boost.bind(UI.ChooseConstruct, i, placementType), preset.tier <= Camp.GetTier(), preset.description));
+                    menu.AddChoice(new MenuChoice(preset.name, () => UI.i.ChooseConstruct(i, placementType), preset.tier <= Camp.i.GetTier(), preset.description));
                 }
             }
         }
         this.constructionCategoryMenus.set(category, menu);
-
+        
         return menu;
     }
-
-    Menu * Menu.BasicsMenu() {
-        return ConstructionCategoryMenu("Basics");
+    static BasicsMenu() {
+        return this.ConstructionCategoryMenu("Basics");
+    }
+    static WorkshopsMenu() {
+        return this.ConstructionCategoryMenu("Workshops");
     }
 
-    Menu * Menu.WorkshopsMenu() {
-        return ConstructionCategoryMenu("Workshops");
+    static FurnitureMenu() {
+        return this.ConstructionCategoryMenu("Furniture");
     }
 
-    Menu * Menu.FurnitureMenu() {
-        return ConstructionCategoryMenu("Furniture");
+    static OrdersMenu() {
+        if(this.ordersMenu) return this.ordersMenu;
+        
+        this.ordersMenu = new Menu([]);
+
+        let checkDitch = (target, size) => Game.i.CheckTileType(TileType.TILEDITCH,target,size);
+        let rectCall = (a,b) => Game.i.FillDitch(a,b);
+
+        this.ordersMenu.AddChoice(new MenuChoice("Fell trees", () => UI.i.ChooseTreeFelling()));
+        this.ordersMenu.AddChoice(new MenuChoice("Designate trees", () => UI.i.ChooseDesignateTree()));
+        this.ordersMenu.AddChoice(new MenuChoice("Harvest wild plants", () => UI.i.ChoosePlantHarvest()));
+        this.ordersMenu.AddChoice(new MenuChoice("Dig", () => UI.i.ChooseDig()));
+        this.ordersMenu.AddChoice(new MenuChoice("Fill ditches", () => UI.i.ChooseRectPlacement( rectCall, checkDitch, 178, "Fill ditches")));
+        this.ordersMenu.AddChoice(new MenuChoice("Designate bog for iron", () => UI.i.ChooseDesignateBog()));
+        this.ordersMenu.AddChoice(new MenuChoice("Gather items", () => UI.i.ChooseGatherItems()));
+
+        let checkTree = () => Game.i.CheckTree(new Coordinate(1, 1));
+
+        rectCall = (_1, _2) => Camp.i.AddWaterZone(_1, _2);
+        this.ordersMenu.AddChoice(new MenuChoice("Pour water", () => UI.i.ChooseRectPlacement( rectCall, checkTree, 'W', "Pour water")));
+
+        let call = (_1) => Game.i.StartFire(_1);
+        this.ordersMenu.AddChoice(new MenuChoice("Start fire", () => UI.i.ChooseNormalPlacement(call, checkTree, 'F', "Start fire")));
+
+        this.ordersMenu.AddChoice(new MenuChoice("Undesignate", () => UI.i.ChooseUndesignate()));
+    
+        return this.ordersMenu;
     }
 
-    Menu * Menu.OrdersMenu() {
-        if (!ordersMenu) {
-            ordersMenu = new Menu(std.vector < MenuChoice > ());
+    
+    DevMenu() {
+        if(this.devMenu) return this.devMenu;
+        
+        this.devMenu = new Menu([]);
 
-            boost.function < bool(Coordinate, Coordinate) > checkDitch = boost.bind(Game.CheckTileType, TILEDITCH, _1, _2);
-            boost.function < void(Coordinate, Coordinate) > rectCall = boost.bind(Game.FillDitch, _1, _2);
+        this.devMenu.AddChoice(new MenuChoice("Create NPC", () => UI.i.ChooseCreateNPC()));
+        this.devMenu.AddChoice(new MenuChoice("Create item", () => UI.i.ChooseCreateItem()));
 
-            ordersMenu.AddChoice(MenuChoice("Fell trees", boost.bind(UI.ChooseTreeFelling)));
-            ordersMenu.AddChoice(MenuChoice("Designate trees", boost.bind(UI.ChooseDesignateTree)));
-            ordersMenu.AddChoice(MenuChoice("Harvest wild plants", boost.bind(UI.ChoosePlantHarvest)));
-            ordersMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseDig)));
-            ordersMenu.AddChoice(MenuChoice("Fill ditches", boost.bind(UI.ChooseRectPlacement, rectCall, checkDitch, 178, "Fill ditches")));
-            ordersMenu.AddChoice(MenuChoice("Designate bog for iron", boost.bind(UI.ChooseDesignateBog)));
-            ordersMenu.AddChoice(MenuChoice("Gather items", boost.bind(UI.ChooseGatherItems)));
+        let checkTree = (_1) => Game.i.CheckTree(_1, new Coordinate(1, 1));
+        let call = (_1) => Game.i.CreateFilth(_1, 100);
+        this.devMenu.AddChoice(new MenuChoice("Create filth", () => UI.i.ChooseNormalPlacement(call, checkTree), '~', "Filth"));
 
-            boost.function < bool(Coordinate, Coordinate) > checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1, 1));
-            rectCall = boost.bind( & Camp.AddWaterZone, Camp.Inst(), _1, _2);
-            ordersMenu.AddChoice(MenuChoice("Pour water", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'W', "Pour water")));
+        call = (_1) => Game.i.CreateWater( _1);
+        this.devMenu.AddChoice(new MenuChoice("Create water", () => UI.i.ChooseNormalPlacement(call, checkTree), '~', "Water"));
 
-            boost.function < void(Coordinate) > call = boost.bind( & Game.StartFire, Game.Inst(), _1);
-            ordersMenu.AddChoice(MenuChoice("Start fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'F', "Start fire")));
+        call = (_1) => GameMap.i.Corrupt( _1, 500000);
+        this.devMenu.AddChoice(new MenuChoice("Corrupt", () => UI.i.ChooseNormalPlacement(call, checkTree), 'C', "Corrupt"));
 
-            ordersMenu.AddChoice(MenuChoice("Undesignate", boost.bind(UI.ChooseUndesignate)));
-        }
-        return ordersMenu;
+        this.devMenu.AddChoice(new MenuChoice("Naturify world", () => UI.i.ChooseNaturify()));
+
+        let rectCall = (_1, _2) => Game.i.RemoveNatureObject(_1, _2);
+        this.devMenu.AddChoice(new MenuChoice("Remove NatureObjects", () => UI.i.ChooseRectPlacement(rectCall, checkTree), 'R', "Remove NatureObjects"));
+        this.devMenu.AddChoice(new MenuChoice("Trigger attack", () => Game.i.TriggerAttack()));
+        this.devMenu.AddChoice(new MenuChoice("Trigger migration", () => Game.i.TriggerMigration()));
+
+        call = (_1) => Game.i.Damage(_1);
+        this.devMenu.AddChoice(new MenuChoice("Explode", () => UI.i.ChooseNormalPlacement(call, checkTree), 'E', "Explode"));
+
+        call = (_1) => Game.i.Hungerize(_1);
+        this.devMenu.AddChoice(new MenuChoice("Hungerize", () => UI.i.ChooseNormalPlacement(call, checkTree), 'H', "Hunger"));
+
+        call = (_1) => Game.i.Tire(_1);
+        this.devMenu.AddChoice(new MenuChoice("Tire", () => UI.i.ChooseNormalPlacement(call, checkTree), 'T', "Tire"));
+
+        call = (_1) => Game.i.CreateFire(_1);
+        this.devMenu.AddChoice(new MenuChoice("Fire", () => UI.i.ChooseNormalPlacement(call, checkTree), '!', "Fire"));
+
+        call = (_1) => Game.i.CreateDitch(_1);
+        this.devMenu.AddChoice(new MenuChoice("Dig", () => UI.i.ChooseABPlacement(call, checkTree), '_', "Dig"));
+
+        call = (_1) => Game.i.Thirstify(_1);
+        this.devMenu.AddChoice(new MenuChoice("Thirstify", () => UI.i.ChooseNormalPlacement(call, checkTree), 'T', "Thirst"));
+        call = (_1) => Game.i.Badsleepify(_1);
+        this.devMenu.AddChoice(new MenuChoice("Badsleepify", () => UI.i.ChooseNormalPlacement(call, checkTree), 'T', "Bad sleep"));
+
+        call = (_1) => Game.i.Diseasify(_1);
+        this.devMenu.AddChoice(new MenuChoice("Diseasify", () => UI.i.ChooseNormalPlacement(call, checkTree), 'D', "Disease"));
+    
+        return this.devMenu;
     }
 
-    Menu * Menu.DevMenu() {
-        if (!devMenu) {
-            devMenu = new Menu(std.vector < MenuChoice > ());
-
-            devMenu.AddChoice(MenuChoice("Create NPC", boost.bind(UI.ChooseCreateNPC)));
-            devMenu.AddChoice(MenuChoice("Create item", boost.bind(UI.ChooseCreateItem)));
-
-            boost.function < bool(Coordinate, Coordinate) > checkTree = boost.bind(Game.CheckTree, _1, Coordinate(1, 1));
-            boost.function < void(Coordinate) > call = boost.bind( & Game.CreateFilth, Game.Inst(), _1, 100);
-            devMenu.AddChoice(MenuChoice("Create filth", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Filth")));
-
-            call = boost.bind( & Game.CreateWater, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Create water", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '~', "Water")));
-
-            call = boost.bind( & Map.Corrupt, Map.Inst(), _1, 500000);
-            devMenu.AddChoice(MenuChoice("Corrupt", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'C', "Corrupt")));
-
-            devMenu.AddChoice(MenuChoice("Naturify world", boost.bind(UI.ChooseNaturify)));
-
-            boost.function < void(Coordinate, Coordinate) > rectCall = boost.bind( & Game.RemoveNatureObject, Game.Inst(), _1, _2);
-            devMenu.AddChoice(MenuChoice("Remove NatureObjects", boost.bind(UI.ChooseRectPlacement, rectCall, checkTree, 'R', "Remove NatureObjects")));
-            devMenu.AddChoice(MenuChoice("Trigger attack", boost.bind( & Game.TriggerAttack, Game.Inst())));
-            devMenu.AddChoice(MenuChoice("Trigger migration", boost.bind( & Game.TriggerMigration, Game.Inst())));
-
-            call = boost.bind( & Game.Damage, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Explode", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'E', "Explode")));
-
-            call = boost.bind( & Game.Hungerize, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Hungerize", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'H', "Hunger")));
-
-            call = boost.bind( & Game.Tire, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Tire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Tire")));
-
-            call = boost.bind( & Game.CreateFire, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Fire", boost.bind(UI.ChooseNormalPlacement, call, checkTree, '!', "Fire")));
-
-            call = boost.bind( & Game.CreateDitch, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Dig", boost.bind(UI.ChooseABPlacement, call, checkTree, '_', "Dig")));
-
-            call = boost.bind( & Game.Thirstify, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Thirstify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Thirst")));
-            call = boost.bind( & Game.Badsleepify, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Badsleepify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'T', "Bad sleep")));
-
-            call = boost.bind( & Game.Diseasify, Game.Inst(), _1);
-            devMenu.AddChoice(MenuChoice("Diseasify", boost.bind(UI.ChooseNormalPlacement, call, checkTree, 'D', "Disease")));
-        }
-        return devMenu;
+    static TerritoryMenu() {
+        if(this.territoryMenu) return this.territoryMenu;
+        
+        this.territoryMenu = new Menu([]);
+        this.territoryMenu.AddChoice(new MenuChoice("Toggle territory overlay", () => GameMap.i.ToggleOverlay(Constants.TERRITORY_OVERLAY)));
+        this.territoryMenu.AddChoice(new MenuChoice("Expand territory", () => UI.i.ChooseChangeTerritory(true)));
+        this.territoryMenu.AddChoice(new MenuChoice("Shrink territory", () => UI.i.ChooseChangeTerritory(false)));
+        this.territoryMenu.AddChoice(new MenuChoice("Toggle automatic territory",   () => Camp.i.ToggleAutoTerritory()));
+    
+        return this.territoryMenu;
     }
-
-
-    Menu * Menu.TerritoryMenu() {
-        if (!territoryMenu) {
-            territoryMenu = new Menu(std.vector < MenuChoice > ());
-            territoryMenu.AddChoice(MenuChoice("Toggle territory overlay", boost.bind( & Map.ToggleOverlay, Map.Inst(), TERRITORY_OVERLAY)));
-            territoryMenu.AddChoice(MenuChoice("Expand territory", boost.bind(UI.ChooseChangeTerritory, true)));
-            territoryMenu.AddChoice(MenuChoice("Shrink territory", boost.bind(UI.ChooseChangeTerritory, false)));
-            territoryMenu.AddChoice(MenuChoice("Toggle automatic territory", boost.bind( & Camp.ToggleAutoTerritory, Camp.Inst())));
-        }
-        return territoryMenu;
-    }
+}
+    
+Menu.constructionCategoryMenus = new Map();
+Menu.menuTier = 0;
+Menu.mainMenu;
+Menu.constructionMenu;
+Menu.basicsMenu;
+Menu.ordersMenu;
+Menu.devMenu;
+Menu.territoryMenu;

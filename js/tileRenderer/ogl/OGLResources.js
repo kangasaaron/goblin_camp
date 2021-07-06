@@ -7,8 +7,8 @@ the Free Software Foundation, either version 3 of the License, or
 (at your option) any later version.
 
 Goblin Camp is distributed in the hope that it will be useful,
-but WITHOUT ANY WARRANTY; without even the implied warranty of
-MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+but without any warranty; without even the implied warranty of
+merchantability or fitness for a particular purpose. See the
 GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License 
@@ -107,14 +107,14 @@ class OGLResources {
     static CreateOGLShaderProgram(vertShaderCode, fragShaderCode) {
             /**boost.shared_ptr <const unsigned int > */
             let vertShader = (CreateOGLShader(vertShaderCode, GL_VERTEX_SHADER));
-            if (vertShader == 0) {
+            if (vertShader === 0) {
                 // return boost.shared_ptr <const unsigned int > ();
                 return null;
             }
 
             // boost.shared_ptr < const unsigned int > fragShader(CreateOGLShader(fragShaderCode, GL_FRAGMENT_SHADER));
             let fragShader = (CreateOGLShader(fragShaderCode, GL_FRAGMENT_SHADER));
-            if (fragShader == 0) {
+            if (fragShader === 0) {
                 // return boost.shared_ptr <const unsigned int > ();
                 return null;
             }
@@ -137,7 +137,7 @@ class OGLResources {
 
             let success = 0;
             glGetObjectParameterivARB(program, GL_LINK_STATUS, success);
-            if (success != GL_TRUE) {
+            if (success !== GL_TRUE) {
                 /* something went wrong */
                 let infologLength = 0;
                 glGetObjectParameterivARB(program, GL_INFO_LOG_LENGTH, infologLength);
@@ -173,7 +173,7 @@ class OGLResources {
 
         let success = 0;
         glGetObjectParameterivARB(shaderPtr, GL_COMPILE_STATUS, success);
-        if (success != GL_TRUE) {
+        if (success !== GL_TRUE) {
             /* something went wrong */
             let infologLength = 0;
             glGetObjectParameterivARB(shaderPtr, GL_INFO_LOG_LENGTH, infologLength);
