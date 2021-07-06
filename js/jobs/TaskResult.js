@@ -1,17 +1,17 @@
 import {
-    Enum
-} from "../cplusplus/Enums.js";
+  Enumify
+} from '../cplusplus/Enums.js'
 /**
  * @constant
  * @type {Enum}
  * @enum {TaskResult}
  */
-export class TaskResult extends Enum {
-    static TASKSUCCESS;
-    static TASKFAILNONFATAL;
-    static TASKFAILFATAL;
-    static TASKCONTINUE;
-    static TASKOWNDONE;
-    static PATHEMPTY;
+export const TaskResult = {
+  TASKSUCCESS: null,
+  TASKFAILNONFATAL: null,
+  TASKFAILFATAL: null,
+  TASKCONTINUE: null,
+  TASKOWNDONE: null,
+  PATHEMPTY: null
 }
-TaskResult.enumify();
+Enumify(TaskResult)

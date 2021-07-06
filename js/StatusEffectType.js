@@ -1,39 +1,39 @@
 import {
-    Enum
-} from "./cplusplus/Enums.js";
+  Enumify
+} from './cplusplus/Enums.js'
 /**
  * @enum
  */
-export class StatusEffectType extends Enum {
-    static HUNGER;
-    static THIRST;
-    static PANIC;
-    static CONCUSSION;
-    static DROWSY;
-    static SLEEPING;
-    static POISON;
-    static BLEEDING;
-    static FLYING;
-    static BADSLEEP;
-    static RAGE;
-    static SWIM;
-    static EATING;
-    static DRINKING;
-    static CARRYING;
-    static WORKING;
-    static BURNING;
-    static CRACKEDSKULLEFFECT;
-    static INVIGORATED;
-    static DRUNK;
-    static HEALING;
-    static HELPLESS;
-    static HIGHGROUND;
-    static TRIPPED;
-    static BRAVE;
-    static COLLYWOBBLES;
-    static DROOPS;
-    static RATTLES;
-    static CHILLS;
-    static STATUS_EFFECT_COUNT;
-};
-StatusEffectType.enumify();
+export const StatusEffectType = {
+  HUNGER: null,
+  THIRST: null,
+  PANIC: null,
+  CONCUSSION: null,
+  DROWSY: null,
+  SLEEPING: null,
+  POISON: null,
+  BLEEDING: null,
+  FLYING: null,
+  BADSLEEP: null,
+  RAGE: null,
+  SWIM: null,
+  EATING: null,
+  DRINKING: null,
+  CARRYING: null,
+  WORKING: null,
+  BURNING: null,
+  CRACKEDSKULLEFFECT: null,
+  INVIGORATED: null,
+  DRUNK: null,
+  HEALING: null,
+  HELPLESS: null,
+  HIGHGROUND: null,
+  TRIPPED: null,
+  BRAVE: null,
+  COLLYWOBBLES: null,
+  DROOPS: null,
+  RATTLES: null,
+  CHILLS: null,
+  STATUS_EFFECT_COUNT: null
+}
+Enumify(StatusEffectType)
